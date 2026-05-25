@@ -1,0 +1,9 @@
+# 빌드 산출물
+ieum
+*.o
+*.out
+
+# 에디터 / OS
+.vscode/
+.idea/
+.DS_Store
