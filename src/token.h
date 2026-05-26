@@ -13,7 +13,7 @@ enum class TokenType {
     DONGAHN,    // 동안
     BEON,       // 번
     CHULRYUK,   // 출력
-    JAMSU,      // 잠수 (함수, 추후 확장용)
+    HAMSU,      // 함수, 추후 확장용
 
     // 리터럴
     NUMBER,     // 숫자
