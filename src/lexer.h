@@ -8,8 +8,9 @@
 
 // ── 렉서 ───────────────────────────────────────────────
 // 소스 문자열을 토큰 시퀀스로 변환한다.
-// 한글은 UTF-8에서 3바이트로 표현되므로, 바이트 단위가 아닌
-// 문자(rune) 단위로 식별자/키워드를 읽는다.
+// 1학기 범위: 구조 선언만 다루므로 인식 대상은
+//   키워드(module/depends/layer/above), 식별자, 쉼표, 줄바꿈 뿐이다.
+// 식별자 규칙: [A-Za-z_][A-Za-z0-9_]* (영어 전용).
 class Lexer {
 public:
     Lexer(const std::string& source) : src(source), pos(0), line(1) {}
@@ -21,7 +22,7 @@ public:
             skipWhitespace();
             if (pos >= src.size()) break;
 
-            // 줄바꿈
+            // 줄바꿈 — 선언 구분자
             if (src[pos] == '\n') {
                 tokens.push_back(Token(TokenType::NEWLINE, "\\n", line));
                 line++;
@@ -35,27 +36,15 @@ public:
                 continue;
             }
 
-            // 문자열 리터럴
-            if (src[pos] == '"') {
-                tokens.push_back(readString());
+            // 쉼표 — 의존 대상 나열
+            if (src[pos] == ',') {
+                tokens.push_back(Token(TokenType::COMMA, ",", line));
+                pos++;
                 continue;
             }
 
-            // 숫자
-            if (isDigit(src[pos])) {
-                tokens.push_back(readNumber());
-                continue;
-            }
-
-            // 연산자 / 기호
-            Token opToken = tryReadOperator();
-            if (opToken.type != TokenType::UNKNOWN) {
-                tokens.push_back(opToken);
-                continue;
-            }
-
-            // 한글 식별자 or 키워드
-            if (isHangulOrAlpha(pos)) {
+            // 단어 (키워드 or 식별자)
+            if (isIdentStart(pos)) {
                 tokens.push_back(readWord());
                 continue;
             }
@@ -75,99 +64,35 @@ private:
     int line;
 
     // ── 헬퍼 ─────────────────────────────────────────
-    bool isDigit(char c) { return c >= '0' && c <= '9'; }
-
     void skipWhitespace() {
         while (pos < src.size() && (src[pos] == ' ' || src[pos] == '\t' || src[pos] == '\r'))
             pos++;
     }
 
-    // UTF-8에서 한글은 3바이트 (0xEA~0xED로 시작)
-    bool isHangulStart(size_t p) {
-        if (p + 2 >= src.size()) return false;
+    // 식별자 첫 글자: 영문자 또는 밑줄
+    bool isIdentStart(size_t p) {
         unsigned char c = src[p];
-        return (c >= 0xEA && c <= 0xED);
+        return std::isalpha(c) || c == '_';
     }
 
-    bool isHangulOrAlpha(size_t p) {
-        return isHangulStart(p) || isalpha(static_cast<unsigned char>(src[p])) || src[p] == '_';
-    }
-
-    // 다음 한글 or 알파벳 문자(rune) 읽기
-    std::string readRune() {
-        if (isHangulStart(pos)) {
-            std::string ch = src.substr(pos, 3);
-            pos += 3;
-            return ch;
-        }
-        return std::string(1, src[pos++]);
-    }
-
-    // ── 숫자 읽기 ─────────────────────────────────────
-    Token readNumber() {
-        size_t start = pos;
-        while (pos < src.size() && (isDigit(src[pos]) || src[pos] == '.'))
-            pos++;
-        return Token(TokenType::NUMBER, src.substr(start, pos - start), line);
-    }
-
-    // ── 문자열 읽기 ───────────────────────────────────
-    Token readString() {
-        pos++; // 여는 "
-        std::string result;
-        while (pos < src.size() && src[pos] != '"') {
-            if (src[pos] == '\\' && pos + 1 < src.size()) {
-                pos++;
-                if (src[pos] == 'n') result += '\n';
-                else result += src[pos];
-                pos++;
-            } else {
-                result += src[pos++];
-            }
-        }
-        if (pos < src.size()) pos++; // 닫는 "
-        return Token(TokenType::STRING, result, line);
-    }
-
-    // ── 연산자 읽기 ───────────────────────────────────
-    Token tryReadOperator() {
-        char c = src[pos];
-        char next = (pos + 1 < src.size()) ? src[pos + 1] : '\0';
-
-        if (c == '=' && next == '=') { pos += 2; return Token(TokenType::EQ,     "==", line); }
-        if (c == '!' && next == '=') { pos += 2; return Token(TokenType::NEQ,    "!=", line); }
-        if (c == '<' && next == '=') { pos += 2; return Token(TokenType::LTE,    "<=", line); }
-        if (c == '>' && next == '=') { pos += 2; return Token(TokenType::GTE,    ">=", line); }
-        if (c == '=')  { pos++; return Token(TokenType::ASSIGN, "=",  line); }
-        if (c == '+')  { pos++; return Token(TokenType::PLUS,   "+",  line); }
-        if (c == '-')  { pos++; return Token(TokenType::MINUS,  "-",  line); }
-        if (c == '*')  { pos++; return Token(TokenType::STAR,   "*",  line); }
-        if (c == '/')  { pos++; return Token(TokenType::SLASH,  "/",  line); }
-        if (c == '<')  { pos++; return Token(TokenType::LT,     "<",  line); }
-        if (c == '>')  { pos++; return Token(TokenType::GT,     ">",  line); }
-        if (c == '(')  { pos++; return Token(TokenType::LPAREN, "(",  line); }
-        if (c == ')')  { pos++; return Token(TokenType::RPAREN, ")",  line); }
-        if (c == ':')  { pos++; return Token(TokenType::COLON,  ":",  line); }
-
-        return Token(TokenType::UNKNOWN, "", line);
+    // 식별자 이후 글자: 영문자, 숫자, 밑줄
+    bool isIdentPart(size_t p) {
+        unsigned char c = src[p];
+        return std::isalnum(c) || c == '_';
     }
 
     // ── 단어(키워드 or 식별자) 읽기 ──────────────────
     Token readWord() {
-        std::string word;
-        while (pos < src.size() && isHangulOrAlpha(pos))
-            word += readRune();
+        size_t start = pos;
+        while (pos < src.size() && isIdentPart(pos))
+            pos++;
+        std::string word = src.substr(start, pos - start);
 
-        // 키워드 매핑
-        if (word == "만약")   return Token(TokenType::MANYAK,     word, line);
-        if (word == "이면")   return Token(TokenType::IMYEON,     word, line);
-        if (word == "아니면") return Token(TokenType::ANIMYEON,   word, line);
-        if (word == "반복")   return Token(TokenType::BABOK,      word, line);
-        if (word == "동안")   return Token(TokenType::DONGAHN,    word, line);
-        if (word == "번")     return Token(TokenType::BEON,       word, line);
-        if (word == "출력")   return Token(TokenType::CHULRYUK,   word, line);
-        if (word == "참")     return Token(TokenType::BOOL_TRUE,  word, line);
-        if (word == "거짓")   return Token(TokenType::BOOL_FALSE, word, line);
+        // 키워드 매핑 (구조 선언 전용)
+        if (word == "module")  return Token(TokenType::MODULE,  word, line);
+        if (word == "depends") return Token(TokenType::DEPENDS, word, line);
+        if (word == "layer")   return Token(TokenType::LAYER,   word, line);
+        if (word == "above")   return Token(TokenType::ABOVE,   word, line);
 
         return Token(TokenType::IDENTIFIER, word, line);
     }
