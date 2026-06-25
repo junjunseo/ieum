@@ -1,7 +1,10 @@
 # 빌드 산출물
 ieum
+ieum.exe
 *.o
 *.out
+*.exe
+build/
 
 # 에디터 / OS
 .vscode/

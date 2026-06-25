@@ -1,50 +1,72 @@
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include "token.h"
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
+#include "checker.h"
 
-void dump(const Program& prog) {
-    std::cout << "── 모듈 (" << prog.modules.size() << ") ──\n";
-    for (const auto& m : prog.modules) {
-        std::cout << "  module " << m.name;
-        if (!m.deps.empty()) {
-            std::cout << " depends ";
-            for (size_t i = 0; i < m.deps.size(); i++) {
-                std::cout << m.deps[i];
-                if (i + 1 < m.deps.size()) std::cout << ", ";
-            }
-        }
-        std::cout << "  (line " << m.line << ")\n";
-    }
-    std::cout << "── 계층 (" << prog.layers.size() << ") ──\n";
-    for (const auto& l : prog.layers) {
-        std::cout << "  layer " << l.upper << " above " << l.lower
-                  << "  (line " << l.line << ")\n";
+namespace {
+
+int passed = 0;
+int failed = 0;
+
+void expect(bool condition, const std::string& name) {
+    if (condition) {
+        std::cout << "[통과] " << name << "\n";
+        passed++;
+    } else {
+        std::cerr << "[실패] " << name << "\n";
+        failed++;
     }
 }
 
+Program parse(const std::string& source) {
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    return parser.parse();
+}
+
+} // namespace
+
 int main() {
-    std::string source =
-        "# Ieum structure declaration example\n"
-        "module domain\n"
-        "module ui depends domain\n"
-        "module infra depends domain, ui\n"
-        "module payment depends domain\n"
+    const std::string validSource =
+        "# 주석과 빈 줄도 처리한다\n"
         "\n"
-        "layer ui above domain\n";
+        "module domain\n"
+        "module service depends domain\n"
+        "module ui depends service\n"
+        "layer ui above service\n"
+        "layer service above domain\n";
 
     try {
-        Lexer lexer(source);
-        auto tokens = lexer.tokenize();
+        Program prog = parse(validSource);
+        expect(prog.modules.size() == 3, "Lexer → Parser 모듈 변환");
+        expect(prog.layers.size() == 2, "Lexer → Parser 계층 변환");
 
-        Parser parser(tokens);
-        Program prog = parser.parse();
-        dump(prog);
+        Checker checker(prog);
+        expect(checker.check().empty(), "정상 구조 전체 파이프라인 통과");
     } catch (const std::exception& e) {
-        std::cerr << e.what() << "\n";
-        return 1;
+        std::cerr << "[실패] 정상 파이프라인 예외: " << e.what() << "\n";
+        failed++;
     }
-    return 0;
+
+    try {
+        parse("module ui @ domain\n");
+        expect(false, "알 수 없는 문자 포함 문법 거부");
+    } catch (const std::runtime_error&) {
+        expect(true, "알 수 없는 문자 포함 문법 거부");
+    }
+
+    try {
+        parse("module ui depends\n");
+        expect(false, "불완전한 의존 선언 거부");
+    } catch (const std::runtime_error&) {
+        expect(true, "불완전한 의존 선언 거부");
+    }
+
+    std::cout << "\n통합 테스트: " << passed << "개 통과, "
+              << failed << "개 실패\n";
+    return failed == 0 ? 0 : 1;
 }

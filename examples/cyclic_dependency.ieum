@@ -1,0 +1,3 @@
+# 실패: order -> payment -> order 순환이 생긴다.
+module order depends payment
+module payment depends order

@@ -1,0 +1,2 @@
+# 실패: notification 모듈이 선언되지 않았다.
+module ui depends notification

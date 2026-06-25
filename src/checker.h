@@ -72,11 +72,10 @@ private:
         std::unordered_set<std::string> visited;   // 방문 완료
         std::unordered_set<std::string> inStack;   // 현재 DFS 경로상
         std::vector<std::string> path;
-        bool reported = false;
 
         for (const auto& m : prog_.modules) {
             if (visited.find(m.name) == visited.end()) {
-                dfs(m.name, visited, inStack, path, out, reported);
+                dfs(m.name, visited, inStack, path, out);
             }
         }
     }
@@ -85,8 +84,7 @@ private:
              std::unordered_set<std::string>& visited,
              std::unordered_set<std::string>& inStack,
              std::vector<std::string>& path,
-             std::vector<Violation>& out,
-             bool& reported) {
+             std::vector<Violation>& out) {
         visited.insert(node);
         inStack.insert(node);
         path.push_back(node);
@@ -110,7 +108,7 @@ private:
                         moduleLine_.count(dep) ? moduleLine_[dep] : 0
                     });
                 } else if (visited.find(dep) == visited.end()) {
-                    dfs(dep, visited, inStack, path, out, reported);
+                    dfs(dep, visited, inStack, path, out);
                 }
             }
         }

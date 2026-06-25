@@ -1,0 +1,5 @@
+# 실패: 하위 계층 data가 상위 계층 ui에 의존한다.
+module ui
+module data depends ui
+
+layer ui above data

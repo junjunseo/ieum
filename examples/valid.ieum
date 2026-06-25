@@ -1,0 +1,7 @@
+# 정상 구조: UI -> service -> data
+module data
+module service depends data
+module ui depends service
+
+layer ui above service
+layer service above data
