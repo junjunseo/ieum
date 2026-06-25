@@ -10,3 +10,6 @@ build/
 .vscode/
 .idea/
 .DS_Store
+
+# 로컬 에이전트 작업 지침
+AGENTS.md
