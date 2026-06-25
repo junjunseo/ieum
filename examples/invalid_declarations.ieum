@@ -1,0 +1,6 @@
+# 실패: 선언 자체가 유효하지 않은 세 가지 사례
+module ui
+module ui
+
+layer ui above missing
+layer ui above ui

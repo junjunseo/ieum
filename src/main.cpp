@@ -11,6 +11,9 @@
 // 위반 종류 → 사람이 읽는 라벨
 static std::string kindLabel(Violation::Kind k) {
     switch (k) {
+        case Violation::Kind::DuplicateModule:      return "중복 모듈";
+        case Violation::Kind::UndefinedLayerModule: return "미선언 계층 모듈";
+        case Violation::Kind::SelfLayer:            return "자기 계층";
         case Violation::Kind::ImplicitDependency: return "암묵적 의존";
         case Violation::Kind::CyclicDependency:   return "순환 의존";
         case Violation::Kind::LayerViolation:     return "계층 위반";
