@@ -108,6 +108,30 @@ int main() {
         expect(violations.empty(), "독립 모듈 여러 개 통과");
     }
 
+    {
+        const auto violations = check(
+            "module service\n"
+            "module service\n");
+        expect(countKind(violations, Violation::Kind::DuplicateModule) == 1,
+               "중복 모듈 선언 검출");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer missing_upper above missing_lower\n");
+        expect(countKind(violations, Violation::Kind::UndefinedLayerModule) == 2,
+               "계층 선언의 미선언 모듈 참조 검출");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer service above service\n");
+        expect(countKind(violations, Violation::Kind::SelfLayer) == 1,
+               "자기 자신을 향한 계층 선언 검출");
+    }
+
     std::cout << "\n검사기 테스트: " << passed << "개 통과, "
               << failed << "개 실패\n";
     return failed == 0 ? 0 : 1;

@@ -9,14 +9,24 @@
 
 // ── 의존 검사기 ────────────────────────────────────────
 // "이음"의 핵심: 구조 규칙을 언어 차원에서 강제한다 (끌 수 없음).
-// 세 가지 규칙을 검사한다.
-//   1. 암묵적 의존 금지 — 선언되지 않은 모듈에 depends 할 수 없다.
-//   2. 순환 의존 금지   — 의존 관계에 사이클이 있으면 거부한다.
-//   3. 계층 위반 금지   — 하위 계층이 상위 계층에 의존할 수 없다.
+// 선언 자체의 유효성과 세 가지 구조 규칙을 검사한다.
+//   1. 모듈 중복 선언 금지
+//   2. 계층 선언의 모듈 참조 유효성 검사
+//   3. 자기 자신을 상하 계층으로 선언하는 관계 금지
+//   4. 암묵적 의존 금지 — 선언되지 않은 모듈에 depends 할 수 없다.
+//   5. 순환 의존 금지   — 의존 관계에 사이클이 있으면 거부한다.
+//   6. 계층 위반 금지   — 하위 계층이 상위 계층에 의존할 수 없다.
 // 검사는 선택적이지 않다. Program이 주어지면 항상 전부 적용된다.
 
 struct Violation {
-    enum class Kind { ImplicitDependency, CyclicDependency, LayerViolation };
+    enum class Kind {
+        DuplicateModule,
+        UndefinedLayerModule,
+        SelfLayer,
+        ImplicitDependency,
+        CyclicDependency,
+        LayerViolation
+    };
     Kind kind;
     std::string message;
     int line;
@@ -30,6 +40,7 @@ public:
     std::vector<Violation> check() {
         buildIndex();
         std::vector<Violation> violations;
+        checkDeclarations(violations);
         checkImplicit(violations);
         checkCyclic(violations);
         checkLayer(violations);
@@ -44,10 +55,73 @@ private:
 
     // ── 인덱스 구축 ────────────────────────────────────
     void buildIndex() {
+        declared_.clear();
+        graph_.clear();
+        moduleLine_.clear();
+
         for (const auto& m : prog_.modules) {
-            declared_.insert(m.name);
-            graph_[m.name] = m.deps;
-            moduleLine_[m.name] = m.line;
+            // 중복 선언이 있어도 최초 선언을 기준으로 후속 검사를 계속한다.
+            if (declared_.insert(m.name).second) {
+                graph_[m.name] = m.deps;
+                moduleLine_[m.name] = m.line;
+            }
+        }
+    }
+
+    // ── 선언 유효성 검사 ───────────────────────────────
+    void checkDeclarations(std::vector<Violation>& out) {
+        checkDuplicateModules(out);
+        checkLayerReferences(out);
+        checkSelfLayers(out);
+    }
+
+    void checkDuplicateModules(std::vector<Violation>& out) {
+        std::unordered_map<std::string, int> firstLine;
+
+        for (const auto& m : prog_.modules) {
+            auto [it, inserted] = firstLine.emplace(m.name, m.line);
+            if (!inserted) {
+                out.push_back({
+                    Violation::Kind::DuplicateModule,
+                    "모듈 '" + m.name + "'가 중복 선언되었습니다"
+                        " (최초 선언: " + std::to_string(it->second) + "행)",
+                    m.line
+                });
+            }
+        }
+    }
+
+    void checkLayerReferences(std::vector<Violation>& out) {
+        for (const auto& layer : prog_.layers) {
+            if (declared_.find(layer.upper) == declared_.end()) {
+                out.push_back({
+                    Violation::Kind::UndefinedLayerModule,
+                    "계층 선언이 존재하지 않는 모듈 '" + layer.upper +
+                        "'을 참조합니다",
+                    layer.line
+                });
+            }
+            if (declared_.find(layer.lower) == declared_.end()) {
+                out.push_back({
+                    Violation::Kind::UndefinedLayerModule,
+                    "계층 선언이 존재하지 않는 모듈 '" + layer.lower +
+                        "'을 참조합니다",
+                    layer.line
+                });
+            }
+        }
+    }
+
+    void checkSelfLayers(std::vector<Violation>& out) {
+        for (const auto& layer : prog_.layers) {
+            if (layer.upper == layer.lower) {
+                out.push_back({
+                    Violation::Kind::SelfLayer,
+                    "계층 선언의 상위와 하위에 동일한 모듈 '" +
+                        layer.upper + "'가 지정되었습니다",
+                    layer.line
+                });
+            }
         }
     }
 
