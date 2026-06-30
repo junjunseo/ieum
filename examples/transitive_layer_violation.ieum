@@ -1,0 +1,7 @@
+# 실패: data가 service를 건너뛰고 전이적 상위 계층 ui에 의존한다.
+module ui
+module service
+module data depends ui
+
+layer ui above service
+layer service above data

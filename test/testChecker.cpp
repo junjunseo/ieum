@@ -91,6 +91,17 @@ int main() {
 
     {
         const auto violations = check(
+            "module ui\n"
+            "module service\n"
+            "module data depends ui\n"
+            "layer ui above service\n"
+            "layer service above data\n");
+        expect(countKind(violations, Violation::Kind::LayerViolation) == 1,
+               "하위 계층에서 전이적 상위 계층으로 향하는 의존 검출");
+    }
+
+    {
+        const auto violations = check(
             "module ui depends data, missing\n"
             "module data depends ui\n"
             "layer ui above data\n");
