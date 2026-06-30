@@ -15,7 +15,7 @@
 //   3. 자기 자신을 상하 계층으로 선언하는 관계 금지
 //   4. 암묵적 의존 금지 — 선언되지 않은 모듈에 depends 할 수 없다.
 //   5. 순환 의존 금지   — 의존 관계에 사이클이 있으면 거부한다.
-//   6. 계층 위반 금지   — 하위 계층이 상위 계층에 의존할 수 없다.
+//   6. 계층 위반 금지   — 하위 계층이 직접/간접 상위 계층에 의존할 수 없다.
 // 검사는 선택적이지 않다. Program이 주어지면 항상 전부 적용된다.
 
 struct Violation {
@@ -192,25 +192,62 @@ private:
     }
 
     // ── 규칙 3: 계층 위반 금지 ─────────────────────────
-    // layer U above L 이면, L은 U에 의존할 수 없다 (하위→상위 금지).
+    // layer U above L 이면, L과 L의 하위 계층은 U에 의존할 수 없다.
     void checkLayer(std::vector<Violation>& out) {
-        for (const auto& layer : prog_.layers) {
-            const std::string& upper = layer.upper;
-            const std::string& lower = layer.lower;
-            // lower 모듈의 의존 목록에 upper가 있으면 위반
-            auto it = graph_.find(lower);
-            if (it == graph_.end()) continue;
-            for (const auto& dep : it->second) {
-                if (dep == upper) {
+        const auto parents = buildLayerParents();
+
+        for (const auto& [module, deps] : graph_) {
+            for (const auto& dep : deps) {
+                if (declared_.find(dep) == declared_.end()) continue;
+                if (isUpperLayerOf(dep, module, parents)) {
                     out.push_back({
                         Violation::Kind::LayerViolation,
-                        "계층 위반: 하위 계층 '" + lower +
-                            "'가 상위 계층 '" + upper + "'에 의존합니다",
-                        moduleLine_.count(lower) ? moduleLine_[lower] : layer.line
+                        "계층 위반: 하위 계층 '" + module +
+                            "'가 상위 계층 '" + dep + "'에 의존합니다",
+                        moduleLine_.count(module) ? moduleLine_[module] : 0
                     });
                 }
             }
         }
+    }
+
+    std::unordered_map<std::string, std::vector<std::string>> buildLayerParents() const {
+        std::unordered_map<std::string, std::vector<std::string>> parents;
+
+        for (const auto& layer : prog_.layers) {
+            if (layer.upper == layer.lower) continue;
+            if (declared_.find(layer.upper) == declared_.end()) continue;
+            if (declared_.find(layer.lower) == declared_.end()) continue;
+            parents[layer.lower].push_back(layer.upper);
+        }
+
+        return parents;
+    }
+
+    bool isUpperLayerOf(
+        const std::string& candidateUpper,
+        const std::string& lower,
+        const std::unordered_map<std::string, std::vector<std::string>>& parents) const {
+        std::unordered_set<std::string> visited;
+        return reachesUpper(candidateUpper, lower, parents, visited);
+    }
+
+    bool reachesUpper(
+        const std::string& candidateUpper,
+        const std::string& current,
+        const std::unordered_map<std::string, std::vector<std::string>>& parents,
+        std::unordered_set<std::string>& visited) const {
+        if (!visited.insert(current).second) return false;
+
+        auto it = parents.find(current);
+        if (it == parents.end()) return false;
+
+        for (const auto& upper : it->second) {
+            if (upper == candidateUpper) return true;
+            if (reachesUpper(candidateUpper, upper, parents, visited)) return true;
+        }
+
+        return false;
     }
 };
 

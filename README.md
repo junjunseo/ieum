@@ -9,7 +9,7 @@
 3. 자기 자신을 상하 계층으로 선언하는 관계 금지
 4. 선언되지 않은 모듈에 대한 의존 금지
 5. 모듈 사이의 순환 의존 금지
-6. 하위 계층에서 상위 계층으로 향하는 의존 금지
+6. 하위 계층에서 직접 또는 전이적 상위 계층으로 향하는 의존 금지
 
 ## 문법
 
@@ -31,6 +31,7 @@ layer service above data
 ```
 
 `layer ui above service`가 선언되면 하위 계층인 `service`가 상위 계층인 `ui`에 의존할 수 없습니다.
+또한 `ui above service`, `service above data`처럼 계층이 이어져 있으면 `data`도 `ui`에 의존할 수 없습니다.
 
 ## 빌드
 
@@ -74,6 +75,7 @@ make
 .\build\ieum.exe .\examples\implicit_dependency.ieum
 .\build\ieum.exe .\examples\cyclic_dependency.ieum
 .\build\ieum.exe .\examples\layer_violation.ieum
+.\build\ieum.exe .\examples\transitive_layer_violation.ieum
 .\build\ieum.exe .\examples\invalid_declarations.ieum
 ```
 
@@ -97,8 +99,8 @@ make test
 
 - 파서 단위 테스트 9개
 - Lexer → Parser → Checker 통합 테스트 5개
-- 구조 검사기 시나리오 테스트 11개
-- 정상 구조, 선언 오류, 미선언 의존, 직접·다단계·자기 순환, 계층 위반, 복합 위반 검증
+- 구조 검사기 시나리오 테스트 12개
+- 정상 구조, 선언 오류, 미선언 의존, 직접·다단계·자기 순환, 직접·전이적 계층 위반, 복합 위반 검증
 
 ## 프로젝트 구조
 
@@ -117,4 +119,13 @@ scripts/        Windows 빌드·테스트 스크립트
 
 ## 현재 범위
 
-1학기 목표인 구조 검사 코어에 집중하고 있습니다. 모듈 내부의 변수·함수·제어 흐름과 실행 백엔드는 이후 확장 범위입니다.
+1학기 목표인 구조 검사 코어에 집중하고 있습니다. 현재는 모듈 선언, 의존 선언, 계층 선언을 파싱하고 구조 규칙 위반을 실행 전에 거부하는 최소 코어를 구현했습니다. 모듈 내부의 변수·함수·제어 흐름과 실행 백엔드는 이후 확장 범위입니다.
+
+## 시연 흐름
+
+1. `examples/valid.ieum`으로 올바른 구조가 통과함을 보입니다.
+2. `examples/implicit_dependency.ieum`으로 선언되지 않은 모듈 의존을 거부함을 보입니다.
+3. `examples/cyclic_dependency.ieum`으로 순환 의존을 거부함을 보입니다.
+4. `examples/layer_violation.ieum`으로 계층 위반을 거부함을 보입니다.
+5. `examples/transitive_layer_violation.ieum`으로 여러 단계 계층 위반도 거부함을 보입니다.
+6. `examples/invalid_declarations.ieum`으로 중복 모듈, 미선언 계층 모듈, 자기 계층 선언을 거부함을 보입니다.
