@@ -17,6 +17,7 @@ public:
 
     std::vector<Token> tokenize() {
         std::vector<Token> tokens;
+        skipUtf8Bom();
 
         while (pos < src.size()) {
             skipWhitespace();
@@ -64,6 +65,15 @@ private:
     int line;
 
     // ── 헬퍼 ─────────────────────────────────────────
+    void skipUtf8Bom() {
+        if (pos == 0 && src.size() >= 3 &&
+            static_cast<unsigned char>(src[0]) == 0xEF &&
+            static_cast<unsigned char>(src[1]) == 0xBB &&
+            static_cast<unsigned char>(src[2]) == 0xBF) {
+            pos = 3;
+        }
+    }
+
     void skipWhitespace() {
         while (pos < src.size() && (src[pos] == ' ' || src[pos] == '\t' || src[pos] == '\r'))
             pos++;
