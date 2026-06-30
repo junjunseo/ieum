@@ -53,6 +53,20 @@ int main() {
     }
 
     try {
+        Program prog = parse(
+            "\xEF\xBB\xBF"
+            "module data\n"
+            "module service depends data\n");
+        expect(prog.modules.size() == 2 &&
+               prog.modules[0].name == "data" &&
+               prog.modules[1].deps.size() == 1,
+               "UTF-8 BOM 입력 파싱");
+    } catch (const std::exception& e) {
+        std::cerr << "[실패] BOM 입력 예외: " << e.what() << "\n";
+        failed++;
+    }
+
+    try {
         parse("module ui @ domain\n");
         expect(false, "알 수 없는 문자 포함 문법 거부");
     } catch (const std::runtime_error&) {
