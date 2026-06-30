@@ -1,0 +1,46 @@
+name: 문서 정리
+description: README, 기획안, 시연 자료 등 문서를 작성하거나 정리합니다.
+title: "docs: "
+labels: ["docs"]
+body:
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 문서화 목적
+      description: 어떤 내용을 왜 정리하려는지 적어주세요.
+      placeholder: 예) 현재 구현 상태와 1학기 목표 달성 근거를 문서에 반영한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 문서 범위
+      description: 수정할 문서와 포함할 내용을 체크리스트로 적어주세요.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: 완료 조건
+      description: 어떤 상태가 되면 이 문서 작업을 완료로 볼 수 있나요?
+      value: |
+        - [ ] 오래된 내용 갱신
+        - [ ] 예제 또는 실행 방법 확인
+        - [ ] 변경 사항 설명 가능
+    validations:
+      required: true
+
+  - type: textarea
+    id: refs
+    attributes:
+      label: 참고 문서 / 관련 파일
+      description: 함께 확인해야 할 문서나 코드를 적어주세요.
+      placeholder: 예) README.md, 기획안/구조제한프로그래밍언어.md
+    validations:
+      required: false

@@ -1,0 +1,55 @@
+name: 기능 추가
+description: 새로운 기능이나 구조 검사 규칙을 추가합니다.
+title: "feat: "
+labels: ["feat"]
+body:
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 작업 목적
+      description: 이 기능이 필요한 이유와 해결하려는 문제를 적어주세요.
+      placeholder: 예) 계층 선언을 전이적으로 해석하여 더 넓은 구조 위반을 감지한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 작업 범위
+      description: 이번 이슈에서 구현할 항목을 체크리스트로 적어주세요.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: 완료 조건
+      description: 어떤 상태가 되면 이 이슈를 완료로 볼 수 있나요?
+      value: |
+        - [ ] 기능 구현 완료
+        - [ ] 관련 테스트 추가 또는 갱신
+        - [ ] 전체 테스트 통과
+    validations:
+      required: true
+
+  - type: textarea
+    id: test
+    attributes:
+      label: 테스트 계획
+      description: 실행할 테스트나 확인 방법을 적어주세요.
+      placeholder: 예) powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
+    validations:
+      required: false
+
+  - type: textarea
+    id: refs
+    attributes:
+      label: 참고 문서 / 관련 파일
+      description: 관련 문서, 코드, 예제 파일을 적어주세요.
+      placeholder: 예) src/checker.h, test/testChecker.cpp, examples/valid.ieum
+    validations:
+      required: false
