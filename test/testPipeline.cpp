@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -12,14 +13,16 @@ namespace {
 int passed = 0;
 int failed = 0;
 
-void expect(bool condition, const std::string& name) {
+void assertTrue(bool condition, const std::string& name) {
     if (condition) {
-        std::cout << "[통과] " << name << "\n";
+        std::cout << "[PASS] " << name << "\n";
         passed++;
-    } else {
-        std::cerr << "[실패] " << name << "\n";
-        failed++;
+        return;
     }
+
+    std::cerr << "[FAIL] " << name << "\n";
+    failed++;
+    assert(condition);
 }
 
 Program parse(const std::string& source) {
@@ -28,11 +31,29 @@ Program parse(const std::string& source) {
     return parser.parse();
 }
 
+void assertParseThrows(const std::string& source, const std::string& name) {
+    try {
+        parse(source);
+        assertTrue(false, name);
+    } catch (const std::runtime_error&) {
+        assertTrue(true, name);
+    }
+}
+
+void assertTestCount(int expected) {
+    if (passed != expected) {
+        std::cerr << "[FAIL] expected " << expected << " pipeline assertions, got "
+                  << passed << "\n";
+        failed++;
+        assert(passed == expected);
+    }
+}
+
 } // namespace
 
 int main() {
     const std::string validSource =
-        "# 주석과 빈 줄도 처리한다\n"
+        "# comments and blank lines are accepted\n"
         "\n"
         "module domain\n"
         "module service depends domain\n"
@@ -42,14 +63,19 @@ int main() {
 
     try {
         Program prog = parse(validSource);
-        expect(prog.modules.size() == 3, "Lexer → Parser 모듈 변환");
-        expect(prog.layers.size() == 2, "Lexer → Parser 계층 변환");
+        assertTrue(prog.modules.size() == 3, "lexer-parser pipeline parses modules");
+        assertTrue(prog.layers.size() == 2, "lexer-parser pipeline parses layers");
+        assertTrue(prog.modules[1].deps.size() == 1 &&
+                   prog.modules[1].deps[0] == "domain",
+                   "pipeline preserves dependency target");
+        assertTrue(prog.modules[2].line == 5, "pipeline preserves source line numbers");
 
         Checker checker(prog);
-        expect(checker.check().empty(), "정상 구조 전체 파이프라인 통과");
+        assertTrue(checker.check().empty(), "valid structure passes full pipeline");
     } catch (const std::exception& e) {
-        std::cerr << "[실패] 정상 파이프라인 예외: " << e.what() << "\n";
+        std::cerr << "[FAIL] valid pipeline threw: " << e.what() << "\n";
         failed++;
+        assert(false);
     }
 
     try {
@@ -57,30 +83,56 @@ int main() {
             "\xEF\xBB\xBF"
             "module data\n"
             "module service depends data\n");
-        expect(prog.modules.size() == 2 &&
-               prog.modules[0].name == "data" &&
-               prog.modules[1].deps.size() == 1,
-               "UTF-8 BOM 입력 파싱");
+        assertTrue(prog.modules.size() == 2 && prog.modules[0].name == "data",
+                   "parses UTF-8 BOM input");
+        assertTrue(prog.modules[1].deps.size() == 1 &&
+                   prog.modules[1].deps[0] == "data",
+                   "preserves dependency after UTF-8 BOM");
     } catch (const std::exception& e) {
-        std::cerr << "[실패] BOM 입력 예외: " << e.what() << "\n";
+        std::cerr << "[FAIL] BOM input threw: " << e.what() << "\n";
         failed++;
+        assert(false);
     }
 
-    try {
-        parse("module ui @ domain\n");
-        expect(false, "알 수 없는 문자 포함 문법 거부");
-    } catch (const std::runtime_error&) {
-        expect(true, "알 수 없는 문자 포함 문법 거부");
+    {
+        Program prog = parse("module data # inline comment\nmodule service depends data\n");
+        assertTrue(prog.modules.size() == 2, "ignores inline comments after declarations");
     }
 
-    try {
-        parse("module ui depends\n");
-        expect(false, "불완전한 의존 선언 거부");
-    } catch (const std::runtime_error&) {
-        expect(true, "불완전한 의존 선언 거부");
+    {
+        Program prog = parse("module\tdata\r\nmodule service depends\tdata\r\n");
+        assertTrue(prog.modules.size() == 2 && prog.modules[1].deps[0] == "data",
+                   "accepts tabs and CRLF line endings");
     }
 
-    std::cout << "\n통합 테스트: " << passed << "개 통과, "
-              << failed << "개 실패\n";
+    {
+        Program prog = parse("module api depends data, infra\nmodule data\nmodule infra\n");
+        assertTrue(prog.modules[0].deps.size() == 2 &&
+                   prog.modules[0].deps[1] == "infra",
+                   "parses comma-separated dependencies with spaces");
+    }
+
+    {
+        Program prog = parse("module _data1\nmodule service2 depends _data1\n");
+        assertTrue(prog.modules[0].name == "_data1" &&
+                   prog.modules[1].name == "service2",
+                   "accepts ASCII identifiers with underscores and digits");
+    }
+
+    {
+        Program prog = parse("\n\nmodule data\n\n");
+        assertTrue(prog.modules.size() == 1 && prog.modules[0].line == 3,
+                   "ignores leading and trailing blank lines");
+    }
+
+    assertParseThrows("module ui @ domain\n", "rejects unknown character in source");
+    assertParseThrows("module ui depends\n", "rejects incomplete depends declaration");
+    assertParseThrows("module 데이터\n", "rejects non-ASCII identifier");
+    assertParseThrows("depends data\n", "rejects declaration without module or layer keyword");
+
+    assertTestCount(16);
+
+    std::cout << "\nPipeline tests: " << passed << " passed, "
+              << failed << " failed\n";
     return failed == 0 ? 0 : 1;
 }
