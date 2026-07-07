@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -11,23 +12,38 @@ namespace {
 int passed = 0;
 int failed = 0;
 
-void expect(bool condition, const std::string& name) {
+void assertTrue(bool condition, const std::string& name) {
     if (condition) {
-        std::cout << "[통과] " << name << "\n";
+        std::cout << "[PASS] " << name << "\n";
         passed++;
-    } else {
-        std::cerr << "[실패] " << name << "\n";
-        failed++;
+        return;
+    }
+
+    std::cerr << "[FAIL] " << name << "\n";
+    failed++;
+    assert(condition);
+}
+
+Program parseTokens(const std::vector<Token>& tokens) {
+    Parser parser(tokens);
+    return parser.parse();
+}
+
+void assertThrows(const std::vector<Token>& tokens, const std::string& name) {
+    try {
+        parseTokens(tokens);
+        assertTrue(false, name);
+    } catch (const std::runtime_error&) {
+        assertTrue(true, name);
     }
 }
 
-void expectThrows(const std::vector<Token>& tokens, const std::string& name) {
-    try {
-        Parser parser(tokens);
-        parser.parse();
-        expect(false, name);
-    } catch (const std::runtime_error&) {
-        expect(true, name);
+void assertTestCount(int expected) {
+    if (passed != expected) {
+        std::cerr << "[FAIL] expected " << expected << " parser assertions, got "
+                  << passed << "\n";
+        failed++;
+        assert(passed == expected);
     }
 }
 
@@ -43,35 +59,84 @@ int main() {
     };
 
     try {
-        Parser parser(validTokens);
-        Program prog = parser.parse();
-        expect(prog.modules.size() == 3, "모듈 선언 3개 파싱");
-        expect(prog.modules[1].name == "ui", "모듈 이름 보존");
-        expect(prog.modules[2].deps.size() == 2, "복수 의존 대상 파싱");
-        expect(prog.modules[2].deps[1] == "ui", "의존 대상 순서 보존");
-        expect(prog.layers.size() == 1, "계층 선언 파싱");
-        expect(prog.layers[0].upper == "ui" &&
-               prog.layers[0].lower == "domain", "계층 상하 관계 보존");
+        Program prog = parseTokens(validTokens);
+        assertTrue(prog.modules.size() == 3, "parses three module declarations");
+        assertTrue(prog.modules[0].name == "domain", "preserves first module name");
+        assertTrue(prog.modules[1].deps.size() == 1, "parses single dependency");
+        assertTrue(prog.modules[1].deps[0] == "domain", "preserves single dependency target");
+        assertTrue(prog.modules[2].deps.size() == 2, "parses multiple dependency targets");
+        assertTrue(prog.modules[2].deps[1] == "ui", "preserves dependency target order");
+        assertTrue(prog.modules[2].line == 3, "preserves module declaration line");
+        assertTrue(prog.layers.size() == 1, "parses layer declaration");
+        assertTrue(prog.layers[0].upper == "ui" && prog.layers[0].lower == "domain",
+                   "preserves layer relation");
+        assertTrue(prog.layers[0].line == 4, "preserves layer declaration line");
     } catch (const std::exception& e) {
-        std::cerr << "[실패] 정상 토큰 파싱 중 예외: " << e.what() << "\n";
+        std::cerr << "[FAIL] valid token parsing threw: " << e.what() << "\n";
         failed++;
+        assert(false);
     }
 
-    expectThrows({
+    {
+        const Program prog = parseTokens({
+            {TokenType::NEWLINE, "", 1},
+            {TokenType::NEWLINE, "", 2},
+            {TokenType::END, "", 3},
+        });
+        assertTrue(prog.modules.empty() && prog.layers.empty(), "skips empty lines");
+    }
+
+    {
+        const Program prog = parseTokens({
+            {TokenType::MODULE, "module", 1},
+            {TokenType::IDENTIFIER, "solo", 1},
+            {TokenType::END, "", 1},
+        });
+        assertTrue(prog.modules.size() == 1 && prog.modules[0].name == "solo",
+                   "parses final declaration without trailing newline");
+    }
+
+    assertThrows({
         {TokenType::MODULE, "module", 1},
         {TokenType::NEWLINE, "", 1},
         {TokenType::END, "", 2},
-    }, "모듈 이름 누락 거부");
+    }, "rejects module declaration without name");
 
-    expectThrows({
+    assertThrows({
+        {TokenType::MODULE, "module", 1},
+        {TokenType::IDENTIFIER, "ui", 1},
+        {TokenType::DEPENDS, "depends", 1},
+        {TokenType::NEWLINE, "", 1},
+        {TokenType::END, "", 2},
+    }, "rejects depends without target");
+
+    assertThrows({
+        {TokenType::MODULE, "module", 1},
+        {TokenType::IDENTIFIER, "ui", 1},
+        {TokenType::DEPENDS, "depends", 1},
+        {TokenType::IDENTIFIER, "domain", 1},
+        {TokenType::COMMA, ",", 1},
+        {TokenType::NEWLINE, "", 1},
+        {TokenType::END, "", 2},
+    }, "rejects comma without following dependency");
+
+    assertThrows({
         {TokenType::LAYER, "layer", 1},
         {TokenType::IDENTIFIER, "ui", 1},
         {TokenType::IDENTIFIER, "domain", 1},
         {TokenType::NEWLINE, "", 1},
         {TokenType::END, "", 2},
-    }, "above 없는 계층 선언 거부");
+    }, "rejects layer declaration without above");
 
-    expectThrows({
+    assertThrows({
+        {TokenType::LAYER, "layer", 1},
+        {TokenType::IDENTIFIER, "ui", 1},
+        {TokenType::ABOVE, "above", 1},
+        {TokenType::NEWLINE, "", 1},
+        {TokenType::END, "", 2},
+    }, "rejects layer declaration without lower target");
+
+    assertThrows({
         {TokenType::MODULE, "module", 1},
         {TokenType::IDENTIFIER, "ui", 1},
         {TokenType::DEPENDS, "depends", 1},
@@ -80,9 +145,22 @@ int main() {
         {TokenType::IDENTIFIER, "extra", 1},
         {TokenType::NEWLINE, "", 1},
         {TokenType::END, "", 2},
-    }, "한 줄의 복수 선언 거부");
+    }, "rejects multiple declarations on one line");
 
-    std::cout << "\n파서 테스트: " << passed << "개 통과, "
-              << failed << "개 실패\n";
+    assertThrows({
+        {TokenType::IDENTIFIER, "ui", 1},
+        {TokenType::NEWLINE, "", 1},
+        {TokenType::END, "", 2},
+    }, "rejects declarations that do not start with keyword");
+
+    assertThrows({
+        {TokenType::UNKNOWN, "@", 1},
+        {TokenType::END, "", 1},
+    }, "rejects unknown token");
+
+    assertTestCount(20);
+
+    std::cout << "\nParser tests: " << passed << " passed, "
+              << failed << " failed\n";
     return failed == 0 ? 0 : 1;
 }

@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -26,13 +27,33 @@ int countKind(const std::vector<Violation>& violations, Violation::Kind kind) {
     return count;
 }
 
-void expect(bool condition, const std::string& name) {
+bool hasViolationLine(const std::vector<Violation>& violations,
+                      Violation::Kind kind,
+                      int line) {
+    for (const auto& violation : violations) {
+        if (violation.kind == kind && violation.line == line) return true;
+    }
+    return false;
+}
+
+void assertTrue(bool condition, const std::string& name) {
     if (condition) {
-        std::cout << "[통과] " << name << "\n";
+        std::cout << "[PASS] " << name << "\n";
         passed++;
-    } else {
-        std::cerr << "[실패] " << name << "\n";
+        return;
+    }
+
+    std::cerr << "[FAIL] " << name << "\n";
+    failed++;
+    assert(condition);
+}
+
+void assertTestCount(int expected) {
+    if (passed != expected) {
+        std::cerr << "[FAIL] expected " << expected << " checker assertions, got "
+                  << passed << "\n";
         failed++;
+        assert(passed == expected);
     }
 }
 
@@ -46,22 +67,52 @@ int main() {
             "module ui depends service\n"
             "layer ui above service\n"
             "layer service above domain\n");
-        expect(violations.empty(), "정상 구조 통과");
+        assertTrue(violations.empty(), "accepts valid layered structure");
     }
 
     {
         const auto violations = check(
-            "module ui depends missing\n");
-        expect(countKind(violations, Violation::Kind::ImplicitDependency) == 1,
-               "미선언 모듈 의존 검출");
+            "# independent modules\n"
+            "module alpha\n"
+            "module beta\n");
+        assertTrue(violations.empty(), "accepts independent modules");
+    }
+
+    {
+        const auto violations = check(
+            "module ui depends service\n"
+            "module service\n"
+            "layer ui above service\n");
+        assertTrue(violations.empty(), "allows upper layer to depend on lower layer");
+    }
+
+    {
+        const auto violations = check(
+            "module ui\n"
+            "module service depends repository\n"
+            "module repository\n"
+            "layer ui above service\n");
+        assertTrue(violations.empty(), "allows dependency outside declared layer relation");
+    }
+
+    {
+        const auto violations = check("module ui depends missing\n");
+        assertTrue(countKind(violations, Violation::Kind::ImplicitDependency) == 1,
+                   "detects one undefined dependency target");
+    }
+
+    {
+        const auto violations = check("module ui depends missing_api, missing_db\n");
+        assertTrue(countKind(violations, Violation::Kind::ImplicitDependency) == 2,
+                   "detects multiple undefined dependency targets");
     }
 
     {
         const auto violations = check(
             "module a depends b\n"
             "module b depends a\n");
-        expect(countKind(violations, Violation::Kind::CyclicDependency) == 1,
-               "직접 순환 의존 검출");
+        assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 1,
+                   "detects direct dependency cycle");
     }
 
     {
@@ -69,15 +120,20 @@ int main() {
             "module a depends b\n"
             "module b depends c\n"
             "module c depends a\n");
-        expect(countKind(violations, Violation::Kind::CyclicDependency) == 1,
-               "다단계 순환 의존 검출");
+        assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 1,
+                   "detects multi-step dependency cycle");
     }
 
     {
-        const auto violations = check(
-            "module loop depends loop\n");
-        expect(countKind(violations, Violation::Kind::CyclicDependency) == 1,
-               "자기 자신을 향한 순환 의존 검출");
+        const auto violations = check("module loop depends loop\n");
+        assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 1,
+                   "detects self dependency cycle");
+    }
+
+    {
+        const auto violations = check("module a depends missing\n");
+        assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 0,
+                   "does not report cycles for missing dependency targets");
     }
 
     {
@@ -85,8 +141,8 @@ int main() {
             "module ui\n"
             "module data depends ui\n"
             "layer ui above data\n");
-        expect(countKind(violations, Violation::Kind::LayerViolation) == 1,
-               "하위 계층에서 상위 계층으로 향하는 의존 검출");
+        assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 1,
+                   "detects direct upward layer dependency");
     }
 
     {
@@ -96,8 +152,76 @@ int main() {
             "module data depends ui\n"
             "layer ui above service\n"
             "layer service above data\n");
-        expect(countKind(violations, Violation::Kind::LayerViolation) == 1,
-               "하위 계층에서 전이적 상위 계층으로 향하는 의존 검출");
+        assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 1,
+                   "detects transitive upward layer dependency");
+    }
+
+    {
+        const auto violations = check(
+            "module ui\n"
+            "module service depends ui\n"
+            "module data depends service, ui\n"
+            "layer ui above service\n"
+            "layer service above data\n");
+        assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 3,
+                   "detects multiple layer violations in one program");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "module service\n");
+        assertTrue(countKind(violations, Violation::Kind::DuplicateModule) == 1,
+                   "detects duplicate module declaration");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "module service\n"
+            "module service\n");
+        assertTrue(countKind(violations, Violation::Kind::DuplicateModule) == 2,
+                   "detects repeated duplicate module declarations");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer missing above service\n");
+        assertTrue(countKind(violations, Violation::Kind::UndefinedLayerModule) == 1,
+                   "detects undefined upper layer module");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer service above missing\n");
+        assertTrue(countKind(violations, Violation::Kind::UndefinedLayerModule) == 1,
+                   "detects undefined lower layer module");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer missing_upper above missing_lower\n");
+        assertTrue(countKind(violations, Violation::Kind::UndefinedLayerModule) == 2,
+                   "detects both undefined layer modules");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer service above service\n");
+        assertTrue(countKind(violations, Violation::Kind::SelfLayer) == 1,
+                   "detects self layer declaration");
+    }
+
+    {
+        const auto violations = check(
+            "module service\n"
+            "layer service above service\n");
+        assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 0,
+                   "does not turn self layer declaration into layer violation");
     }
 
     {
@@ -105,45 +229,41 @@ int main() {
             "module ui depends data, missing\n"
             "module data depends ui\n"
             "layer ui above data\n");
-        expect(countKind(violations, Violation::Kind::ImplicitDependency) == 1 &&
-               countKind(violations, Violation::Kind::CyclicDependency) == 1 &&
-               countKind(violations, Violation::Kind::LayerViolation) == 1,
-               "서로 다른 구조 위반 동시 검출");
-    }
-
-    {
-        const auto violations = check(
-            "# 의존이 없는 독립 모듈\n"
-            "module alpha\n"
-            "module beta\n");
-        expect(violations.empty(), "독립 모듈 여러 개 통과");
+        assertTrue(countKind(violations, Violation::Kind::ImplicitDependency) == 1 &&
+                   countKind(violations, Violation::Kind::CyclicDependency) == 1 &&
+                   countKind(violations, Violation::Kind::LayerViolation) == 1,
+                   "detects mixed structural violations together");
     }
 
     {
         const auto violations = check(
             "module service\n"
             "module service\n");
-        expect(countKind(violations, Violation::Kind::DuplicateModule) == 1,
-               "중복 모듈 선언 검출");
+        assertTrue(hasViolationLine(violations, Violation::Kind::DuplicateModule, 2),
+                   "reports duplicate module line");
     }
 
     {
         const auto violations = check(
-            "module service\n"
-            "layer missing_upper above missing_lower\n");
-        expect(countKind(violations, Violation::Kind::UndefinedLayerModule) == 2,
-               "계층 선언의 미선언 모듈 참조 검출");
+            "module ui\n"
+            "module data depends ui\n"
+            "layer ui above data\n");
+        assertTrue(hasViolationLine(violations, Violation::Kind::LayerViolation, 2),
+                   "reports layer violation at depending module line");
     }
 
     {
         const auto violations = check(
-            "module service\n"
-            "layer service above service\n");
-        expect(countKind(violations, Violation::Kind::SelfLayer) == 1,
-               "자기 자신을 향한 계층 선언 검출");
+            "module a\n"
+            "module a depends a\n");
+        assertTrue(countKind(violations, Violation::Kind::DuplicateModule) == 1 &&
+                   countKind(violations, Violation::Kind::CyclicDependency) == 0,
+                   "keeps first module declaration as graph source after duplicate");
     }
 
-    std::cout << "\n검사기 테스트: " << passed << "개 통과, "
-              << failed << "개 실패\n";
+    assertTestCount(24);
+
+    std::cout << "\nChecker tests: " << passed << " passed, "
+              << failed << " failed\n";
     return failed == 0 ? 0 : 1;
 }
