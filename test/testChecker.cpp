@@ -118,6 +118,14 @@ int main() {
     {
         const auto violations = check(
             "module a depends b\n"
+            "module b depends a\n");
+        assertTrue(hasViolationLine(violations, Violation::Kind::CyclicDependency, 2),
+                   "reports cycle at closing dependency line");
+    }
+
+    {
+        const auto violations = check(
+            "module a depends b\n"
             "module b depends c\n"
             "module c depends a\n");
         assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 1,
@@ -125,9 +133,37 @@ int main() {
     }
 
     {
+        const auto violations = check(
+            "module a depends b\n"
+            "module b depends c\n"
+            "module c depends a\n");
+        assertTrue(hasViolationLine(violations, Violation::Kind::CyclicDependency, 3),
+                   "reports multi-step cycle at closing dependency line");
+    }
+
+    {
         const auto violations = check("module loop depends loop\n");
         assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 1,
                    "detects self dependency cycle");
+    }
+
+    {
+        const auto violations = check(
+            "module a depends b\n"
+            "module b depends a\n"
+            "module c depends d\n"
+            "module d depends c\n");
+        assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 2,
+                   "detects multiple independent dependency cycles");
+    }
+
+    {
+        const auto violations = check(
+            "module a depends b, c\n"
+            "module b depends a\n"
+            "module c depends a\n");
+        assertTrue(countKind(violations, Violation::Kind::CyclicDependency) == 2,
+                   "detects overlapping cycles from one module");
     }
 
     {
@@ -154,6 +190,37 @@ int main() {
             "layer service above data\n");
         assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 1,
                    "detects transitive upward layer dependency");
+    }
+
+    {
+        const auto violations = check(
+            "module ui\n"
+            "module helper depends ui\n"
+            "module data depends helper\n"
+            "layer ui above data\n");
+        assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 1,
+                   "detects indirect upward dependency path");
+    }
+
+    {
+        const auto violations = check(
+            "module ui\n"
+            "module helper depends ui\n"
+            "module data depends helper\n"
+            "layer ui above data\n");
+        assertTrue(hasViolationLine(violations, Violation::Kind::LayerViolation, 3),
+                   "reports indirect layer violation at lower module line");
+    }
+
+    {
+        const auto violations = check(
+            "module ui\n"
+            "module service depends ui\n"
+            "module data depends service\n"
+            "layer ui above service\n"
+            "layer service above data\n");
+        assertTrue(countKind(violations, Violation::Kind::LayerViolation) == 3,
+                   "detects every upward dependency path through layer chain");
     }
 
     {
@@ -261,7 +328,7 @@ int main() {
                    "keeps first module declaration as graph source after duplicate");
     }
 
-    assertTestCount(24);
+    assertTestCount(31);
 
     std::cout << "\nChecker tests: " << passed << " passed, "
               << failed << " failed\n";

@@ -179,7 +179,7 @@ private:
                     out.push_back({
                         Violation::Kind::CyclicDependency,
                         "순환 의존 발견: " + cycle,
-                        moduleLine_.count(dep) ? moduleLine_[dep] : 0
+                        moduleLine_.count(node) ? moduleLine_[node] : 0
                     });
                 } else if (visited.find(dep) == visited.end()) {
                     dfs(dep, visited, inStack, path, out);
@@ -207,6 +207,20 @@ private:
                         moduleLine_.count(module) ? moduleLine_[module] : 0
                     });
                 }
+            }
+
+            for (const auto& candidateUpper : declared_) {
+                if (hasDirectDependency(module, candidateUpper)) continue;
+                if (!isUpperLayerOf(candidateUpper, module, parents)) continue;
+                if (!hasDependencyPath(module, candidateUpper)) continue;
+
+                out.push_back({
+                    Violation::Kind::LayerViolation,
+                    "계층 위반: 하위 계층 '" + module +
+                        "'가 의존 경로를 통해 상위 계층 '" + candidateUpper +
+                        "'에 의존합니다",
+                    moduleLine_.count(module) ? moduleLine_[module] : 0
+                });
             }
         }
     }
@@ -245,6 +259,42 @@ private:
         for (const auto& upper : it->second) {
             if (upper == candidateUpper) return true;
             if (reachesUpper(candidateUpper, upper, parents, visited)) return true;
+        }
+
+        return false;
+    }
+
+    bool hasDirectDependency(const std::string& module,
+                             const std::string& target) const {
+        auto it = graph_.find(module);
+        if (it == graph_.end()) return false;
+
+        for (const auto& dep : it->second) {
+            if (dep == target) return true;
+        }
+
+        return false;
+    }
+
+    bool hasDependencyPath(const std::string& from,
+                           const std::string& target) const {
+        std::unordered_set<std::string> visited;
+        return reachesDependencyTarget(from, target, visited);
+    }
+
+    bool reachesDependencyTarget(
+        const std::string& current,
+        const std::string& target,
+        std::unordered_set<std::string>& visited) const {
+        if (!visited.insert(current).second) return false;
+
+        auto it = graph_.find(current);
+        if (it == graph_.end()) return false;
+
+        for (const auto& dep : it->second) {
+            if (declared_.find(dep) == declared_.end()) continue;
+            if (dep == target) return true;
+            if (reachesDependencyTarget(dep, target, visited)) return true;
         }
 
         return false;
