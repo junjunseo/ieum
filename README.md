@@ -38,7 +38,7 @@ layer service above data
 필요한 도구:
 
 - C++17을 지원하는 `g++`
-- 선택 사항: GNU Make
+- 선택 사항: GNU Make 또는 CMake 3.16 이상
 
 Windows PowerShell에서는 다음 명령으로 빌드합니다.
 
@@ -50,6 +50,13 @@ GNU Make를 사용할 수 있다면 다음 명령도 지원합니다.
 
 ```sh
 make
+```
+
+CMake를 사용할 수 있다면 다음 명령으로도 같은 프로그램과 테스트 실행 파일을 만들 수 있습니다.
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
 ```
 
 ## 실행
@@ -95,17 +102,37 @@ GNU Make:
 make test
 ```
 
+CMake/CTest:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
+```
+
 테스트 범위:
 
 - 파서 단위 테스트 20개
 - Lexer → Parser → Checker 통합 테스트 16개
 - 구조 검사기 시나리오 테스트 31개
 - 총 67개 assert 기반 자동 테스트
+- 정상 예제 1개 통과와 위반 예제 5개 실패를 확인하는 smoke 테스트
 - 정상 구조, 선언 오류, 주석·공백·BOM 입력, 미선언 의존, 직접·다단계·자기·복수 순환, 직접·전이적·간접 경로 계층 위반, 복합 위반 검증
+
+## CI
+
+GitHub Actions는 `ubuntu-latest`와 `windows-latest`에서 CMake configure, build, CTest를 실행합니다. CTest는 위의 67개 assert 기반 자동 테스트와 6개 예제 smoke 테스트를 함께 검증합니다.
+
+새 환경에서 재현할 때는 다음 순서를 기준으로 확인합니다.
+
+1. `g++`, GNU Make 또는 CMake 설치 여부를 확인합니다.
+2. `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1` 또는 `ctest --test-dir build -C Release --output-on-failure`를 실행합니다.
+3. README의 시연 흐름에 있는 6개 예제가 문서와 같은 종료 코드로 동작하는지 확인합니다.
 
 ## 프로젝트 구조
 
 ```text
+.github/workflows/  GitHub Actions CI
 src/
   lexer.h       토큰 생성
   parser.h      구조 선언을 AST로 변환
@@ -115,6 +142,7 @@ src/
 test/           자동 테스트
 examples/       정상 및 위반 시연 파일
 scripts/        Windows 빌드·테스트 스크립트
+CMakeLists.txt  CMake 빌드·CTest 정의
 기획안/         프로젝트 기획 문서
 ```
 
