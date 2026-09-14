@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "scope": "Hand-authored seed corpus; not an independent real-project evaluation.",
+  "cases": [
+    {"id":"valid","source":"examples/valid.ieum","category":"valid","expected_exit":0,"expected_kinds":{},"graph":{"title":"올바른 의존 관계","note":"UI → service → data. 상위 모듈이 하위 모듈을 사용합니다.","group":"examples"}},
+    {"id":"implicit_dependency","source":"examples/implicit_dependency.ieum","category":"undefined","expected_exit":1,"expected_kinds":{"undefined_dependency":1},"graph":{"title":"미선언 모듈 의존","note":"notification은 선언되지 않았습니다. 점선 노드와 빨간 의존선을 함께 확인하세요.","group":"examples"}},
+    {"id":"cyclic_dependency","source":"examples/cyclic_dependency.ieum","category":"cycle","expected_exit":1,"expected_kinds":{"cycle":1},"graph":{"title":"순환 의존","note":"order → payment → order. 서로를 다시 참조하는 경로 전체를 강조합니다.","group":"examples"}},
+    {"id":"layer_violation","source":"examples/layer_violation.ieum","category":"layer","expected_exit":1,"expected_kinds":{"layer_violation":1},"graph":{"title":"직접 계층 위반","note":"data가 상위 계층 ui를 사용합니다. 의존 방향과 계층 방향을 비교하세요.","group":"examples"}},
+    {"id":"transitive_layer_violation","source":"examples/transitive_layer_violation.ieum","category":"layer","expected_exit":1,"expected_kinds":{"layer_violation":1},"graph":{"title":"전이 계층 위반","note":"ui > service > data 계층에서 data → ui 의존은 두 단계 위 계층을 역행합니다.","group":"examples"}},
+    {"id":"invalid_declarations","source":"examples/invalid_declarations.ieum","category":"declaration","expected_exit":1,"expected_kinds":{"duplicate_module":1,"undefined_layer":1,"self_layer":1},"graph":{"title":"잘못된 선언","note":"중복 ui, 미선언 missing, 자기 계층 선언을 노드와 점선으로 구별합니다.","group":"examples"}},
+    {"id":"valid_diamond","source":"evaluation/corpus/valid_diamond.ieum","category":"valid","expected_exit":0,"expected_kinds":{}},
+    {"id":"valid_disconnected","source":"evaluation/corpus/valid_disconnected.ieum","category":"valid","expected_exit":0,"expected_kinds":{}},
+    {"id":"undefined_multiple","source":"evaluation/corpus/undefined_multiple.ieum","category":"undefined","expected_exit":1,"expected_kinds":{"undefined_dependency":2}},
+    {"id":"cycle_three","source":"evaluation/corpus/cycle_three.ieum","category":"cycle","expected_exit":1,"expected_kinds":{"cycle":1}},
+    {"id":"cycle_self","source":"evaluation/corpus/cycle_self.ieum","category":"cycle","expected_exit":1,"expected_kinds":{"cycle":1}},
+    {"id":"layer_indirect","source":"evaluation/corpus/layer_indirect.ieum","category":"layer","expected_exit":1,"expected_kinds":{"layer_violation":1}},
+    {"id":"demo_valid","source":"examples/demo/01-valid.ieum","category":"valid","expected_exit":0,"expected_kinds":{},"graph":{"title":"1. 정상 구조 실행","note":"화면 → 서비스 → 저장소 순서로 호출합니다. 세 함수가 모두 실행됩니다.","group":"demo"}},
+    {"id":"demo_violation","source":"examples/demo/02-violation.ieum","category":"layer","expected_exit":1,"expected_kinds":{"cycle":1,"layer_violation":3},"graph":{"title":"2. 의존 한 줄로 위반 발생","note":"data에 depends ui를 추가하면 순환 1건과 직접·간접 계층 위반 3건이 생깁니다. 함수 실행 전에 거부됩니다.","group":"demo"}},
+    {"id":"demo_fixed","source":"examples/demo/03-fixed.ieum","category":"valid","expected_exit":0,"expected_kinds":{},"graph":{"title":"3. 수정 후 다시 실행","note":"data의 역방향 의존을 제거합니다. 정상 구조로 돌아오고 함수 호출이 다시 실행됩니다.","group":"demo"}}
+  ]
+}

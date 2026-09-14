@@ -151,3 +151,19 @@ endfunction()
 
 add_ieum_graph_failure_test(valid valid 0)
 add_ieum_graph_failure_test(invalid cyclic_dependency 1)
+
+# Python is optional for the core. CI also exercises the demo/evaluation tools.
+find_package(Python3 3.9 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME workflow_tools COMMAND ${Python3_EXECUTABLE} -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/test_workflows.py"
+        --ieum $<TARGET_FILE:ieum>)
+    add_test(NAME seed_evaluation COMMAND ${Python3_EXECUTABLE} -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/evaluate.py"
+        --ieum $<TARGET_FILE:ieum>
+        --output "${CMAKE_CURRENT_BINARY_DIR}/evaluation/results.json")
+    add_test(NAME demo_replay COMMAND ${Python3_EXECUTABLE} -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/demo.py"
+        --ieum $<TARGET_FILE:ieum>
+        --output "${CMAKE_CURRENT_BINARY_DIR}/demo/results.json")
+endif()

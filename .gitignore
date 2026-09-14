@@ -5,6 +5,8 @@ ieum.exe
 *.out
 *.exe
 build/
+__pycache__/
+*.pyc
 
 # 에디터 / OS
 .vscode/

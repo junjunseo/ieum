@@ -1,0 +1,70 @@
+{
+  "graphviz": "dot - graphviz version 16.1.0 (20260904.0139)",
+  "ieum_sha256": "a01871e4bcd8aa8bc1c6c2bfcf8135c8eb8917284768685e9a5b1167c697f7c5",
+  "manifest_sha256": "c9b7dc56044967dd71937574dcacc831febe9ccca27b886e803cc889d8502fa8",
+  "graphs": [
+    {
+      "id": "valid",
+      "source": "examples/valid.ieum",
+      "source_sha256": "7b51c1cd5e899faacc427359be404d584ad2ddd1111ee5c5e809ca1c8aff4a26",
+      "dot_sha256": "4b4a9aed7d1dd78c02ced79022f37e6a3cf7eaccd13e13377bcfa2700a71dc3f",
+      "svg_sha256": "7acc8bb67122a63badbe4d3fb48ca14d11fd8047e6413f7d6c520489f85a6885"
+    },
+    {
+      "id": "implicit_dependency",
+      "source": "examples/implicit_dependency.ieum",
+      "source_sha256": "fb38ee71300b81ef02f66940699e6f5e5881a6dd800c11356e49eb864b32ff7a",
+      "dot_sha256": "ce2a8d738a19967a2deabb6d458d949f3ef1f8c14be8acdc98455ec0598e32c5",
+      "svg_sha256": "5d437334f80a7a41fc16705f89b97ea45694fd98a6dee1244d91ea8fa4bce575"
+    },
+    {
+      "id": "cyclic_dependency",
+      "source": "examples/cyclic_dependency.ieum",
+      "source_sha256": "7065e740e164b2d25387169fa9b4ce4b0e96c390027daca2bbb08b6f5cfb6ffa",
+      "dot_sha256": "45d1c82fbb0842ad0ec9be0a39de15b3ef5202b420ad7dc4403ead7e665e74f5",
+      "svg_sha256": "1d2590298637cadbdcaff9643d1ba983518079804e9bf93b8d56416c290051df"
+    },
+    {
+      "id": "layer_violation",
+      "source": "examples/layer_violation.ieum",
+      "source_sha256": "315ab842ef6a77dd359e5659eb10a4f859933e6c63cc7205761cdb0e3fcaed82",
+      "dot_sha256": "91a59c7d392d9dd2ee87d920d84aef1aa1a7f1b98b7f7eac80f10b8109450ffd",
+      "svg_sha256": "e2ca85542315e7654006e58ffc8ca6f13fdc0a302ccb62db14cd173a428190cb"
+    },
+    {
+      "id": "transitive_layer_violation",
+      "source": "examples/transitive_layer_violation.ieum",
+      "source_sha256": "1c52b3bb59880a8407b3e9d458b1b85055b70abafd6573ffcc51b4e9a23f1197",
+      "dot_sha256": "ddeead2d78b0e143126a051590b7d36bb4cb68a3f812886407d80d88e3dec5f9",
+      "svg_sha256": "008c9a350c6354a66528b590da17cc469f47a525f75746eabd197a3e3e75f754"
+    },
+    {
+      "id": "invalid_declarations",
+      "source": "examples/invalid_declarations.ieum",
+      "source_sha256": "99586354a5e7c50ab6b6b95afb85db62d94a7c8d98d557037d291dfa5377e308",
+      "dot_sha256": "04ec464168ce7ed40c2de8e8119c373b443864ab930ed42d1ddbbb9c4423414c",
+      "svg_sha256": "82589c3c78201a357c96f50c8f96b0d3c02afb59b22029a7abe6661b82e56316"
+    },
+    {
+      "id": "demo_valid",
+      "source": "examples/demo/01-valid.ieum",
+      "source_sha256": "59e0f850c11f0f963966c1aaf17130931f7cf7ec5377788c5f2075fea3572aba",
+      "dot_sha256": "4b4a9aed7d1dd78c02ced79022f37e6a3cf7eaccd13e13377bcfa2700a71dc3f",
+      "svg_sha256": "cfcfb69626d3385f152e32a407b5e15cec9833a504a067c8c01b3d841dde088e"
+    },
+    {
+      "id": "demo_violation",
+      "source": "examples/demo/02-violation.ieum",
+      "source_sha256": "5e97875fd312470ad7aba1f0dbc54a76d7e7408edb8179f2fc10a011a49f9d30",
+      "dot_sha256": "966542279d12b105a7853a862df840f8c8a7569b05920b6ae717bc9653c150d9",
+      "svg_sha256": "0bdf5d6b018d6566fec542f7b51427578a710aa9523f990f08fedef879cec4a9"
+    },
+    {
+      "id": "demo_fixed",
+      "source": "examples/demo/03-fixed.ieum",
+      "source_sha256": "7dbaefc1765d830ff26b6a2f3c5620491989e6ba498601138cb27b63ad882578",
+      "dot_sha256": "4b4a9aed7d1dd78c02ced79022f37e6a3cf7eaccd13e13377bcfa2700a71dc3f",
+      "svg_sha256": "0d77b1f3388d81d10a355d060de1a054968eb8e3a2691250757d87f0b9969a46"
+    }
+  ]
+}

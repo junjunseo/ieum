@@ -1,0 +1,11 @@
+digraph ieum {
+  graph [rankdir=LR, bgcolor="white"];
+  node [shape=box, style="rounded,filled", fillcolor="#f8fafc", color="#334155", fontname="sans-serif"];
+  edge [fontname="sans-serif", fontsize=10];
+
+  "missing" [label="missing\n(undefined)", style="dashed", color="#dc2626", fontcolor="#dc2626"];
+  "ui" [label="ui\n(duplicate)", color="#dc2626", fontcolor="#dc2626"];
+
+  "ui" -> "missing" [label="above", style="dashed", color="#dc2626", arrowhead="empty", penwidth=2.5];
+  "ui" -> "ui" [label="above", style="dashed", color="#dc2626", arrowhead="empty", penwidth=2.5];
+}

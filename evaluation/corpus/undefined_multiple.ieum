@@ -1,0 +1,2 @@
+# Two missing targets must produce two distinct diagnostics.
+module checkout depends inventory, payment

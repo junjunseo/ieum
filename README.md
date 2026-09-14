@@ -144,6 +144,23 @@ cmake --build build --config Release
 
 구조 또는 의미 위반이 발견되면 오류 내용과 행을 출력하고 종료 코드 `1`을 반환합니다. 잘못된 CLI 사용과 파일 열기 실패는 종료 코드 `2`를 반환하므로 빌드 스크립트나 CI에서도 실패를 구분할 수 있습니다.
 
+## 그래프 탐색과 데모
+
+[`docs/graphs/index.html`](docs/graphs/index.html)을 내려받은 저장소에서 브라우저로 열면 대표 예제 6종과 정상→위반→수정 데모 3종을 탐색할 수 있습니다. 그래프·코드·실제 진단을 함께 보여주며, 계층 표시, 위반 강조, 확대·축소와 SVG 저장을 지원합니다. 저장된 뷰어는 서버나 인터넷, Graphviz 없이 동작합니다.
+
+- [3분 데모 동선과 복구 절차](docs/DEMO.md)
+- [SVG·뷰어 재생성](docs/GRAPH_EXPORT.md#svg와-오프라인-뷰어)
+- [평가 입력과 정확도·성능·가독성 기준](docs/EVALUATION_PLAN.md)
+
+빌드 후 Python 3.9 이상에서 초기 평가 입력과 데모를 검증합니다. 추가 Python 패키지는 필요 없습니다.
+
+```powershell
+python scripts/evaluate.py
+python scripts/demo.py --repeat 5
+```
+
+평가는 직접 작성한 입력 15개의 기대 결과를 검사합니다. 최종 실제 프로젝트 정확도로 해석하지 않습니다. 로그는 `build/evaluation/results.json`, `build/demo/results.json`에 저장됩니다.
+
 ## 테스트
 
 Windows PowerShell:
@@ -181,6 +198,7 @@ ctest --test-dir build -C Release --output-on-failure
 - 예제별 대표 성공·위반 진단이 출력되는지 확인하는 테스트
 - 2개 모듈 합성 corpus로 성능 측정 경로를 확인하는 benchmark smoke 테스트
 - 대표 예제 6종의 결정적 DOT 스냅샷과 그래프 저장 실패 격리 테스트
+- Python이 있으면 평가 집계·실패 처리·저장된 그래프 일치 검증 8개, 초기 평가 입력 15개와 데모 재생도 확인
 - 정상 구조, 선언 오류, 주석·공백·BOM 입력, 미선언 의존, 직접·다단계·자기·복수 순환, 계층 위반, Scope, 함수 해석, 인자 개수, 재귀와 실행 Trace 검증
 
 ## 성능 기준선
