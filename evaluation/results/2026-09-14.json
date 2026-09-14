@@ -1,0 +1,267 @@
+{
+  "scope": "Hand-authored seed corpus; not independent real-project accuracy.",
+  "created_at": "2026-09-14T09:46:17.392507+00:00",
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.14.3"
+  },
+  "executable_sha256": "a01871e4bcd8aa8bc1c6c2bfcf8135c8eb8917284768685e9a5b1167c697f7c5",
+  "manifest_sha256": "c9b7dc56044967dd71937574dcacc831febe9ccca27b886e803cc889d8502fa8",
+  "summary": {
+    "total": 15,
+    "classified": 15,
+    "unclassified": 0,
+    "exact_matches": 15,
+    "true_positive": 10,
+    "true_negative": 5,
+    "false_positive": 0,
+    "false_negative": 0,
+    "classification_coverage": 1.0,
+    "accuracy_on_classified": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0
+  },
+  "cases": [
+    {
+      "id": "valid",
+      "source": "examples/valid.ieum",
+      "source_sha256": "7b51c1cd5e899faacc427359be404d584ad2ddd1111ee5c5e809ca1c8aff4a26",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 2개 (modules=3, layers=2)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": ""
+    },
+    {
+      "id": "implicit_dependency",
+      "source": "examples/implicit_dependency.ieum",
+      "source_sha256": "fb38ee71300b81ef02f66940699e6f5e5881a6dd800c11356e49eb864b32ff7a",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "undefined_dependency": 1
+      },
+      "actual_labels": {
+        "암묵적 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 1개, 계층 선언 0개 (modules=1, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [암묵적 의존] 모듈 'ui'가 선언되지 않은 모듈 'notification'에 의존합니다 (2행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "cyclic_dependency",
+      "source": "examples/cyclic_dependency.ieum",
+      "source_sha256": "7065e740e164b2d25387169fa9b4ce4b0e96c390027daca2bbb08b6f5cfb6ffa",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 2개, 계층 선언 0개 (modules=2, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [순환 의존] 순환 의존 발견: order -> payment -> order (3행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "layer_violation",
+      "source": "examples/layer_violation.ieum",
+      "source_sha256": "315ab842ef6a77dd359e5659eb10a4f859933e6c63cc7205761cdb0e3fcaed82",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "layer_violation": 1
+      },
+      "actual_labels": {
+        "계층 위반": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 2개, 계층 선언 1개 (modules=2, layers=1)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [계층 위반] 계층 위반: 하위 계층 'data'가 상위 계층 'ui'에 의존합니다 (3행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "transitive_layer_violation",
+      "source": "examples/transitive_layer_violation.ieum",
+      "source_sha256": "1c52b3bb59880a8407b3e9d458b1b85055b70abafd6573ffcc51b4e9a23f1197",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "layer_violation": 1
+      },
+      "actual_labels": {
+        "계층 위반": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 2개 (modules=3, layers=2)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [계층 위반] 계층 위반: 하위 계층 'data'가 상위 계층 'ui'에 의존합니다 (4행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "invalid_declarations",
+      "source": "examples/invalid_declarations.ieum",
+      "source_sha256": "99586354a5e7c50ab6b6b95afb85db62d94a7c8d98d557037d291dfa5377e308",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "duplicate_module": 1,
+        "undefined_layer": 1,
+        "self_layer": 1
+      },
+      "actual_labels": {
+        "중복 모듈": 1,
+        "미선언 계층 모듈": 1,
+        "자기 계층": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 2개, 계층 선언 2개 (modules=2, layers=2)\n\n✗ 구조 검사 실패: 위반 3건\n\n  [중복 모듈] 모듈 'ui'가 중복 선언되었습니다 (최초 선언: 2행) (3행)\n  [미선언 계층 모듈] 계층 선언이 존재하지 않는 모듈 'missing'을 참조합니다 (5행)\n  [자기 계층] 계층 선언의 상위와 하위에 동일한 모듈 'ui'가 지정되었습니다 (6행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "valid_diamond",
+      "source": "evaluation/corpus/valid_diamond.ieum",
+      "source_sha256": "21a0c63837c85be217d3cb3ae25aec3f26220d5e6edd6fa3fab7b48b72b3e897",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 4개, 계층 선언 4개 (modules=4, layers=4)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": ""
+    },
+    {
+      "id": "valid_disconnected",
+      "source": "evaluation/corpus/valid_disconnected.ieum",
+      "source_sha256": "8b79e7a2e2a3658a3f2cc06f71139fbe1a5d0488aa7e4671873bb9e18183e7e3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 4개, 계층 선언 1개 (modules=4, layers=1)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": ""
+    },
+    {
+      "id": "undefined_multiple",
+      "source": "evaluation/corpus/undefined_multiple.ieum",
+      "source_sha256": "fedcb05db4e6886ff03664824c787d3a6990541489445f9ba35298fa3d47e323",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "undefined_dependency": 2
+      },
+      "actual_labels": {
+        "암묵적 의존": 2
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 1개, 계층 선언 0개 (modules=1, layers=0)\n\n✗ 구조 검사 실패: 위반 2건\n\n  [암묵적 의존] 모듈 'checkout'가 선언되지 않은 모듈 'inventory'에 의존합니다 (2행)\n  [암묵적 의존] 모듈 'checkout'가 선언되지 않은 모듈 'payment'에 의존합니다 (2행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "cycle_three",
+      "source": "evaluation/corpus/cycle_three.ieum",
+      "source_sha256": "ce7abd6b7a57c840ffab56971b919436717483a67d408680c3d3050647b5569e",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 0개 (modules=3, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [순환 의존] 순환 의존 발견: checkout -> payment -> notification -> checkout (4행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "cycle_self",
+      "source": "evaluation/corpus/cycle_self.ieum",
+      "source_sha256": "77d7609468bf7d395fcc42d536855dfb74bd01987b9efa75b626859281af46e1",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 1개, 계층 선언 0개 (modules=1, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [순환 의존] 순환 의존 발견: audit -> audit (2행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "layer_indirect",
+      "source": "evaluation/corpus/layer_indirect.ieum",
+      "source_sha256": "452372a05a905ef7bf896ba5709b9da0a3ced8c5c198b45f1d34b639df1d5c94",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "layer_violation": 1
+      },
+      "actual_labels": {
+        "계층 위반": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 1개 (modules=3, layers=1)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [계층 위반] 계층 위반: 하위 계층 'data'가 의존 경로를 통해 상위 계층 'ui'에 의존합니다 (경로: data -> helper -> ui) (3행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "demo_valid",
+      "source": "examples/demo/01-valid.ieum",
+      "source_sha256": "59e0f850c11f0f963966c1aaf17130931f7cf7ec5377788c5f2075fea3572aba",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 2개 (modules=3, layers=2)\n\n모듈 본문 3개, 모듈 변수 0개, 함수 3개, 함수 문장 2개 (body_modules=3, module_variables=0, functions=3, function_statements=2)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": ""
+    },
+    {
+      "id": "demo_violation",
+      "source": "examples/demo/02-violation.ieum",
+      "source_sha256": "5e97875fd312470ad7aba1f0dbc54a76d7e7408edb8179f2fc10a011a49f9d30",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 3
+      },
+      "actual_labels": {
+        "순환 의존": 1,
+        "계층 위반": 3
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 2개 (modules=3, layers=2)\n\n모듈 본문 3개, 모듈 변수 0개, 함수 3개, 함수 문장 2개 (body_modules=3, module_variables=0, functions=3, function_statements=2)\n\n✗ 구조 검사 실패: 위반 4건\n\n  [순환 의존] 순환 의존 발견: data -> ui -> service -> data (6행)\n  [계층 위반] 계층 위반: 하위 계층 'service'가 의존 경로를 통해 상위 계층 'ui'에 의존합니다 (경로: service -> data -> ui) (6행)\n  [계층 위반] 계층 위반: 하위 계층 'data'가 상위 계층 'ui'에 의존합니다 (2행)\n  [계층 위반] 계층 위반: 하위 계층 'data'가 의존 경로를 통해 상위 계층 'service'에 의존합니다 (경로: data -> ui -> service) (2행)\n",
+      "stderr": ""
+    },
+    {
+      "id": "demo_fixed",
+      "source": "examples/demo/03-fixed.ieum",
+      "source_sha256": "7dbaefc1765d830ff26b6a2f3c5620491989e6ba498601138cb27b63ad882578",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 3개, 계층 선언 2개 (modules=3, layers=2)\n\n모듈 본문 3개, 모듈 변수 0개, 함수 3개, 함수 문장 2개 (body_modules=3, module_variables=0, functions=3, function_statements=2)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": ""
+    }
+  ]
+}

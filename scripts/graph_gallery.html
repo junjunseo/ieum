@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>이음 · 의존 그래프 탐색</title>
+  <style>
+    :root{font-family:"Segoe UI","Malgun Gothic",sans-serif;color:#172a38;background:#f3f5f6;font-synthesis:none;--ink:#172a38;--muted:#667581;--line:#dce3e7;--red:#b42332;--blue:#2563eb}
+    *{box-sizing:border-box}body{margin:0}button,a,input{font:inherit}button,a{touch-action:manipulation}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #438df6;outline-offset:3px}
+    header{background:#102c32;color:white;padding:25px 36px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:24px;font-weight:750;letter-spacing:-1px}.brand span{color:#8ad3c6;font-size:12px;letter-spacing:2px;font-weight:500;margin-left:16px}.offline{font-size:12px;color:#bce5da;display:flex;align-items:center;gap:8px}.offline:before{content:"";width:6px;height:6px;border-radius:50%;background:#80d3b4}
+    .intro{padding:28px 36px 24px;border-bottom:1px solid var(--line);background:#fff;display:flex;align-items:end;justify-content:space-between;gap:20px}.eyebrow{font-size:11px;letter-spacing:1.8px;color:#4d7a75;font-weight:700}h1{font-size:27px;letter-spacing:-1px;margin:9px 0}p{line-height:1.65;margin:0;color:var(--muted)}.intro p{font-size:13px}.intro a{font-size:12px;color:#35655d;white-space:nowrap;text-decoration:none}
+    .workspace{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1700px;margin:auto}.sidebar{padding:26px 17px;border-right:1px solid var(--line);background:#fbfcfc}.nav-label{font-size:11px;letter-spacing:1px;color:var(--muted);margin:0 10px 12px}.nav-label.second{margin-top:30px}.case-button{width:100%;border:1px solid transparent;background:none;display:flex;text-align:left;align-items:center;gap:10px;padding:13px 11px;border-radius:7px;margin-bottom:4px;font-size:13px;color:#4c5c68;line-height:1.45}.case-button:hover{background:#edf2f3}.case-button[aria-pressed=true]{background:#e6f0ee;border-color:#bfd6d0;color:#123f35;font-weight:700}.case-num{font:11px ui-monospace,Consolas,monospace;color:#86959e;flex:none}.nav-foot{font-size:11px;line-height:1.7;color:#778791;border-top:1px solid var(--line);padding-top:18px;margin:27px 11px 0}
+    main{min-width:0;padding:28px}.case-head{display:flex;gap:15px;align-items:start;justify-content:space-between;margin-bottom:22px}h2{font-size:23px;letter-spacing:-.8px;margin:0 0 9px}.case-head p{font-size:13px;max-width:740px}.badge{border:1px solid #bad6c9;color:#256048;background:#eaf5ef;border-radius:30px;padding:7px 12px;white-space:nowrap;font-size:12px;flex:none}.badge.bad{background:#fff0f0;color:var(--red);border-color:#efc5c9}
+    .panels{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(290px,1fr);gap:18px;align-items:start}.panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 19px;border-bottom:1px solid var(--line)}h3{font-size:13px;margin:0;font-weight:700}.counts{font-size:11px;color:var(--muted)}.tools{display:flex;flex-wrap:wrap;gap:16px;padding:12px 19px;border-bottom:1px solid #ecf0f2;align-items:center}.tools label{font-size:12px;color:#556570;display:flex;align-items:center;gap:6px}.tools input{accent-color:#2b7666;margin:0}.download{border:none;background:transparent;color:#245e51;font-size:12px;margin-left:auto;padding:2px}
+    .viewport{height:340px;overflow:auto;background-color:white;background-image:radial-gradient(#e2e8eb .7px,transparent .7px);background-size:17px 17px;display:block}.canvas{height:100%;min-height:100%;display:flex;justify-content:center;align-items:center;padding:20px;transition:width .15s,height .15s}.canvas svg{display:block;width:100%;height:100%;overflow:visible}.canvas.hide-layers [data-kind=layer]{display:none}.canvas.emphasize [data-violation=false]{opacity:.18}.canvas.emphasize [data-violation=true] path{stroke-width:3.4}
+    .graph-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-top:1px solid var(--line)}.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.line{width:17px;border-top:2px solid var(--blue)}.line.layer{border-top:2px dashed #64748b}.line.bad{border-color:#dc2626}.zoom{display:flex;align-items:center;gap:3px;white-space:nowrap}.zoom button{border:1px solid #dfe6e9;background:#fff;color:#566874;border-radius:4px;min-width:26px;height:26px;font-size:12px}.zoom button:disabled{opacity:.4;cursor:default}.zoom output{font:10px ui-monospace,Consolas,monospace;width:35px;text-align:center}
+    .diagnostics{margin-top:18px}.diagnostics ul{list-style:none;margin:0;padding:8px 19px 16px}.diagnostics li{font-size:12px;line-height:1.8;padding-top:9px;color:#9c3140;overflow-wrap:anywhere}.diagnostics li.success{color:#256048}.source-path{padding:12px 18px;background:#f7f9fa;font:10px ui-monospace,Consolas,monospace;color:#687d88;border-bottom:1px solid var(--line);overflow-wrap:anywhere}.source{margin:0;padding:16px 0;max-height:470px;overflow:auto;font:12px/1.9 ui-monospace,Consolas,"Malgun Gothic",monospace;tab-size:2}.code-line{display:flex;padding:0 17px 0 0}.line-number{flex:0 0 39px;text-align:right;padding-right:14px;color:#9aabb5;user-select:none}.code-text{white-space:pre;min-width:0}.source-note{border-top:1px solid var(--line);padding:13px 17px;font-size:11px;line-height:1.6;color:#758691}.trace{padding:15px 18px;font:11px/1.8 ui-monospace,Consolas,"Malgun Gothic",monospace;white-space:pre-wrap;margin:0;color:#31534a}.trace-panel{margin-top:18px}footer{font-size:11px;color:#7d8d96;margin-top:22px;line-height:1.8}[hidden]{display:none!important}
+    @media(min-width:1450px){.viewport{height:420px}}@media(max-width:1100px){.panels{grid-template-columns:1fr}.source{max-height:270px}.viewport{height:350px}.workspace{grid-template-columns:210px minmax(0,1fr)}}@media(max-width:700px){header{padding:20px}.brand span{display:none}.intro{padding:24px 20px}.intro a{display:none}h1{font-size:24px}.workspace{display:block}.sidebar{border-right:0;border-bottom:1px solid var(--line);padding:15px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.nav-label.second{margin-top:0}.case-button{font-size:11px;padding:8px 6px;gap:6px}.nav-foot{display:none}main{padding:22px 15px}.case-head{display:block}.badge{display:inline-block;margin-top:12px}.viewport{height:300px}.tools{gap:11px}.tools label{font-size:11px}.graph-bottom{flex-wrap:wrap}.legend{gap:8px}.intro p{font-size:12px}.panels{gap:15px}}
+    @media(prefers-reduced-motion:reduce){.canvas{transition:none}}
+  </style>
+</head>
+<body>
+  <header><div class="brand">이음 <span>IEUM / GRAPH EXPLORER</span></div><div class="offline">오프라인으로 사용 가능</div></header>
+  <section class="intro"><div><div class="eyebrow">DEPENDENCIES, MADE VISIBLE</div><h1>모듈의 연결을 눈으로 확인하세요.</h1><p>의존 관계와 계층 규칙, 실행을 막는 위반 경로를 함께 살펴봅니다.</p></div><a href="../DEMO.md">시연 가이드 ↗</a></section>
+  <div class="workspace">
+    <nav class="sidebar" aria-label="그래프 예제"><div><div class="nav-label">대표 예제 · 6</div><div id="examples"></div></div><div><div class="nav-label second">수정 전후 · 3단계</div><div id="demo"></div><p class="nav-foot">선택한 예제의 저장된 검사 결과입니다.<br>소스 수정 후에는 그래프를 다시 생성하세요.</p></div></nav>
+    <main>
+      <div class="case-head"><div><h2 id="case-title"></h2><p id="case-note"></p></div><span id="status" class="badge" aria-live="polite"></span></div>
+      <div class="panels">
+        <div>
+          <section class="panel" aria-label="의존 그래프">
+            <div class="panel-head"><h3>의존 그래프</h3><span class="counts" id="counts"></span></div>
+            <div class="tools"><label><input type="checkbox" id="show-layers" checked>계층 표시</label><label><input type="checkbox" id="highlight">위반 경로 강조</label><button class="download" id="download">SVG 저장 ↓</button><a id="open-svg" class="download" style="margin-left:0;text-decoration:none">SVG 열기</a></div>
+            <div class="viewport" id="viewport" tabindex="0" aria-label="그래프 보기 영역"><div class="canvas" id="canvas"></div></div>
+            <div class="graph-bottom"><div class="legend"><span><i class="line"></i>의존</span><span><i class="line layer"></i>계층</span><span><i class="line bad"></i>위반</span></div><div class="zoom"><button id="zoom-out" aria-label="축소">−</button><output id="zoom-label">100%</output><button id="zoom-in" aria-label="확대">+</button><button id="reset">맞춤</button></div></div>
+          </section>
+          <section class="panel diagnostics"><div class="panel-head"><h3>검사 결과</h3><span class="counts">구조 검사기의 실제 진단</span></div><ul id="diagnostics"></ul></section>
+          <section class="panel trace-panel" id="trace-panel" hidden><div class="panel-head"><h3>함수 실행</h3><span class="counts">ui.main</span></div><pre class="trace" id="trace"></pre></section>
+        </div>
+        <section class="panel"><div class="panel-head"><h3>예제 코드</h3><span class="counts">Ieum</span></div><div class="source-path" id="source-path"></div><pre class="source" id="source"></pre><div class="source-note">depends는 사용하는 모듈을, layer는 상하 계층을 선언합니다. 화살표 방향과 코드의 관계를 비교해 보세요.</div></section>
+      </div>
+      <footer>파란 실선은 의존하는 모듈 → 의존 대상, 회색 점선은 상위 → 하위 계층입니다.<br>미선언·중복 모듈은 노드에도 표시합니다. 이 화면의 그래프는 구조 관계를 나타냅니다.</footer>
+      <noscript>예제를 선택하려면 JavaScript를 켜세요. 같은 폴더의 SVG 파일은 JavaScript 없이도 열 수 있습니다.</noscript>
+    </main>
+  </div>
+  <script>
+    'use strict';
+    const cases = /*GRAPH_DATA*/[];
+    const el = id => document.getElementById(id);
+    let selected, zoom = 100;
+    const buttons = new Map();
+    cases.forEach((item, index) => {
+      const button = document.createElement('button');
+      button.className = 'case-button';
+      const number = document.createElement('span'); number.className = 'case-num';
+      number.textContent = String(item.group === 'demo' ? index - 5 : index + 1).padStart(2, '0');
+      const title = document.createElement('span'); title.textContent = item.title.replace(/^\d\. /, '');
+      button.append(number, title); button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => { location.hash = item.id; });
+      el(item.group).append(button); buttons.set(item.id, button);
+    });
+    function setZoom(value) {
+      zoom = Math.min(250, Math.max(75, value));
+      el('canvas').style.width = zoom + '%'; el('canvas').style.height = zoom + '%';
+      el('zoom-label').textContent = zoom + '%';
+      el('zoom-in').disabled = zoom >= 250; el('zoom-out').disabled = zoom <= 75;
+      if(zoom === 100){el('viewport').scrollTop = 0; el('viewport').scrollLeft = 0;}
+    }
+    function select() {
+      selected = cases.find(c => c.id === location.hash.slice(1)) || cases.find(c => c.id === 'cyclic_dependency');
+      if(!selected) return;
+      buttons.forEach((b,id) => b.setAttribute('aria-pressed', String(id === selected.id)));
+      el('case-title').textContent = selected.title; el('case-note').textContent = selected.note;
+      el('status').textContent = selected.violations ? '위반 ' + selected.violations + '건 · 실행 차단' : '검사 통과';
+      el('status').className = 'badge' + (selected.violations ? ' bad' : '');
+      el('counts').textContent = '모듈 ' + selected.modules + ' · 계층 ' + selected.layers;
+      // SVG is generated locally by Graphviz from the checker, never user HTML input.
+      el('canvas').innerHTML = selected.svg;
+      el('open-svg').href = selected.id + '.svg';
+      el('source-path').textContent = selected.sourcePath; el('source').replaceChildren();
+      selected.source.trimEnd().split('\n').forEach((line,index) => {
+        const row = document.createElement('span'); row.className = 'code-line';
+        const n = document.createElement('span'); n.className = 'line-number'; n.textContent = index + 1;
+        const code = document.createElement('span'); code.className = 'code-text'; code.textContent = line || ' ';
+        row.append(n, code); el('source').append(row);
+      });
+      el('diagnostics').replaceChildren();
+      const messages = selected.diagnostics.length ? selected.diagnostics : ['구조·의미 검사 통과: 위반이 없습니다.'];
+      messages.forEach(message => { const li = document.createElement('li'); li.textContent = message;
+        li.className = selected.violations ? '' : 'success'; el('diagnostics').append(li); });
+      el('trace-panel').hidden = selected.group !== 'demo';
+      el('trace').textContent = selected.trace || '구조 위반으로 함수 실행을 시작하지 않았습니다.';
+      el('highlight').checked = false; el('highlight').disabled = !selected.violations;
+      el('canvas').classList.remove('emphasize');
+      setZoom(100);
+      document.title = '이음 · ' + selected.title;
+    }
+    el('show-layers').addEventListener('change', event => el('canvas').classList.toggle('hide-layers', !event.target.checked));
+    el('highlight').addEventListener('change', event => el('canvas').classList.toggle('emphasize', event.target.checked));
+    el('zoom-in').addEventListener('click', () => setZoom(zoom + 25));
+    el('zoom-out').addEventListener('click', () => setZoom(zoom - 25));
+    el('reset').addEventListener('click', () => setZoom(100));
+    el('download').addEventListener('click', () => {
+      const url = URL.createObjectURL(new Blob([selected.svg], {type:'image/svg+xml;charset=utf-8'}));
+      const link = document.createElement('a'); link.href = url; link.download = selected.id + '.svg';
+      document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    window.addEventListener('hashchange', select); select();
+  </script>
+</body>
+</html>

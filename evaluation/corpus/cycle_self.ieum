@@ -1,0 +1,2 @@
+# Self dependency is a cycle even without a layer declaration.
+module audit depends audit

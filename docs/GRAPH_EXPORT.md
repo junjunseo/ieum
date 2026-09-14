@@ -13,6 +13,32 @@
 
 `--run`과 `--emit-dot`의 순서는 바꿀 수 있습니다. 구조 위반이 있는 입력도 그래프를 먼저 저장하고 기존과 동일하게 종료 코드 `1`을 반환합니다. 출력 파일을 열 수 없는 경우 `graph_export=failed` 경고를 남기되 구조 검사 성공은 `0`, 구조 위반은 `1`로 유지합니다.
 
+## SVG와 오프라인 뷰어
+
+`docs/graphs/index.html`을 브라우저에서 열면 대표 예제 6종과 정상→위반→수정 데모 3종을 볼 수 있습니다. SVG·소스·실제 검사 진단을 HTML 안에 포함하므로 보기에는 서버, 인터넷, Python, Graphviz가 필요 없습니다.
+
+예제 전환, 계층 표시, 위반 경로 강조, 확대·축소·맞춤과 원본 SVG 저장을 지원합니다. 화면 표시 옵션은 검사 결과나 저장하는 원본 SVG를 바꾸지 않습니다. 같은 폴더에는 개별 DOT·SVG 파일도 있습니다.
+
+브라우저가 다운로드를 지원하지 않으면 `SVG 열기` 또는 같은 폴더의 개별 SVG를 사용합니다. HTML 하나만 복사해도 탐색·SVG 저장은 동작하며, 개별 SVG 열기와 시연 가이드 링크는 원래 폴더 구조가 필요합니다.
+
+소스 변경 후 재생성에는 빌드된 Ieum, Python 3.9 이상과 [Graphviz의 공식 배포본](https://graphviz.org/download/)이 필요합니다. Graphviz는 DOT를 SVG로 렌더링할 때만 사용합니다.
+
+```powershell
+python scripts/render_graphs.py
+# Graphviz가 PATH에 없다면 실행 파일 경로 지정
+python scripts/render_graphs.py --dot C:/tools/Graphviz/bin/dot.exe
+# 다른 빌드 경로도 지정 가능
+python scripts/render_graphs.py --ieum build/Release/ieum.exe --dot C:/tools/Graphviz/bin/dot.exe
+```
+
+렌더러는 `evaluation/manifest.json`의 그래프 항목을 실제 검사기에 입력합니다. 기대한 위반 종류·건수와 DOT 저장 성공을 확인한 뒤 SVG를 만들고, 모든 예제가 성공했을 때 결과를 복사합니다. Graphviz가 없어도 기존 뷰어를 덮어쓰지 않습니다. 그래프 처리 실패는 스크립트 종료 코드 2로 보고합니다.
+
+`provenance.json`에는 Graphviz 버전, 생성에 사용한 실행 파일 해시와 입력·DOT·SVG 해시가 있습니다. 텍스트 해시는 BOM·줄바꿈을 정규화합니다. SVG 배치는 Graphviz 버전·폰트·OS에 따라 달라질 수 있으므로 기존 DOT 스냅샷을 결정성 기준으로 유지합니다.
+
+검증: `python test/test_workflows.py`. Graphviz 없이도 실제 검사기가 생성한 DOT와 저장된 결과, 입력·SVG 해시를 대조합니다. 소스/manifest/뷰어 템플릿을 바꾸면 재생성합니다.
+
+시연 절차는 [데모 가이드](DEMO.md), 규모·가독성 기준은 [평가 계획](EVALUATION_PLAN.md)에 있습니다.
+
 ## 표현 규칙
 
 | 대상 | DOT 표현 |

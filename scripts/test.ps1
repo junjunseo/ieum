@@ -229,6 +229,18 @@ try {
         Write-Host ""
     }
 
+    $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
+    if ($pythonCommand) {
+        foreach ($script in @("test/test_workflows.py", "scripts/evaluate.py", "scripts/demo.py")) {
+            & $pythonCommand.Source -B $script --ieum "build/ieum.exe"
+            if ($LASTEXITCODE -ne 0) {
+                throw "Workflow validation failed: $script"
+            }
+        }
+    } else {
+        Write-Host "Python unavailable: demo/evaluation checks skipped (requires Python 3.9+)."
+    }
+
     Write-Host "All tests passed."
 } finally {
     Pop-Location

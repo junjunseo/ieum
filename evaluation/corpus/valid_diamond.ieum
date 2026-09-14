@@ -1,0 +1,9 @@
+# Shared lower dependency is valid; revisiting storage is not a cycle.
+module storage
+module orders depends storage
+module billing depends storage
+module api depends orders, billing
+layer api above orders
+layer api above billing
+layer orders above storage
+layer billing above storage

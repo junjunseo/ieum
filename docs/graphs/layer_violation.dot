@@ -1,0 +1,12 @@
+digraph ieum {
+  graph [rankdir=LR, bgcolor="white"];
+  node [shape=box, style="rounded,filled", fillcolor="#f8fafc", color="#334155", fontname="sans-serif"];
+  edge [fontname="sans-serif", fontsize=10];
+
+  "data";
+  "ui";
+
+  "data" -> "ui" [label="depends", color="#dc2626", penwidth=2.5];
+
+  "ui" -> "data" [label="above", style="dashed", color="#64748b", arrowhead="empty"];
+}

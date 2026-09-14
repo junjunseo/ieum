@@ -1,0 +1,6 @@
+# Independent subsystems and an isolated module are valid.
+module database
+module service depends database
+module audit
+module utility
+layer service above database

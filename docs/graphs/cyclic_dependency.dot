@@ -1,0 +1,11 @@
+digraph ieum {
+  graph [rankdir=LR, bgcolor="white"];
+  node [shape=box, style="rounded,filled", fillcolor="#f8fafc", color="#334155", fontname="sans-serif"];
+  edge [fontname="sans-serif", fontsize=10];
+
+  "order";
+  "payment";
+
+  "order" -> "payment" [label="depends", color="#dc2626", penwidth=2.5];
+  "payment" -> "order" [label="depends", color="#dc2626", penwidth=2.5];
+}

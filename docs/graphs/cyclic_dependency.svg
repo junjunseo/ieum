@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="294pt" height="89pt" viewBox="0.00 0.00 294.00 89.00" role="img" aria-label="순환 의존">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.2 64.17)">
+<title>ieum</title>
+<polygon fill="white" stroke="none" points="-25.2,25.2 -25.2,-64.17 268.55,-64.17 268.55,25.2 -25.2,25.2" />
+
+<g id="node1" class="node">
+<title>order</title>
+<path fill="#f8fafc" stroke="#334155" d="M55.05,-38.97C55.05,-38.97 12,-38.97 12,-38.97 6,-38.97 0,-32.97 0,-26.97 0,-26.97 0,-12 0,-12 0,-6 6,0 12,0 12,0 55.05,0 55.05,0 61.05,0 67.05,-6 67.05,-12 67.05,-12 67.05,-26.97 67.05,-26.97 67.05,-32.97 61.05,-38.97 55.05,-38.97" />
+<text xml:space="preserve" text-anchor="middle" x="33.53" y="-14.41" font-family="sans-serif" font-size="16.00">order</text>
+</g>
+
+<g id="node2" class="node">
+<title>payment</title>
+<path fill="#f8fafc" stroke="#334155" d="M231.35,-38.97C231.35,-38.97 165.05,-38.97 165.05,-38.97 159.05,-38.97 153.05,-32.97 153.05,-26.97 153.05,-26.97 153.05,-12 153.05,-12 153.05,-6 159.05,0 165.05,0 165.05,0 231.35,0 231.35,0 237.35,0 243.35,-6 243.35,-12 243.35,-12 243.35,-26.97 243.35,-26.97 243.35,-32.97 237.35,-38.97 231.35,-38.97" />
+<text xml:space="preserve" text-anchor="middle" x="198.2" y="-14.41" font-family="sans-serif" font-size="16.00">payment</text>
+</g>
+
+<g id="edge1" class="edge" data-kind="dependency" data-violation="true">
+<title>order-&gt;payment</title>
+<path fill="none" stroke="#dc2626" stroke-width="2.5" d="M67.44,-19.48C87.93,-19.48 114.87,-19.48 138.88,-19.48" />
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="2.5" points="138.83,-22.99 148.83,-19.49 138.83,-15.99 138.83,-22.99" />
+<text xml:space="preserve" text-anchor="middle" x="110.05" y="-22.73" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge2" class="edge" data-kind="dependency" data-violation="true">
+<title>payment-&gt;order</title>
+<path fill="none" stroke="#dc2626" stroke-width="2.5" d="M152.74,-6.44C134.02,-2.5 112,0.11 92.05,-2.73 88.24,-3.28 84.32,-4.02 80.42,-4.88" />
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="2.5" points="79.83,-1.42 71,-7.27 81.55,-8.2 79.83,-1.42" />
+<text xml:space="preserve" text-anchor="middle" x="110.05" y="-5.98" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+</g>
+</svg>

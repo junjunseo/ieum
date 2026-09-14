@@ -1,0 +1,4 @@
+# A cycle spanning three modules without layer declarations.
+module checkout depends payment
+module payment depends notification
+module notification depends checkout

@@ -1,0 +1,5 @@
+# data reaches upper ui through helper; no direct data -> ui edge exists.
+module ui
+module data depends helper
+module helper depends ui
+layer ui above data
