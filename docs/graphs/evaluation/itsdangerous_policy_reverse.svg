@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1807pt" height="456pt" viewBox="0.00 0.00 1807.00 456.00" role="img" aria-label="itsdangerous · 역방향 정책">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.2 430.95)">
+<title>ieum</title>
+<polygon fill="white" stroke="none" points="-25.2,25.2 -25.2,-430.95 1781.55,-430.95 1781.55,25.2 -25.2,25.2" />
+
+<g id="node1" class="node">
+<title>itsdangerous</title>
+<path fill="#f8fafc" stroke="#334155" d="M108.3,-306.49C108.3,-306.49 12,-306.49 12,-306.49 6,-306.49 0,-300.49 0,-294.49 0,-294.49 0,-279.51 0,-279.51 0,-273.51 6,-267.51 12,-267.51 12,-267.51 108.3,-267.51 108.3,-267.51 114.3,-267.51 120.3,-273.51 120.3,-279.51 120.3,-279.51 120.3,-294.49 120.3,-294.49 120.3,-300.49 114.3,-306.49 108.3,-306.49" />
+<text xml:space="preserve" text-anchor="middle" x="60.15" y="-281.93" font-family="sans-serif" font-size="16.00">itsdangerous</text>
+</g>
+
+<g id="node3" class="node">
+<title>itsdangerous__encoding</title>
+<path fill="#f8fafc" stroke="#334155" d="M1496.8,-229.49C1496.8,-229.49 1318,-229.49 1318,-229.49 1312,-229.49 1306,-223.49 1306,-217.49 1306,-217.49 1306,-202.51 1306,-202.51 1306,-196.51 1312,-190.51 1318,-190.51 1318,-190.51 1496.8,-190.51 1496.8,-190.51 1502.8,-190.51 1508.8,-196.51 1508.8,-202.51 1508.8,-202.51 1508.8,-217.49 1508.8,-217.49 1508.8,-223.49 1502.8,-229.49 1496.8,-229.49" />
+<text xml:space="preserve" text-anchor="middle" x="1407.4" y="-204.93" font-family="sans-serif" font-size="16.00">itsdangerous__encoding</text>
+</g>
+
+<g id="edge1" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous-&gt;itsdangerous__encoding</title>
+<path fill="none" stroke="#2563eb" d="M111.2,-306.98C159.48,-324.43 235.04,-347 302.95,-347 302.95,-347 302.95,-347 1130.1,-347 1207.96,-347 1218.96,-305.06 1281,-258 1291.07,-250.36 1292.34,-244.07 1304.5,-235.71" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1306.17,-238.79 1312.96,-230.65 1302.58,-232.78 1306.17,-238.79" />
+<text xml:space="preserve" text-anchor="middle" x="708.65" y="-350.25" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node4" class="node">
+<title>itsdangerous__exc</title>
+<path fill="#f8fafc" stroke="#334155" d="M1744.35,-205.49C1744.35,-205.49 1606.8,-205.49 1606.8,-205.49 1600.8,-205.49 1594.8,-199.49 1594.8,-193.49 1594.8,-193.49 1594.8,-178.51 1594.8,-178.51 1594.8,-172.51 1600.8,-166.51 1606.8,-166.51 1606.8,-166.51 1744.35,-166.51 1744.35,-166.51 1750.35,-166.51 1756.35,-172.51 1756.35,-178.51 1756.35,-178.51 1756.35,-193.49 1756.35,-193.49 1756.35,-199.49 1750.35,-205.49 1744.35,-205.49" />
+<text xml:space="preserve" text-anchor="middle" x="1675.58" y="-180.93" font-family="sans-serif" font-size="16.00">itsdangerous__exc</text>
+</g>
+
+<g id="edge2" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous-&gt;itsdangerous__exc</title>
+<path fill="none" stroke="#2563eb" d="M87.06,-306.94C129.64,-337.64 218.15,-393 302.95,-393 302.95,-393 302.95,-393 1408.4,-393 1522.71,-393 1617.51,-272.56 1656.05,-215.42" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1658.94,-217.38 1661.54,-207.11 1653.1,-213.52 1658.94,-217.38" />
+<text xml:space="preserve" text-anchor="middle" x="851.93" y="-396.25" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node5" class="node">
+<title>itsdangerous__serializer</title>
+<path fill="#f8fafc" stroke="#334155" d="M940.2,-243.49C940.2,-243.49 763.65,-243.49 763.65,-243.49 757.65,-243.49 751.65,-237.49 751.65,-231.49 751.65,-231.49 751.65,-216.51 751.65,-216.51 751.65,-210.51 757.65,-204.51 763.65,-204.51 763.65,-204.51 940.2,-204.51 940.2,-204.51 946.2,-204.51 952.2,-210.51 952.2,-216.51 952.2,-216.51 952.2,-231.49 952.2,-231.49 952.2,-237.49 946.2,-243.49 940.2,-243.49" />
+<text xml:space="preserve" text-anchor="middle" x="851.93" y="-218.93" font-family="sans-serif" font-size="16.00">itsdangerous__serializer</text>
+</g>
+
+<g id="edge3" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous-&gt;itsdangerous__serializer</title>
+<path fill="none" stroke="#2563eb" d="M120.51,-282.26C252.1,-271.77 570.06,-246.4 739.79,-232.87" />
+<polygon fill="#2563eb" stroke="#2563eb" points="740.05,-236.36 749.74,-232.07 739.5,-229.38 740.05,-236.36" />
+<text xml:space="preserve" text-anchor="middle" x="444.6" y="-260.93" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node6" class="node">
+<title>itsdangerous__signer</title>
+<path fill="#f8fafc" stroke="#334155" d="M1208,-284.49C1208,-284.49 1050.2,-284.49 1050.2,-284.49 1044.2,-284.49 1038.2,-278.49 1038.2,-272.49 1038.2,-272.49 1038.2,-257.51 1038.2,-257.51 1038.2,-251.51 1044.2,-245.51 1050.2,-245.51 1050.2,-245.51 1208,-245.51 1208,-245.51 1214,-245.51 1220,-251.51 1220,-257.51 1220,-257.51 1220,-272.49 1220,-272.49 1220,-278.49 1214,-284.49 1208,-284.49" />
+<text xml:space="preserve" text-anchor="middle" x="1129.1" y="-259.93" font-family="sans-serif" font-size="16.00">itsdangerous__signer</text>
+</g>
+
+<g id="edge4" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous-&gt;itsdangerous__signer</title>
+<path fill="none" stroke="#2563eb" d="M120.67,-294.29C169.55,-299.65 240.63,-306 302.95,-306 302.95,-306 302.95,-306 852.93,-306 911.54,-306 976.41,-296.79 1028.44,-287.1" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1029.02,-290.55 1038.19,-285.24 1027.71,-283.67 1029.02,-290.55" />
+<text xml:space="preserve" text-anchor="middle" x="576.63" y="-309.25" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node7" class="node">
+<title>itsdangerous__timed</title>
+<path fill="#f8fafc" stroke="#334155" d="M653.65,-182.49C653.65,-182.49 499.6,-182.49 499.6,-182.49 493.6,-182.49 487.6,-176.49 487.6,-170.49 487.6,-170.49 487.6,-155.51 487.6,-155.51 487.6,-149.51 493.6,-143.51 499.6,-143.51 499.6,-143.51 653.65,-143.51 653.65,-143.51 659.65,-143.51 665.65,-149.51 665.65,-155.51 665.65,-155.51 665.65,-170.49 665.65,-170.49 665.65,-176.49 659.65,-182.49 653.65,-182.49" />
+<text xml:space="preserve" text-anchor="middle" x="576.63" y="-157.93" font-family="sans-serif" font-size="16.00">itsdangerous__timed</text>
+</g>
+
+<g id="edge5" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous-&gt;itsdangerous__timed</title>
+<path fill="none" stroke="#2563eb" d="M107.85,-267.11C119.91,-262.41 132.97,-257.69 145.3,-254 256.72,-220.62 387.9,-194.75 475.88,-179.26" />
+<polygon fill="#2563eb" stroke="#2563eb" points="476.45,-182.72 485.7,-177.55 475.25,-175.82 476.45,-182.72" />
+<text xml:space="preserve" text-anchor="middle" x="303.95" y="-239.35" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node8" class="node">
+<title>itsdangerous__url_safe</title>
+<path fill="#f8fafc" stroke="#334155" d="M389.6,-149.49C389.6,-149.49 218.3,-149.49 218.3,-149.49 212.3,-149.49 206.3,-143.49 206.3,-137.49 206.3,-137.49 206.3,-122.52 206.3,-122.52 206.3,-116.52 212.3,-110.52 218.3,-110.52 218.3,-110.52 389.6,-110.52 389.6,-110.52 395.6,-110.52 401.6,-116.52 401.6,-122.52 401.6,-122.52 401.6,-137.49 401.6,-137.49 401.6,-143.49 395.6,-149.49 389.6,-149.49" />
+<text xml:space="preserve" text-anchor="middle" x="303.95" y="-124.92" font-family="sans-serif" font-size="16.00">itsdangerous__url_safe</text>
+</g>
+
+<g id="edge6" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous-&gt;itsdangerous__url_safe</title>
+<path fill="none" stroke="#2563eb" d="M76.46,-267.3C92.11,-248.2 117.95,-219.36 145.3,-200.25 172.32,-181.37 205.22,-165.75 233.96,-154.07" />
+<polygon fill="#2563eb" stroke="#2563eb" points="234.94,-157.44 242.94,-150.5 232.36,-150.94 234.94,-157.44" />
+<text xml:space="preserve" text-anchor="middle" x="163.3" y="-203.5" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node2" class="node">
+<title>itsdangerous___json</title>
+<path fill="#f8fafc" stroke="#334155" d="M653.28,-125.48C653.28,-125.48 499.98,-125.48 499.98,-125.48 493.98,-125.48 487.98,-119.48 487.98,-113.48 487.98,-113.48 487.98,-98.52 487.98,-98.52 487.98,-92.52 493.98,-86.52 499.98,-86.52 499.98,-86.52 653.28,-86.52 653.28,-86.52 659.28,-86.52 665.28,-92.52 665.28,-98.52 665.28,-98.52 665.28,-113.48 665.28,-113.48 665.28,-119.48 659.28,-125.48 653.28,-125.48" />
+<text xml:space="preserve" text-anchor="middle" x="576.63" y="-100.92" font-family="sans-serif" font-size="16.00">itsdangerous___json</text>
+</g>
+
+<g id="edge7" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__encoding-&gt;itsdangerous__exc</title>
+<path fill="none" stroke="#2563eb" d="M1509.03,-200.93C1533.43,-198.73 1559.38,-196.39 1583.32,-194.23" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1583.38,-197.74 1593.03,-193.35 1582.75,-190.77 1583.38,-197.74" />
+<text xml:space="preserve" text-anchor="middle" x="1551.8" y="-201.25" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge8" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__serializer-&gt;itsdangerous__encoding</title>
+<path fill="none" stroke="#2563eb" d="M952.51,-221.48C1048.71,-219.05 1194.18,-215.37 1294.37,-212.83" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1294.32,-216.34 1304.23,-212.58 1294.14,-209.34 1294.32,-216.34" />
+<text xml:space="preserve" text-anchor="middle" x="1129.1" y="-222.54" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge9" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__serializer-&gt;itsdangerous__exc</title>
+<path fill="none" stroke="#2563eb" d="M952.62,-212.09C1044.3,-201.77 1184.08,-187.64 1306,-182 1396.04,-177.84 1418.67,-180.91 1508.8,-182 1532.91,-182.29 1558.98,-182.82 1583.15,-183.4" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1582.88,-186.89 1592.97,-183.64 1583.06,-179.9 1582.88,-186.89" />
+<text xml:space="preserve" text-anchor="middle" x="1263" y="-188.39" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge10" class="edge" data-kind="dependency" data-violation="true">
+<title>itsdangerous__serializer-&gt;itsdangerous__signer</title>
+<path fill="none" stroke="#dc2626" stroke-width="2.5" d="M920.48,-243.91C938.74,-248.6 958.6,-253.08 977.2,-256 992.49,-258.4 1008.75,-260.17 1024.71,-261.48" />
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="2.5" points="1024.02,-264.94 1034.25,-262.19 1024.54,-257.96 1024.02,-264.94" />
+<text xml:space="preserve" text-anchor="middle" x="995.2" y="-263.4" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge11" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__signer-&gt;itsdangerous__encoding</title>
+<path fill="none" stroke="#2563eb" d="M1220.19,-247.07C1244.2,-242.29 1270.41,-237.07 1295.4,-232.1" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1295.79,-235.59 1304.91,-230.2 1294.42,-228.72 1295.79,-235.59" />
+<text xml:space="preserve" text-anchor="middle" x="1263" y="-244.04" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge12" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__signer-&gt;itsdangerous__exc</title>
+<path fill="none" stroke="#2563eb" d="M1220.29,-259.91C1240.28,-258.7 1261.36,-257.36 1281,-256 1382.32,-248.98 1409.09,-257.32 1508.8,-238 1543.24,-231.33 1580.59,-219.99 1611.11,-209.6" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1611.87,-213.04 1620.18,-206.46 1609.58,-206.42 1611.87,-213.04" />
+<text xml:space="preserve" text-anchor="middle" x="1407.4" y="-257.71" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge22" class="edge" data-kind="layer" data-violation="false">
+<title>itsdangerous__signer-&gt;itsdangerous__serializer</title>
+<path fill="none" stroke="#64748b" stroke-dasharray="5,2" d="M1044.87,-245.06C1034.25,-242.89 1023.5,-240.89 1013.2,-239.25 997.28,-236.72 980.39,-234.55 963.78,-232.72" />
+<polygon fill="none" stroke="#64748b" points="964.17,-229.24 953.85,-231.66 963.43,-236.2 964.17,-229.24" />
+<text xml:space="preserve" text-anchor="middle" x="995.2" y="-242.5" font-family="sans-serif" font-size="10.00">above</text>
+</g>
+
+<g id="edge13" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__timed-&gt;itsdangerous__encoding</title>
+<path fill="none" stroke="#2563eb" d="M666.08,-151.85C674.38,-151.1 682.66,-150.46 690.65,-150 706.62,-149.08 710.65,-149.96 726.65,-150 973.36,-150.55 1037.58,-138.8 1281,-179 1294.71,-181.26 1309.12,-184.25 1323.1,-187.47" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1322.18,-190.85 1332.72,-189.75 1323.8,-184.04 1322.18,-190.85" />
+<text xml:space="preserve" text-anchor="middle" x="995.2" y="-153.1" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge14" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__timed-&gt;itsdangerous__exc</title>
+<path fill="none" stroke="#2563eb" d="M642.67,-143.04C766.87,-107.51 1046.33,-39.98 1281,-73 1401.01,-89.89 1535.72,-134.4 1612.34,-162.25" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1610.74,-165.39 1621.33,-165.54 1613.14,-158.82 1610.74,-165.39" />
+<text xml:space="preserve" text-anchor="middle" x="1129.1" y="-71.56" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge15" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__timed-&gt;itsdangerous__serializer</title>
+<path fill="none" stroke="#2563eb" d="M665.98,-182.72C692.97,-188.74 722.83,-195.41 750.55,-201.6" />
+<polygon fill="#2563eb" stroke="#2563eb" points="749.47,-204.94 759.99,-203.7 750.99,-198.11 749.47,-204.94" />
+<text xml:space="preserve" text-anchor="middle" x="708.65" y="-198.58" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge16" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__timed-&gt;itsdangerous__signer</title>
+<path fill="none" stroke="#2563eb" d="M666.06,-155.73C743.36,-152.18 857.69,-153.8 952.2,-183.25 995.01,-196.59 997.46,-217.26 1038.2,-236 1042,-237.75 1045.93,-239.43 1049.94,-241.06" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1048.66,-244.31 1059.25,-244.65 1051.18,-237.78 1048.66,-244.31" />
+<text xml:space="preserve" text-anchor="middle" x="851.93" y="-186.5" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge17" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__url_safe-&gt;itsdangerous___json</title>
+<path fill="none" stroke="#2563eb" d="M401.88,-120.51C410.24,-119.73 418.57,-118.97 426.6,-118.25 442.67,-116.81 459.72,-115.35 476.33,-113.96" />
+<polygon fill="#2563eb" stroke="#2563eb" points="476.56,-117.46 486.24,-113.14 475.98,-110.48 476.56,-117.46" />
+<text xml:space="preserve" text-anchor="middle" x="444.6" y="-121.5" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge18" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__url_safe-&gt;itsdangerous__encoding</title>
+<path fill="none" stroke="#2563eb" d="M359.65,-110.12C395.49,-98.17 443.68,-84.13 487.6,-78 811.41,-32.8 901.28,-74.09 1220,-147 1263.04,-156.84 1310.13,-172.81 1346.21,-186.2" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1344.55,-189.31 1355.14,-189.55 1347.01,-182.76 1344.55,-189.31" />
+<text xml:space="preserve" text-anchor="middle" x="851.93" y="-88.06" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge19" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__url_safe-&gt;itsdangerous__exc</title>
+<path fill="none" stroke="#2563eb" d="M327.78,-110.26C372.26,-73.89 475.01,0 575.63,0 575.63,0 575.63,0 1408.4,0 1516.67,0 1612.29,-104.68 1653.31,-156.98" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1650.53,-159.1 1659.4,-164.9 1656.08,-154.83 1650.53,-159.1" />
+<text xml:space="preserve" text-anchor="middle" x="995.2" y="-3.25" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge20" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__url_safe-&gt;itsdangerous__serializer</title>
+<path fill="none" stroke="#2563eb" d="M354.49,-149.98C390.75,-163.76 441.48,-181.27 487.6,-191 576.29,-209.7 600.38,-201.83 690.65,-210 706.58,-211.44 723.41,-212.94 739.94,-214.39" />
+<polygon fill="#2563eb" stroke="#2563eb" points="739.54,-217.87 749.8,-215.26 740.15,-210.9 739.54,-217.87" />
+<text xml:space="preserve" text-anchor="middle" x="576.63" y="-211.24" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge21" class="edge" data-kind="dependency" data-violation="false">
+<title>itsdangerous__url_safe-&gt;itsdangerous__timed</title>
+<path fill="none" stroke="#2563eb" d="M401.91,-141.82C426,-144.76 451.87,-147.91 476.08,-150.86" />
+<polygon fill="#2563eb" stroke="#2563eb" points="475.6,-154.33 485.95,-152.07 476.45,-147.38 475.6,-154.33" />
+<text xml:space="preserve" text-anchor="middle" x="444.6" y="-151.73" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+</g>
+</svg>

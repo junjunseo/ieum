@@ -237,6 +237,10 @@ try {
                 throw "Workflow validation failed: $script"
             }
         }
+        & $pythonCommand.Source -B test/test_real_corpus.py --ieum "build/ieum.exe" --benchmark "build/benchmarkChecker.exe"
+        if ($LASTEXITCODE -ne 0) {
+            throw "Real corpus validation failed"
+        }
     } else {
         Write-Host "Python unavailable: demo/evaluation checks skipped (requires Python 3.9+)."
     }

@@ -161,6 +161,15 @@ python scripts/demo.py --repeat 5
 
 평가는 직접 작성한 입력 15개의 기대 결과를 검사합니다. 최종 실제 프로젝트 정확도로 해석하지 않습니다. 로그는 `build/evaluation/results.json`, `build/demo/results.json`에 저장됩니다.
 
+실제 프로젝트에서 추출한 구조의 평가는 별도 manifest로 실행합니다.
+
+```powershell
+python scripts/prepare_corpus.py --check
+python scripts/evaluate.py --manifest evaluation/real/manifest.json --output build/evaluation/real.json
+```
+
+고정 커밋의 itsdangerous·packaging 전체 패키지에서 정적 import를 추출한 원본 2개와 변형·정책 입력 8개, 25·50 모듈 합성 입력 4개를 구분해 집계합니다. 14개 모두 기대 결과와 일치했으나 사람의 독립 정답 검토는 대기 중이며 Python 런타임 오류율이나 일반적인 정확도를 의미하지 않습니다. [출처·추출 규칙·재현 방법](docs/REAL_CORPUS.md), [평가 결과](docs/EVALUATION_RESULTS.md), [평가 그래프 뷰어](docs/graphs/evaluation/index.html)를 참고합니다.
+
 ## 테스트
 
 Windows PowerShell:
@@ -199,6 +208,7 @@ ctest --test-dir build -C Release --output-on-failure
 - 2개 모듈 합성 corpus로 성능 측정 경로를 확인하는 benchmark smoke 테스트
 - 대표 예제 6종의 결정적 DOT 스냅샷과 그래프 저장 실패 격리 테스트
 - Python이 있으면 평가 집계·실패 처리·저장된 그래프 일치 검증 8개, 초기 평가 입력 15개와 데모 재생도 확인
+- PowerShell·CTest의 Python 경로는 실제 corpus 추출·독립 참조 계산·파일 벤치마크·SVG 일치 검증 14개를 추가 실행합니다(총 Python 테스트 22개).
 - 정상 구조, 선언 오류, 주석·공백·BOM 입력, 미선언 의존, 직접·다단계·자기·복수 순환, 계층 위반, Scope, 함수 해석, 인자 개수, 재귀와 실행 Trace 검증
 
 ## 성능 기준선

@@ -23,7 +23,7 @@
   <header><div class="brand">이음 <span>IEUM / GRAPH EXPLORER</span></div><div class="offline">오프라인으로 사용 가능</div></header>
   <section class="intro"><div><div class="eyebrow">DEPENDENCIES, MADE VISIBLE</div><h1>모듈의 연결을 눈으로 확인하세요.</h1><p>의존 관계와 계층 규칙, 실행을 막는 위반 경로를 함께 살펴봅니다.</p></div><a href="../DEMO.md">시연 가이드 ↗</a></section>
   <div class="workspace">
-    <nav class="sidebar" aria-label="그래프 예제"><div><div class="nav-label">대표 예제 · 6</div><div id="examples"></div></div><div><div class="nav-label second">수정 전후 · 3단계</div><div id="demo"></div><p class="nav-foot">선택한 예제의 저장된 검사 결과입니다.<br>소스 수정 후에는 그래프를 다시 생성하세요.</p></div></nav>
+    <nav class="sidebar" aria-label="그래프 예제"><div><div class="nav-label" id="examples-label">그래프 예제</div><div id="examples"></div></div><div id="demo-nav"><div class="nav-label second">수정 전후 · 3단계</div><div id="demo"></div><p class="nav-foot">선택한 예제의 저장된 검사 결과입니다.<br>소스 수정 후에는 그래프를 다시 생성하세요.</p></div></nav>
     <main>
       <div class="case-head"><div><h2 id="case-title"></h2><p id="case-note"></p></div><span id="status" class="badge" aria-live="polite"></span></div>
       <div class="panels">
@@ -32,7 +32,7 @@
             <div class="panel-head"><h3>의존 그래프</h3><span class="counts" id="counts"></span></div>
             <div class="tools"><label><input type="checkbox" id="show-layers" checked>계층 표시</label><label><input type="checkbox" id="highlight">위반 경로 강조</label><button class="download" id="download">SVG 저장 ↓</button><a id="open-svg" class="download" style="margin-left:0;text-decoration:none">SVG 열기</a></div>
             <div class="viewport" id="viewport" tabindex="0" aria-label="그래프 보기 영역"><div class="canvas" id="canvas"></div></div>
-            <div class="graph-bottom"><div class="legend"><span><i class="line"></i>의존</span><span><i class="line layer"></i>계층</span><span><i class="line bad"></i>위반</span></div><div class="zoom"><button id="zoom-out" aria-label="축소">−</button><output id="zoom-label">100%</output><button id="zoom-in" aria-label="확대">+</button><button id="reset">맞춤</button></div></div>
+            <div class="graph-bottom"><div class="legend"><span><i class="line"></i>의존</span><span><i class="line layer"></i>계층</span><span><i class="line bad"></i>위반</span></div><div class="zoom"><button id="zoom-out" aria-label="축소">−</button><output id="zoom-label">100%</output><button id="zoom-in" aria-label="확대">+</button><button id="native-size">원본 크기</button><button id="reset">맞춤</button></div></div>
           </section>
           <section class="panel diagnostics"><div class="panel-head"><h3>검사 결과</h3><span class="counts">구조 검사기의 실제 진단</span></div><ul id="diagnostics"></ul></section>
           <section class="panel trace-panel" id="trace-panel" hidden><div class="panel-head"><h3>함수 실행</h3><span class="counts">ui.main</span></div><pre class="trace" id="trace"></pre></section>
@@ -49,6 +49,8 @@
     const el = id => document.getElementById(id);
     let selected, zoom = 100;
     const buttons = new Map();
+    el('examples-label').textContent = '그래프 예제 · ' + cases.filter(c => c.group === 'examples').length;
+    el('demo-nav').hidden = !cases.some(c => c.group === 'demo');
     cases.forEach((item, index) => {
       const button = document.createElement('button');
       button.className = 'case-button';
@@ -60,14 +62,17 @@
       el(item.group).append(button); buttons.set(item.id, button);
     });
     function setZoom(value) {
-      zoom = Math.min(250, Math.max(75, value));
-      el('canvas').style.width = zoom + '%'; el('canvas').style.height = zoom + '%';
+      zoom = Math.min(1600, Math.max(75, value));
+      const viewport = el('viewport');
+      const box = el('canvas').querySelector('svg').viewBox.baseVal;
+      el('canvas').style.width = zoom + '%';
+      el('canvas').style.height = Math.max(viewport.clientHeight, (viewport.clientWidth * zoom / 100 - 40) * box.height / box.width + 40) + 'px';
       el('zoom-label').textContent = zoom + '%';
-      el('zoom-in').disabled = zoom >= 250; el('zoom-out').disabled = zoom <= 75;
+      el('zoom-in').disabled = zoom >= 1600; el('zoom-out').disabled = zoom <= 75;
       if(zoom === 100){el('viewport').scrollTop = 0; el('viewport').scrollLeft = 0;}
     }
     function select() {
-      selected = cases.find(c => c.id === location.hash.slice(1)) || cases.find(c => c.id === 'cyclic_dependency');
+      selected = cases.find(c => c.id === location.hash.slice(1)) || cases.find(c => c.id === 'cyclic_dependency') || cases[0];
       if(!selected) return;
       buttons.forEach((b,id) => b.setAttribute('aria-pressed', String(id === selected.id)));
       el('case-title').textContent = selected.title; el('case-note').textContent = selected.note;
@@ -100,6 +105,11 @@
     el('zoom-in').addEventListener('click', () => setZoom(zoom + 25));
     el('zoom-out').addEventListener('click', () => setZoom(zoom - 25));
     el('reset').addEventListener('click', () => setZoom(100));
+    el('native-size').addEventListener('click', () => {
+      const box = el('canvas').querySelector('svg').viewBox.baseVal;
+      const viewport = el('viewport');
+      setZoom(Math.ceil(Math.max(box.width / (viewport.clientWidth - 40), box.height / (viewport.clientHeight - 40)) * 100));
+    });
     el('download').addEventListener('click', () => {
       const url = URL.createObjectURL(new Blob([selected.svg], {type:'image/svg+xml;charset=utf-8'}));
       const link = document.createElement('a'); link.href = url; link.download = selected.id + '.svg';

@@ -62,3 +62,13 @@ python scripts/render_graphs.py --ieum build/Release/ieum.exe --dot C:/tools/Gra
 ## 스냅샷 검증
 
 `valid`, `implicit_dependency`, `cyclic_dependency`, `layer_violation`, `transitive_layer_violation`, `invalid_declarations` 예제의 기준 DOT은 `test/snapshots/`에 저장합니다. 전체 테스트는 새 출력과 기준 파일을 바이트 단위로 비교하며, 그래프 저장 실패가 검사 종료 코드를 바꾸지 않는지도 확인합니다.
+
+## 평가용 중규모 그래프 (2026-09-29)
+
+실제 프로젝트 투영 4종과 25·50 모듈 합성 구조 4종은 [평가 뷰어](graphs/evaluation/index.html)에서 확인합니다. 전체 맞춤에서 글자가 작으면 **원본 크기**를 누르고 그래프 영역을 스크롤합니다. 실제 프로젝트의 역방향 계층 정책은 평가를 위해 추가한 규칙이며 원본 프로젝트의 설계 규칙이 아닙니다.
+
+```powershell
+python scripts/render_graphs.py --manifest evaluation/real/manifest.json --output docs/graphs/evaluation --dot <dot 실행 파일>
+```
+
+각 SVG의 노드·의존·계층 및 빨간 의존 경로를 참조 근거와 대조하는 자동 검증을 제공합니다. [화면 점검 및 한계](EVALUATION_RESULTS.md)를 참고합니다. 기존 대표 예제 뷰어의 재생성 명령은 위의 SVG와 오프라인 뷰어 절에 있습니다.

@@ -2,6 +2,10 @@
 
 관련: [#28](https://github.com/junjunseo/ieum/issues/28), F4 [#21](https://github.com/junjunseo/ieum/issues/21).
 
+## 2026-09-29 진행 상태
+
+[#30](https://github.com/junjunseo/ieum/issues/30)에서 고정 커밋의 실제 프로젝트 2개를 확보하고 원본·변형·계층 정책 입력 10개와 별도 합성 입력 4개를 검증했습니다. [출처와 추출·검토 규칙](REAL_CORPUS.md), [정확도·성능·화면 결과](EVALUATION_RESULTS.md)에 현재 근거를 기록합니다. 사람의 독립 정답 검토와 예비 사용자 평가는 남아 있습니다. 아래 초기 계획과 15개 seed 평가는 별도로 유지합니다.
+
 ## 현재 확보한 입력
 
 `evaluation/manifest.json`에 입력 경로, 범주, 기대 종료 코드와 위반 종류별 건수를 기록했습니다.
@@ -59,7 +63,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/benchmark.ps1 -Modul
 - 50·100·200 모듈의 계층형 합성 입력, 워밍업 1회 후 11회 측정, 중앙값과 p95를 기록합니다.
 - 측정 범위는 Lexer → Parser → Checker입니다. 의미 분석·함수 실행·DOT/SVG 생성·프로세스 시작은 포함하지 않습니다.
 - corpus의 소스 크기·모듈 수·계층 수·의존 간선 수·깊이·반복 횟수를 보존합니다.
-- CLI 평가 스크립트 실행 시간은 이 기준선과 비교하지 않습니다. 이후 실제 corpus 성능 평가용 실행기를 별도로 확장합니다.
+- CLI 평가 스크립트 실행 시간은 이 기준선과 비교하지 않습니다. `benchmarkChecker --source`와 `scripts/benchmark_corpus.py`가 실제 corpus를 같은 측정 경로로 반복 실행하며, 읽기·메타데이터 파싱·프로세스 시작은 타이머 밖에서 수행합니다.
 - 현재 그래프 배치와 성능 최적화의 효과를 혼동하지 않습니다. 긴 계층 체인의 검사 비용은 남은 F4 과제입니다.
 
 ## 그래프 가독성 기준 초안

@@ -1,0 +1,103 @@
+{
+  "graphviz": "dot - graphviz version 16.1.0 (20260904.0139)",
+  "ieum_sha256": "74dc4d68187f388852e4c586551ab63d7c79023f269914f489dfb8bb1fb3f451",
+  "manifest_sha256": "a715a1d747de6993f4e039fac29e31c98479c7c703a572362681a65592c7b1d3",
+  "graphs": [
+    {
+      "id": "itsdangerous_original",
+      "source": "evaluation/real/corpus/itsdangerous_original.ieum",
+      "source_sha256": "f2aee018ab934f07f528939a23e5181778b6dd8639aa296cf8b11cfd88004a93",
+      "dot_sha256": "c358e14cb36f3dc4a68483292d57db77e2b47a46c5013359ea5f7f4bb94b8a64",
+      "svg_sha256": "41e194195dd133f0458d0361548a96dec77919fb03fcd8c316077c884d9e1776",
+      "render_ms_including_dot_startup": 2582.8286999603733,
+      "view_box": "0.00 0.00 1807.00 501.00",
+      "nodes": 8,
+      "edges": 21,
+      "highlighted_dependencies": 0
+    },
+    {
+      "id": "itsdangerous_policy_reverse",
+      "source": "evaluation/real/corpus/itsdangerous_policy_reverse.ieum",
+      "source_sha256": "045362108e71dcf193e6475d7d38222cfdeca91d7813b460cbff5c8f0b3c096f",
+      "dot_sha256": "b540648f64ab4613aa26612bfef0d76ef2c640bde29592cf9bedc40b9da44e1a",
+      "svg_sha256": "c4a0fca4b84f78f2c92410dd953b91a68cf7637635c7e9b98f936674fe05f0dc",
+      "render_ms_including_dot_startup": 1391.0398000152782,
+      "view_box": "0.00 0.00 1807.00 456.00",
+      "nodes": 8,
+      "edges": 22,
+      "highlighted_dependencies": 1
+    },
+    {
+      "id": "packaging_original",
+      "source": "evaluation/real/corpus/packaging_original.ieum",
+      "source_sha256": "44387828e98e540c33ad92495eafaf45330e0195c0553c29eba5849d911e9da3",
+      "dot_sha256": "3233a8dc8e86a42713737ffa106f229864b38edfee26d9163e16cacfee0c9b21",
+      "svg_sha256": "4d9fe79aa104b2a7695377f676f7c27125d65857bdbe39941b343f2c9c4db3a1",
+      "render_ms_including_dot_startup": 1231.4401000039652,
+      "view_box": "0.00 0.00 2795.00 746.00",
+      "nodes": 22,
+      "edges": 39,
+      "highlighted_dependencies": 2
+    },
+    {
+      "id": "packaging_policy_reverse",
+      "source": "evaluation/real/corpus/packaging_policy_reverse.ieum",
+      "source_sha256": "a564209e799fc873d179527d1f8100428d7d8fbdf32635567d1eb900ae003891",
+      "dot_sha256": "d8c00ed6f25ec9287bdf4dfa5b9d50efb24be70d005b696a65bd91df0a9dca5c",
+      "svg_sha256": "ab9bc3f6c67f814492597bc52101a4e44333d7d817a33a5892176d1f8235b232",
+      "render_ms_including_dot_startup": 1149.209100054577,
+      "view_box": "0.00 0.00 3076.00 738.00",
+      "nodes": 22,
+      "edges": 40,
+      "highlighted_dependencies": 3
+    },
+    {
+      "id": "medium_25_valid",
+      "source": "evaluation/real/corpus/medium_25_valid.ieum",
+      "source_sha256": "30d1c5f835f5e0b269c219a80e7ce75ef95e8b9e0ea9bb36aa8a13b4f1b1b39c",
+      "dot_sha256": "d6b489869e193bb114ce64e8ebede062b86ab70d928533c38736a4491d5204f4",
+      "svg_sha256": "42f6063dcb8fa9652774d67d6fe5cbece174f0fc01f9c8c4efe53ecb705eae99",
+      "render_ms_including_dot_startup": 1180.455300025642,
+      "view_box": "0.00 0.00 1281.00 385.00",
+      "nodes": 25,
+      "edges": 44,
+      "highlighted_dependencies": 0
+    },
+    {
+      "id": "medium_25_cycle",
+      "source": "evaluation/real/corpus/medium_25_cycle.ieum",
+      "source_sha256": "7763e3e1b38ff773f635ac22ff3b836078cd3b15ce956f689ea4485033802382",
+      "dot_sha256": "381c55d708d40cfb814a8c64edf8fc6284939774431048c62c28b6baebc44d87",
+      "svg_sha256": "f8cf16965ab943bb262ff4779c463b8fbff38d7688a4002490e20847bc92435d",
+      "render_ms_including_dot_startup": 1131.7561999894679,
+      "view_box": "0.00 0.00 1281.00 383.00",
+      "nodes": 25,
+      "edges": 45,
+      "highlighted_dependencies": 5
+    },
+    {
+      "id": "medium_50_valid",
+      "source": "evaluation/real/corpus/medium_50_valid.ieum",
+      "source_sha256": "6ef309f984898a2db7474f6137b3718cd178b220e4a20111157a41d1c819f482",
+      "dot_sha256": "769e3863b61bf980f28ab02873d3c27f7181227642324ee2920f83cfdde60853",
+      "svg_sha256": "95db759b9057475fce0262197681f0bc64b3042b6e233bb68746c9405bfe8b8d",
+      "render_ms_including_dot_startup": 1113.888300023973,
+      "view_box": "0.00 0.00 2013.00 569.00",
+      "nodes": 50,
+      "edges": 89,
+      "highlighted_dependencies": 0
+    },
+    {
+      "id": "medium_50_cycle",
+      "source": "evaluation/real/corpus/medium_50_cycle.ieum",
+      "source_sha256": "226daf6b6504a0ffdd605990702e5a14dd80f35a71d12a69a5a60a8243bf0da7",
+      "dot_sha256": "b6d3e3c2a7bf1e58fedc26dc29c6ffd51a26eaedb2e33b9ef963c265007f3e68",
+      "svg_sha256": "33b5a2f47585a9a8febd6c3c9bde70f174274e1c271ed7b4ee9935414adc91a8",
+      "render_ms_including_dot_startup": 1066.5622999658808,
+      "view_box": "0.00 0.00 2013.00 563.00",
+      "nodes": 50,
+      "edges": 90,
+      "highlighted_dependencies": 5
+    }
+  ]
+}
