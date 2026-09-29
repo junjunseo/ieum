@@ -1,0 +1,617 @@
+{
+  "schema_version": 1,
+  "scope": "Two pinned Python package projections and related mutations/policies; separate synthetic scale cases. Human review pending. Not runtime-import or population accuracy.",
+  "review_status": "pending-human-review",
+  "sources": [
+    {
+      "id": "itsdangerous",
+      "snapshot": "evaluation/real/snapshots/itsdangerous.json",
+      "snapshot_sha256": "769e534b174881f2d78417e9fdea110c09db6b6a675d268fb3d3bb2f70fbccf4",
+      "repository": "https://github.com/pallets/itsdangerous",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd"
+    },
+    {
+      "id": "packaging",
+      "snapshot": "evaluation/real/snapshots/packaging.json",
+      "snapshot_sha256": "c79a49fa8649577c4808340f22530e4f8ca56d8d5c7f648475316a054a805aad",
+      "repository": "https://github.com/pypa/packaging",
+      "commit": "7b898d9f0b343ca06993157fc328d7caad51d5c2"
+    }
+  ],
+  "cases": [
+    {
+      "id": "itsdangerous_original",
+      "source": "evaluation/real/corpus/itsdangerous_original.ieum",
+      "category": "real_original",
+      "group": "itsdangerous",
+      "expected_exit": 0,
+      "expected_kinds": {},
+      "mutation": null,
+      "reference_evidence": {
+        "cyclic_components": [],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 8,
+        "dependencies": 21,
+        "layers": 0
+      },
+      "topology": {
+        "dependency_dag_depth": 7,
+        "layer_dag_depth": 1
+      },
+      "graph": {
+        "group": "examples",
+        "title": "itsdangerous · 원본 구조",
+        "note": "실제 프로젝트의 정적 import 투영"
+      }
+    },
+    {
+      "id": "itsdangerous_undefined",
+      "source": "evaluation/real/corpus/itsdangerous_undefined.ieum",
+      "category": "real_mutation",
+      "group": "itsdangerous",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "undefined_dependency": 1
+      },
+      "mutation": {
+        "operation": "add_dependency",
+        "from": "itsdangerous___json",
+        "to": "missing_external_module"
+      },
+      "reference_evidence": {
+        "cyclic_components": [],
+        "undefined_edges": [
+          [
+            "itsdangerous___json",
+            "missing_external_module"
+          ]
+        ],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 8,
+        "dependencies": 22,
+        "layers": 0
+      },
+      "topology": {
+        "dependency_dag_depth": 7,
+        "layer_dag_depth": 1
+      }
+    },
+    {
+      "id": "itsdangerous_self_cycle",
+      "source": "evaluation/real/corpus/itsdangerous_self_cycle.ieum",
+      "category": "real_mutation",
+      "group": "itsdangerous",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "mutation": {
+        "operation": "add_dependency",
+        "from": "itsdangerous___json",
+        "to": "itsdangerous___json"
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "itsdangerous___json"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 8,
+        "dependencies": 22,
+        "layers": 0
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 1
+      }
+    },
+    {
+      "id": "itsdangerous_policy_forward",
+      "source": "evaluation/real/corpus/itsdangerous_policy_forward.ieum",
+      "category": "real_policy",
+      "group": "itsdangerous",
+      "expected_exit": 0,
+      "expected_kinds": {},
+      "mutation": {
+        "operation": "add_layer_policy",
+        "upper": "itsdangerous__serializer",
+        "lower": "itsdangerous__signer",
+        "basis": "Evaluation-only policy; not an upstream architectural constraint."
+      },
+      "reference_evidence": {
+        "cyclic_components": [],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 8,
+        "dependencies": 21,
+        "layers": 1
+      },
+      "topology": {
+        "dependency_dag_depth": 7,
+        "layer_dag_depth": 2
+      }
+    },
+    {
+      "id": "itsdangerous_policy_reverse",
+      "source": "evaluation/real/corpus/itsdangerous_policy_reverse.ieum",
+      "category": "real_policy",
+      "group": "itsdangerous",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "layer_violation": 1
+      },
+      "mutation": {
+        "operation": "add_layer_policy",
+        "upper": "itsdangerous__signer",
+        "lower": "itsdangerous__serializer",
+        "basis": "Evaluation-only policy; not an upstream architectural constraint."
+      },
+      "reference_evidence": {
+        "cyclic_components": [],
+        "undefined_edges": [],
+        "layer_violation_pairs": [
+          [
+            "itsdangerous__serializer",
+            "itsdangerous__signer"
+          ]
+        ]
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 8,
+        "dependencies": 21,
+        "layers": 1
+      },
+      "topology": {
+        "dependency_dag_depth": 7,
+        "layer_dag_depth": 2
+      },
+      "graph": {
+        "group": "examples",
+        "title": "itsdangerous · 역방향 정책",
+        "note": "실제 프로젝트의 정적 import 투영"
+      }
+    },
+    {
+      "id": "packaging_original",
+      "source": "evaluation/real/corpus/packaging_original.ieum",
+      "category": "real_original",
+      "group": "packaging",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "mutation": null,
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "packaging__ranges",
+            "packaging__specifiers"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 22,
+        "dependencies": 39,
+        "layers": 0
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 1
+      },
+      "graph": {
+        "group": "examples",
+        "title": "packaging · 원본 구조",
+        "note": "실제 프로젝트의 정적 import 투영"
+      }
+    },
+    {
+      "id": "packaging_undefined",
+      "source": "evaluation/real/corpus/packaging_undefined.ieum",
+      "category": "real_mutation",
+      "group": "packaging",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "undefined_dependency": 1
+      },
+      "mutation": {
+        "operation": "add_dependency",
+        "from": "packaging",
+        "to": "missing_external_module"
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "packaging__ranges",
+            "packaging__specifiers"
+          ]
+        ],
+        "undefined_edges": [
+          [
+            "packaging",
+            "missing_external_module"
+          ]
+        ],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 22,
+        "dependencies": 40,
+        "layers": 0
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 1
+      }
+    },
+    {
+      "id": "packaging_self_cycle",
+      "source": "evaluation/real/corpus/packaging_self_cycle.ieum",
+      "category": "real_mutation",
+      "group": "packaging",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 2
+      },
+      "mutation": {
+        "operation": "add_dependency",
+        "from": "packaging",
+        "to": "packaging"
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "packaging"
+          ],
+          [
+            "packaging__ranges",
+            "packaging__specifiers"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 22,
+        "dependencies": 40,
+        "layers": 0
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 1
+      }
+    },
+    {
+      "id": "packaging_policy_forward",
+      "source": "evaluation/real/corpus/packaging_policy_forward.ieum",
+      "category": "real_policy",
+      "group": "packaging",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "mutation": {
+        "operation": "add_layer_policy",
+        "upper": "packaging___manylinux",
+        "lower": "packaging___elffile",
+        "basis": "Evaluation-only policy; not an upstream architectural constraint."
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "packaging__ranges",
+            "packaging__specifiers"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 22,
+        "dependencies": 39,
+        "layers": 1
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 2
+      }
+    },
+    {
+      "id": "packaging_policy_reverse",
+      "source": "evaluation/real/corpus/packaging_policy_reverse.ieum",
+      "category": "real_policy",
+      "group": "packaging",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 1
+      },
+      "mutation": {
+        "operation": "add_layer_policy",
+        "upper": "packaging___elffile",
+        "lower": "packaging___manylinux",
+        "basis": "Evaluation-only policy; not an upstream architectural constraint."
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "packaging__ranges",
+            "packaging__specifiers"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": [
+          [
+            "packaging___manylinux",
+            "packaging___elffile"
+          ]
+        ]
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 22,
+        "dependencies": 39,
+        "layers": 1
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 2
+      },
+      "graph": {
+        "group": "examples",
+        "title": "packaging · 역방향 정책",
+        "note": "실제 프로젝트의 정적 import 투영"
+      }
+    },
+    {
+      "id": "medium_25_valid",
+      "source": "evaluation/real/corpus/medium_25_valid.ieum",
+      "category": "synthetic",
+      "group": "medium_25",
+      "expected_exit": 0,
+      "expected_kinds": {},
+      "mutation": null,
+      "reference_evidence": {
+        "cyclic_components": [],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 25,
+        "dependencies": 24,
+        "layers": 20
+      },
+      "topology": {
+        "dependency_dag_depth": 9,
+        "layer_dag_depth": 5
+      },
+      "graph": {
+        "group": "examples",
+        "title": "25개 모듈 · 정상",
+        "note": "가독성 점검용 합성 구조 · 실제 프로젝트 표본에 포함하지 않음"
+      }
+    },
+    {
+      "id": "medium_25_cycle",
+      "source": "evaluation/real/corpus/medium_25_cycle.ieum",
+      "category": "synthetic",
+      "group": "medium_25",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 10
+      },
+      "mutation": {
+        "operation": "add_dependency",
+        "from": "m24",
+        "to": "m20"
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "m20",
+            "m21",
+            "m22",
+            "m23",
+            "m24"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": [
+          [
+            "m21",
+            "m20"
+          ],
+          [
+            "m22",
+            "m20"
+          ],
+          [
+            "m22",
+            "m21"
+          ],
+          [
+            "m23",
+            "m20"
+          ],
+          [
+            "m23",
+            "m21"
+          ],
+          [
+            "m23",
+            "m22"
+          ],
+          [
+            "m24",
+            "m20"
+          ],
+          [
+            "m24",
+            "m21"
+          ],
+          [
+            "m24",
+            "m22"
+          ],
+          [
+            "m24",
+            "m23"
+          ]
+        ]
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 25,
+        "dependencies": 25,
+        "layers": 20
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 5
+      },
+      "graph": {
+        "group": "examples",
+        "title": "25개 모듈 · 순환·계층 위반",
+        "note": "가독성 점검용 합성 구조 · 실제 프로젝트 표본에 포함하지 않음"
+      }
+    },
+    {
+      "id": "medium_50_valid",
+      "source": "evaluation/real/corpus/medium_50_valid.ieum",
+      "category": "synthetic",
+      "group": "medium_50",
+      "expected_exit": 0,
+      "expected_kinds": {},
+      "mutation": null,
+      "reference_evidence": {
+        "cyclic_components": [],
+        "undefined_edges": [],
+        "layer_violation_pairs": []
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 50,
+        "dependencies": 49,
+        "layers": 40
+      },
+      "topology": {
+        "dependency_dag_depth": 14,
+        "layer_dag_depth": 5
+      },
+      "graph": {
+        "group": "examples",
+        "title": "50개 모듈 · 정상",
+        "note": "가독성 점검용 합성 구조 · 실제 프로젝트 표본에 포함하지 않음"
+      }
+    },
+    {
+      "id": "medium_50_cycle",
+      "source": "evaluation/real/corpus/medium_50_cycle.ieum",
+      "category": "synthetic",
+      "group": "medium_50",
+      "expected_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 10
+      },
+      "mutation": {
+        "operation": "add_dependency",
+        "from": "m49",
+        "to": "m45"
+      },
+      "reference_evidence": {
+        "cyclic_components": [
+          [
+            "m45",
+            "m46",
+            "m47",
+            "m48",
+            "m49"
+          ]
+        ],
+        "undefined_edges": [],
+        "layer_violation_pairs": [
+          [
+            "m46",
+            "m45"
+          ],
+          [
+            "m47",
+            "m45"
+          ],
+          [
+            "m47",
+            "m46"
+          ],
+          [
+            "m48",
+            "m45"
+          ],
+          [
+            "m48",
+            "m46"
+          ],
+          [
+            "m48",
+            "m47"
+          ],
+          [
+            "m49",
+            "m45"
+          ],
+          [
+            "m49",
+            "m46"
+          ],
+          [
+            "m49",
+            "m47"
+          ],
+          [
+            "m49",
+            "m48"
+          ]
+        ]
+      },
+      "review_status": "pending-human-review",
+      "size": {
+        "modules": 50,
+        "dependencies": 50,
+        "layers": 40
+      },
+      "topology": {
+        "dependency_dag_depth": null,
+        "layer_dag_depth": 5
+      },
+      "graph": {
+        "group": "examples",
+        "title": "50개 모듈 · 순환·계층 위반",
+        "note": "가독성 점검용 합성 구조 · 실제 프로젝트 표본에 포함하지 않음"
+      }
+    }
+  ]
+}

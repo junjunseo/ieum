@@ -1,0 +1,418 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3076pt" height="738pt" viewBox="0.00 0.00 3076.00 738.00" role="img" aria-label="packaging · 역방향 정책">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.2 713.17)">
+<title>ieum</title>
+<polygon fill="white" stroke="none" points="-25.2,25.2 -25.2,-713.17 3050.75,-713.17 3050.75,25.2 -25.2,25.2" />
+
+<g id="node1" class="node">
+<title>packaging</title>
+<path fill="#f8fafc" stroke="#334155" d="M169.8,-108.97C169.8,-108.97 93,-108.97 93,-108.97 87,-108.97 81,-102.97 81,-96.97 81,-96.97 81,-82 81,-82 81,-76 87,-70 93,-70 93,-70 169.8,-70 169.8,-70 175.8,-70 181.8,-76 181.8,-82 181.8,-82 181.8,-96.97 181.8,-96.97 181.8,-102.97 175.8,-108.97 169.8,-108.97" />
+<text xml:space="preserve" text-anchor="middle" x="131.4" y="-84.41" font-family="sans-serif" font-size="16.00">packaging</text>
+</g>
+
+<g id="node2" class="node">
+<title>packaging___elffile</title>
+<path fill="#f8fafc" stroke="#334155" d="M2727,-687.97C2727,-687.97 2584.95,-687.97 2584.95,-687.97 2578.95,-687.97 2572.95,-681.97 2572.95,-675.97 2572.95,-675.97 2572.95,-661 2572.95,-661 2572.95,-655 2578.95,-649 2584.95,-649 2584.95,-649 2727,-649 2727,-649 2733,-649 2739,-655 2739,-661 2739,-661 2739,-675.97 2739,-675.97 2739,-681.97 2733,-687.97 2727,-687.97" />
+<text xml:space="preserve" text-anchor="middle" x="2655.98" y="-663.41" font-family="sans-serif" font-size="16.00">packaging___elffile</text>
+</g>
+
+<g id="node3" class="node">
+<title>packaging___manylinux</title>
+<path fill="#f8fafc" stroke="#334155" d="M3013.55,-673.97C3013.55,-673.97 2837,-673.97 2837,-673.97 2831,-673.97 2825,-667.97 2825,-661.97 2825,-661.97 2825,-647 2825,-647 2825,-641 2831,-635 2837,-635 2837,-635 3013.55,-635 3013.55,-635 3019.55,-635 3025.55,-641 3025.55,-647 3025.55,-647 3025.55,-661.97 3025.55,-661.97 3025.55,-667.97 3019.55,-673.97 3013.55,-673.97" />
+<text xml:space="preserve" text-anchor="middle" x="2925.28" y="-649.41" font-family="sans-serif" font-size="16.00">packaging___manylinux</text>
+</g>
+
+<g id="edge40" class="edge" data-kind="layer" data-violation="false">
+<title>packaging___elffile-&gt;packaging___manylinux</title>
+<path fill="none" stroke="#64748b" stroke-dasharray="5,2" d="M2739.21,-654.3C2747.56,-653.25 2755.94,-652.36 2764,-651.74 2779.89,-650.5 2796.7,-649.95 2813.21,-649.85" />
+<polygon fill="none" stroke="#64748b" points="2813.07,-653.35 2823.07,-649.85 2813.07,-646.35 2813.07,-653.35" />
+<text xml:space="preserve" text-anchor="middle" x="2782" y="-654.99" font-family="sans-serif" font-size="10.00">above</text>
+</g>
+
+<g id="edge1" class="edge" data-kind="dependency" data-violation="true">
+<title>packaging___manylinux-&gt;packaging___elffile</title>
+<path fill="none" stroke="#dc2626" stroke-width="2.5" d="M2824.65,-666.7C2816.32,-667.42 2808.02,-668.03 2800,-668.49 2784.85,-669.34 2768.79,-669.78 2753.11,-669.96" />
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="2.5" points="2753.22,-666.46 2743.24,-670.03 2753.27,-673.46 2753.22,-666.46" />
+<text xml:space="preserve" text-anchor="middle" x="2782" y="-673.03" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node4" class="node">
+<title>packaging___musllinux</title>
+<path fill="#f8fafc" stroke="#334155" d="M2474.95,-687.97C2474.95,-687.97 2303.65,-687.97 2303.65,-687.97 2297.65,-687.97 2291.65,-681.97 2291.65,-675.97 2291.65,-675.97 2291.65,-661 2291.65,-661 2291.65,-655 2297.65,-649 2303.65,-649 2303.65,-649 2474.95,-649 2474.95,-649 2480.95,-649 2486.95,-655 2486.95,-661 2486.95,-661 2486.95,-675.97 2486.95,-675.97 2486.95,-681.97 2480.95,-687.97 2474.95,-687.97" />
+<text xml:space="preserve" text-anchor="middle" x="2389.3" y="-663.41" font-family="sans-serif" font-size="16.00">packaging___musllinux</text>
+</g>
+
+<g id="edge2" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging___musllinux-&gt;packaging___elffile</title>
+<path fill="none" stroke="#2563eb" d="M2487.35,-668.49C2511.55,-668.49 2537.45,-668.49 2561.47,-668.49" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2561.22,-671.99 2571.22,-668.49 2561.22,-664.99 2561.22,-671.99" />
+<text xml:space="preserve" text-anchor="middle" x="2529.95" y="-671.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node5" class="node">
+<title>packaging___parser</title>
+<path fill="#f8fafc" stroke="#334155" d="M1129.2,-258.97C1129.2,-258.97 980.4,-258.97 980.4,-258.97 974.4,-258.97 968.4,-252.97 968.4,-246.97 968.4,-246.97 968.4,-232 968.4,-232 968.4,-226 974.4,-220 980.4,-220 980.4,-220 1129.2,-220 1129.2,-220 1135.2,-220 1141.2,-226 1141.2,-232 1141.2,-232 1141.2,-246.97 1141.2,-246.97 1141.2,-252.97 1135.2,-258.97 1129.2,-258.97" />
+<text xml:space="preserve" text-anchor="middle" x="1054.8" y="-234.41" font-family="sans-serif" font-size="16.00">packaging___parser</text>
+</g>
+
+<g id="node8" class="node">
+<title>packaging___tokenizer</title>
+<path fill="#f8fafc" stroke="#334155" d="M1407.5,-286.97C1407.5,-286.97 1239.2,-286.97 1239.2,-286.97 1233.2,-286.97 1227.2,-280.97 1227.2,-274.97 1227.2,-274.97 1227.2,-260 1227.2,-260 1227.2,-254 1233.2,-248 1239.2,-248 1239.2,-248 1407.5,-248 1407.5,-248 1413.5,-248 1419.5,-254 1419.5,-260 1419.5,-260 1419.5,-274.97 1419.5,-274.97 1419.5,-280.97 1413.5,-286.97 1407.5,-286.97" />
+<text xml:space="preserve" text-anchor="middle" x="1323.35" y="-262.41" font-family="sans-serif" font-size="16.00">packaging___tokenizer</text>
+</g>
+
+<g id="edge3" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging___parser-&gt;packaging___tokenizer</title>
+<path fill="none" stroke="#2563eb" d="M1141.61,-248.5C1165.23,-250.98 1191.14,-253.7 1215.78,-256.29" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1215.19,-259.75 1225.5,-257.31 1215.92,-252.79 1215.19,-259.75" />
+<text xml:space="preserve" text-anchor="middle" x="1184.2" y="-257.57" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node6" class="node">
+<title>packaging___ranges</title>
+<path fill="#f8fafc" stroke="#334155" d="M2193.65,-235.97C2193.65,-235.97 2041.85,-235.97 2041.85,-235.97 2035.85,-235.97 2029.85,-229.97 2029.85,-223.97 2029.85,-223.97 2029.85,-209 2029.85,-209 2029.85,-203 2035.85,-197 2041.85,-197 2041.85,-197 2193.65,-197 2193.65,-197 2199.65,-197 2205.65,-203 2205.65,-209 2205.65,-209 2205.65,-223.97 2205.65,-223.97 2205.65,-229.97 2199.65,-235.97 2193.65,-235.97" />
+<text xml:space="preserve" text-anchor="middle" x="2117.75" y="-211.41" font-family="sans-serif" font-size="16.00">packaging___ranges</text>
+</g>
+
+<g id="node22" class="node">
+<title>packaging__version</title>
+<path fill="#f8fafc" stroke="#334155" d="M2462.58,-311.97C2462.58,-311.97 2316.03,-311.97 2316.03,-311.97 2310.03,-311.97 2304.03,-305.97 2304.03,-299.97 2304.03,-299.97 2304.03,-285 2304.03,-285 2304.03,-279 2310.03,-273 2316.03,-273 2316.03,-273 2462.58,-273 2462.58,-273 2468.58,-273 2474.58,-279 2474.58,-285 2474.58,-285 2474.58,-299.97 2474.58,-299.97 2474.58,-305.97 2468.58,-311.97 2462.58,-311.97" />
+<text xml:space="preserve" text-anchor="middle" x="2389.3" y="-287.41" font-family="sans-serif" font-size="16.00">packaging__version</text>
+</g>
+
+<g id="edge4" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging___ranges-&gt;packaging__version</title>
+<path fill="none" stroke="#2563eb" d="M2205.81,-230.33C2225.95,-234.3 2247.19,-239.11 2266.65,-244.74 2288.74,-251.12 2312.4,-259.93 2332.93,-268.25" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2331.38,-271.39 2341.96,-271.96 2334.04,-264.92 2331.38,-271.39" />
+<text xml:space="preserve" text-anchor="middle" x="2248.65" y="-247.99" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node7" class="node">
+<title>packaging___structures</title>
+<path fill="#f8fafc" stroke="#334155" d="M218.93,-620.97C218.93,-620.97 43.88,-620.97 43.88,-620.97 37.88,-620.97 31.88,-614.97 31.88,-608.97 31.88,-608.97 31.88,-594 31.88,-594 31.88,-588 37.88,-582 43.88,-582 43.88,-582 218.93,-582 218.93,-582 224.93,-582 230.93,-588 230.93,-594 230.93,-594 230.93,-608.97 230.93,-608.97 230.93,-614.97 224.93,-620.97 218.93,-620.97" />
+<text xml:space="preserve" text-anchor="middle" x="131.4" y="-596.41" font-family="sans-serif" font-size="16.00">packaging___structures</text>
+</g>
+
+<g id="node19" class="node">
+<title>packaging__specifiers</title>
+<path fill="#f8fafc" stroke="#334155" d="M1679.05,-299.97C1679.05,-299.97 1517.5,-299.97 1517.5,-299.97 1511.5,-299.97 1505.5,-293.97 1505.5,-287.97 1505.5,-287.97 1505.5,-273 1505.5,-273 1505.5,-267 1511.5,-261 1517.5,-261 1517.5,-261 1679.05,-261 1679.05,-261 1685.05,-261 1691.05,-267 1691.05,-273 1691.05,-273 1691.05,-287.97 1691.05,-287.97 1691.05,-293.97 1685.05,-299.97 1679.05,-299.97" />
+<text xml:space="preserve" text-anchor="middle" x="1598.28" y="-275.41" font-family="sans-serif" font-size="16.00">packaging__specifiers</text>
+</g>
+
+<g id="edge5" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging___tokenizer-&gt;packaging__specifiers</title>
+<path fill="none" stroke="#2563eb" d="M1419.81,-272.03C1443.69,-273.17 1469.43,-274.4 1493.69,-275.55" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1493.42,-279.04 1503.58,-276.02 1493.76,-272.05 1493.42,-279.04" />
+<text xml:space="preserve" text-anchor="middle" x="1462.5" y="-278.01" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node9" class="node">
+<title>packaging__dependency_groups</title>
+<path fill="#f8fafc" stroke="#334155" d="M250.8,-563.97C250.8,-563.97 12,-563.97 12,-563.97 6,-563.97 0,-557.97 0,-551.97 0,-551.97 0,-537 0,-537 0,-531 6,-525 12,-525 12,-525 250.8,-525 250.8,-525 256.8,-525 262.8,-531 262.8,-537 262.8,-537 262.8,-551.97 262.8,-551.97 262.8,-557.97 256.8,-563.97 250.8,-563.97" />
+<text xml:space="preserve" text-anchor="middle" x="131.4" y="-539.41" font-family="sans-serif" font-size="16.00">packaging__dependency_groups</text>
+</g>
+
+<g id="node11" class="node">
+<title>packaging__errors</title>
+<path fill="#f8fafc" stroke="#334155" d="M523.85,-582.97C523.85,-582.97 386.3,-582.97 386.3,-582.97 380.3,-582.97 374.3,-576.97 374.3,-570.97 374.3,-570.97 374.3,-556 374.3,-556 374.3,-550 380.3,-544 386.3,-544 386.3,-544 523.85,-544 523.85,-544 529.85,-544 535.85,-550 535.85,-556 535.85,-556 535.85,-570.97 535.85,-570.97 535.85,-576.97 529.85,-582.97 523.85,-582.97" />
+<text xml:space="preserve" text-anchor="middle" x="455.08" y="-558.41" font-family="sans-serif" font-size="16.00">packaging__errors</text>
+</g>
+
+<g id="edge6" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__dependency_groups-&gt;packaging__errors</title>
+<path fill="none" stroke="#2563eb" d="M263.24,-552.21C296.7,-554.19 331.96,-556.27 362.94,-558.1" />
+<polygon fill="#2563eb" stroke="#2563eb" points="362.45,-561.58 372.64,-558.67 362.86,-554.59 362.45,-561.58" />
+<text xml:space="preserve" text-anchor="middle" x="305.8" y="-558.94" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node18" class="node">
+<title>packaging__requirements</title>
+<path fill="#f8fafc" stroke="#334155" d="M549.35,-257.97C549.35,-257.97 360.8,-257.97 360.8,-257.97 354.8,-257.97 348.8,-251.97 348.8,-245.97 348.8,-245.97 348.8,-231 348.8,-231 348.8,-225 354.8,-219 360.8,-219 360.8,-219 549.35,-219 549.35,-219 555.35,-219 561.35,-225 561.35,-231 561.35,-231 561.35,-245.97 561.35,-245.97 561.35,-251.97 555.35,-257.97 549.35,-257.97" />
+<text xml:space="preserve" text-anchor="middle" x="455.08" y="-233.41" font-family="sans-serif" font-size="16.00">packaging__requirements</text>
+</g>
+
+<g id="edge7" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__dependency_groups-&gt;packaging__requirements</title>
+<path fill="none" stroke="#2563eb" d="M262.96,-533.81C284.82,-527.55 306.11,-518.23 323.8,-504.49 363.92,-473.3 419.74,-331.73 443.1,-268.8" />
+<polygon fill="#2563eb" stroke="#2563eb" points="446.26,-270.37 446.43,-259.77 439.69,-267.95 446.26,-270.37" />
+<text xml:space="preserve" text-anchor="middle" x="305.8" y="-526.43" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node10" class="node">
+<title>packaging__direct_url</title>
+<path fill="#f8fafc" stroke="#334155" d="M212.55,-677.97C212.55,-677.97 50.25,-677.97 50.25,-677.97 44.25,-677.97 38.25,-671.97 38.25,-665.97 38.25,-665.97 38.25,-651 38.25,-651 38.25,-645 44.25,-639 50.25,-639 50.25,-639 212.55,-639 212.55,-639 218.55,-639 224.55,-645 224.55,-651 224.55,-651 224.55,-665.97 224.55,-665.97 224.55,-671.97 218.55,-677.97 212.55,-677.97" />
+<text xml:space="preserve" text-anchor="middle" x="131.4" y="-653.41" font-family="sans-serif" font-size="16.00">packaging__direct_url</text>
+</g>
+
+<g id="node12" class="node">
+<title>packaging__licenses</title>
+<path fill="#f8fafc" stroke="#334155" d="M530.23,-38.97C530.23,-38.97 379.93,-38.97 379.93,-38.97 373.93,-38.97 367.93,-32.97 367.93,-26.97 367.93,-26.97 367.93,-12 367.93,-12 367.93,-6 373.93,0 379.93,0 379.93,0 530.23,0 530.23,0 536.23,0 542.23,-6 542.23,-12 542.23,-12 542.23,-26.97 542.23,-26.97 542.23,-32.97 536.23,-38.97 530.23,-38.97" />
+<text xml:space="preserve" text-anchor="middle" x="455.08" y="-14.41" font-family="sans-serif" font-size="16.00">packaging__licenses</text>
+</g>
+
+<g id="node13" class="node">
+<title>packaging__licenses___spdx</title>
+<path fill="#f8fafc" stroke="#334155" d="M870.4,-38.97C870.4,-38.97 659.35,-38.97 659.35,-38.97 653.35,-38.97 647.35,-32.97 647.35,-26.97 647.35,-26.97 647.35,-12 647.35,-12 647.35,-6 653.35,0 659.35,0 659.35,0 870.4,0 870.4,0 876.4,0 882.4,-6 882.4,-12 882.4,-12 882.4,-26.97 882.4,-26.97 882.4,-32.97 876.4,-38.97 870.4,-38.97" />
+<text xml:space="preserve" text-anchor="middle" x="764.88" y="-14.41" font-family="sans-serif" font-size="16.00">packaging__licenses___spdx</text>
+</g>
+
+<g id="edge8" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__licenses-&gt;packaging__licenses___spdx</title>
+<path fill="none" stroke="#2563eb" d="M542.63,-19.48C571.46,-19.48 604.2,-19.48 635.5,-19.48" />
+<polygon fill="#2563eb" stroke="#2563eb" points="635.44,-22.99 645.44,-19.49 635.44,-15.99 635.44,-22.99" />
+<text xml:space="preserve" text-anchor="middle" x="604.35" y="-22.73" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node14" class="node">
+<title>packaging__markers</title>
+<path fill="#f8fafc" stroke="#334155" d="M841.15,-338.97C841.15,-338.97 688.6,-338.97 688.6,-338.97 682.6,-338.97 676.6,-332.97 676.6,-326.97 676.6,-326.97 676.6,-312 676.6,-312 676.6,-306 682.6,-300 688.6,-300 688.6,-300 841.15,-300 841.15,-300 847.15,-300 853.15,-306 853.15,-312 853.15,-312 853.15,-326.97 853.15,-326.97 853.15,-332.97 847.15,-338.97 841.15,-338.97" />
+<text xml:space="preserve" text-anchor="middle" x="764.88" y="-314.41" font-family="sans-serif" font-size="16.00">packaging__markers</text>
+</g>
+
+<g id="edge9" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__markers-&gt;packaging___parser</title>
+<path fill="none" stroke="#2563eb" d="M821.97,-299.58C847.81,-290.77 878.98,-280.64 907.4,-272.74 923.36,-268.3 940.43,-264.01 957.06,-260.08" />
+<polygon fill="#2563eb" stroke="#2563eb" points="957.5,-263.57 966.44,-257.89 955.91,-256.75 957.5,-263.57" />
+<text xml:space="preserve" text-anchor="middle" x="925.4" y="-275.99" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge10" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__markers-&gt;packaging___tokenizer</title>
+<path fill="none" stroke="#2563eb" d="M853.44,-311.3C951.48,-302.14 1110.39,-287.29 1215.63,-277.46" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1215.77,-280.96 1225.4,-276.54 1215.12,-273.99 1215.77,-280.96" />
+<text xml:space="preserve" text-anchor="middle" x="1054.8" y="-303.6" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge11" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__markers-&gt;packaging__specifiers</title>
+<path fill="none" stroke="#2563eb" d="M853.51,-320.78C929.6,-321.48 1042.73,-321.52 1141.2,-317.49 1292.32,-311.3 1329.81,-304.36 1480.5,-291.49 1484.88,-291.11 1489.36,-290.72 1493.88,-290.32" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1494.02,-293.82 1503.67,-289.45 1493.4,-286.85 1494.02,-293.82" />
+<text xml:space="preserve" text-anchor="middle" x="1184.2" y="-319.58" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node21" class="node">
+<title>packaging__utils</title>
+<path fill="#f8fafc" stroke="#334155" d="M1922.48,-433.97C1922.48,-433.97 1798.43,-433.97 1798.43,-433.97 1792.43,-433.97 1786.43,-427.97 1786.43,-421.97 1786.43,-421.97 1786.43,-407 1786.43,-407 1786.43,-401 1792.43,-395 1798.43,-395 1798.43,-395 1922.48,-395 1922.48,-395 1928.48,-395 1934.48,-401 1934.48,-407 1934.48,-407 1934.48,-421.97 1934.48,-421.97 1934.48,-427.97 1928.48,-433.97 1922.48,-433.97" />
+<text xml:space="preserve" text-anchor="middle" x="1860.45" y="-409.41" font-family="sans-serif" font-size="16.00">packaging__utils</text>
+</g>
+
+<g id="edge12" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__markers-&gt;packaging__utils</title>
+<path fill="none" stroke="#2563eb" d="M833.27,-339.44C891.2,-354.82 977.26,-373.49 1053.8,-373.49 1053.8,-373.49 1053.8,-373.49 1599.28,-373.49 1658.47,-373.49 1724.33,-383.97 1774.98,-394.34" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1774.21,-397.75 1784.72,-396.37 1775.64,-390.9 1774.21,-397.75" />
+<text xml:space="preserve" text-anchor="middle" x="1323.35" y="-376.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node15" class="node">
+<title>packaging__metadata</title>
+<path fill="#f8fafc" stroke="#334155" d="M211.8,-165.97C211.8,-165.97 51,-165.97 51,-165.97 45,-165.97 39,-159.97 39,-153.97 39,-153.97 39,-139 39,-139 39,-133 45,-127 51,-127 51,-127 211.8,-127 211.8,-127 217.8,-127 223.8,-133 223.8,-139 223.8,-139 223.8,-153.97 223.8,-153.97 223.8,-159.97 217.8,-165.97 211.8,-165.97" />
+<text xml:space="preserve" text-anchor="middle" x="131.4" y="-141.41" font-family="sans-serif" font-size="16.00">packaging__metadata</text>
+</g>
+
+<g id="edge13" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__metadata-&gt;packaging__errors</title>
+<path fill="none" stroke="#2563eb" d="M137.31,-166.37C151.69,-220.98 198.41,-375.32 287.8,-468.49 300.36,-481.58 310.97,-474.91 323.8,-487.74 340.46,-504.4 330.39,-519.77 348.8,-534.49 353.36,-538.13 358.34,-541.31 363.58,-544.1" />
+<polygon fill="#2563eb" stroke="#2563eb" points="362.02,-547.23 372.56,-548.33 365.01,-540.9 362.02,-547.23" />
+<text xml:space="preserve" text-anchor="middle" x="305.8" y="-490.99" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge14" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__metadata-&gt;packaging__licenses</title>
+<path fill="none" stroke="#2563eb" d="M224.25,-138.78C238.41,-134.19 251.92,-127.41 262.8,-117.48 289.62,-93.03 259.82,-62.85 287.8,-39.73 306.95,-23.91 331.83,-16.4 356.49,-13.4" />
+<polygon fill="#2563eb" stroke="#2563eb" points="356.65,-16.9 366.28,-12.48 355.99,-9.94 356.65,-16.9" />
+<text xml:space="preserve" text-anchor="middle" x="305.8" y="-42.98" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge15" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__metadata-&gt;packaging__requirements</title>
+<path fill="none" stroke="#2563eb" d="M202.2,-166.45C252.57,-180.85 320.71,-200.34 373.41,-215.42" />
+<polygon fill="#2563eb" stroke="#2563eb" points="372.38,-218.76 382.96,-218.15 374.31,-212.03 372.38,-218.76" />
+<text xml:space="preserve" text-anchor="middle" x="305.8" y="-203.98" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge16" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__metadata-&gt;packaging__specifiers</title>
+<path fill="none" stroke="#2563eb" d="M224.21,-128.5C288.34,-117.49 376.1,-105.48 454.08,-105.48 454.08,-105.48 454.08,-105.48 926.4,-105.48 1146.02,-105.49 1211.61,-66.68 1419.5,-137.49 1484.48,-159.62 1542.96,-217.32 1573.95,-252.29" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1571.03,-254.27 1580.24,-259.52 1576.31,-249.67 1571.03,-254.27" />
+<text xml:space="preserve" text-anchor="middle" x="925.4" y="-108.73" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge17" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__metadata-&gt;packaging__utils</title>
+<path fill="none" stroke="#2563eb" d="M141,-166.41C172.11,-235.05 285.9,-457.49 454.08,-457.49 454.08,-457.49 454.08,-457.49 1599.28,-457.49 1658.44,-457.49 1724.17,-446.53 1774.76,-435.68" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1775.47,-439.1 1784.49,-433.54 1773.97,-432.27 1775.47,-439.1" />
+<text xml:space="preserve" text-anchor="middle" x="1054.8" y="-460.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge18" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__metadata-&gt;packaging__version</title>
+<path fill="none" stroke="#2563eb" d="M224.1,-126.75C237.12,-123.76 250.32,-120.62 262.8,-117.48 348.13,-96.07 366.09,-66.49 454.08,-66.48 454.08,-66.48 454.08,-66.48 2118.75,-66.48 2239.69,-66.48 2334.83,-201.74 2371.71,-262.98" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2368.65,-264.69 2376.75,-271.52 2374.68,-261.13 2368.65,-264.69" />
+<text xml:space="preserve" text-anchor="middle" x="1323.35" y="-69.73" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node16" class="node">
+<title>packaging__pylock</title>
+<path fill="#f8fafc" stroke="#334155" d="M525.35,-525.97C525.35,-525.97 384.8,-525.97 384.8,-525.97 378.8,-525.97 372.8,-519.97 372.8,-513.97 372.8,-513.97 372.8,-499 372.8,-499 372.8,-493 378.8,-487 384.8,-487 384.8,-487 525.35,-487 525.35,-487 531.35,-487 537.35,-493 537.35,-499 537.35,-499 537.35,-513.97 537.35,-513.97 537.35,-519.97 531.35,-525.97 525.35,-525.97" />
+<text xml:space="preserve" text-anchor="middle" x="455.08" y="-501.41" font-family="sans-serif" font-size="16.00">packaging__pylock</text>
+</g>
+
+<g id="edge19" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__pylock-&gt;packaging__markers</title>
+<path fill="none" stroke="#2563eb" d="M488.72,-486.65C544.82,-452.57 659.47,-382.92 721.59,-345.17" />
+<polygon fill="#2563eb" stroke="#2563eb" points="723.08,-348.37 729.8,-340.18 719.44,-342.39 723.08,-348.37" />
+<text xml:space="preserve" text-anchor="middle" x="604.35" y="-427.43" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge20" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__pylock-&gt;packaging__specifiers</title>
+<path fill="none" stroke="#2563eb" d="M537.73,-506.49C599.76,-506.49 687.19,-506.49 763.88,-506.49 763.88,-506.49 763.88,-506.49 1324.35,-506.49 1446.18,-506.49 1542.85,-371.23 1580.38,-309.99" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1583.36,-311.82 1585.51,-301.44 1577.36,-308.21 1583.36,-311.82" />
+<text xml:space="preserve" text-anchor="middle" x="1054.8" y="-509.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node20" class="node">
+<title>packaging__tags</title>
+<path fill="#f8fafc" stroke="#334155" d="M2180.15,-651.97C2180.15,-651.97 2055.35,-651.97 2055.35,-651.97 2049.35,-651.97 2043.35,-645.97 2043.35,-639.97 2043.35,-639.97 2043.35,-625 2043.35,-625 2043.35,-619 2049.35,-613 2055.35,-613 2055.35,-613 2180.15,-613 2180.15,-613 2186.15,-613 2192.15,-619 2192.15,-625 2192.15,-625 2192.15,-639.97 2192.15,-639.97 2192.15,-645.97 2186.15,-651.97 2180.15,-651.97" />
+<text xml:space="preserve" text-anchor="middle" x="2117.75" y="-627.41" font-family="sans-serif" font-size="16.00">packaging__tags</text>
+</g>
+
+<g id="edge21" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__pylock-&gt;packaging__tags</title>
+<path fill="none" stroke="#2563eb" d="M537.72,-520.5C546.33,-524.36 554.45,-529.27 561.35,-535.49 584.03,-555.93 562.82,-580.02 586.35,-599.49 648.19,-650.64 683.62,-632.49 763.88,-632.49 763.88,-632.49 763.88,-632.49 1861.45,-632.49 1918.2,-632.49 1982.04,-632.49 2031.68,-632.49" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2031.5,-635.99 2041.5,-632.49 2031.5,-628.99 2031.5,-635.99" />
+<text xml:space="preserve" text-anchor="middle" x="1323.35" y="-635.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge22" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__pylock-&gt;packaging__utils</title>
+<path fill="none" stroke="#2563eb" d="M537.66,-523.34C599.47,-534.65 686.65,-547.49 763.88,-547.49 763.88,-547.49 763.88,-547.49 1599.28,-547.49 1691.3,-547.49 1783.55,-480.7 1829.49,-441.78" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1831.62,-444.57 1836.91,-435.39 1827.05,-439.27 1831.62,-444.57" />
+<text xml:space="preserve" text-anchor="middle" x="1184.2" y="-550.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge23" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__pylock-&gt;packaging__version</title>
+<path fill="none" stroke="#2563eb" d="M535.42,-526.4C544.26,-529.19 553.06,-532.23 561.35,-535.49 573.01,-540.06 574.55,-544.28 586.35,-548.49 662.26,-575.55 683.28,-585.49 763.88,-585.49 763.88,-585.49 763.88,-585.49 2118.75,-585.49 2260.43,-585.49 2348.04,-397.64 2377.33,-322.76" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2380.54,-324.17 2380.84,-313.58 2374,-321.67 2380.54,-324.17" />
+<text xml:space="preserve" text-anchor="middle" x="1462.5" y="-588.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="node17" class="node">
+<title>packaging__ranges</title>
+<path fill="#f8fafc" stroke="#334155" d="M1931.85,-282.97C1931.85,-282.97 1789.05,-282.97 1789.05,-282.97 1783.05,-282.97 1777.05,-276.97 1777.05,-270.97 1777.05,-270.97 1777.05,-256 1777.05,-256 1777.05,-250 1783.05,-244 1789.05,-244 1789.05,-244 1931.85,-244 1931.85,-244 1937.85,-244 1943.85,-250 1943.85,-256 1943.85,-256 1943.85,-270.97 1943.85,-270.97 1943.85,-276.97 1937.85,-282.97 1931.85,-282.97" />
+<text xml:space="preserve" text-anchor="middle" x="1860.45" y="-258.41" font-family="sans-serif" font-size="16.00">packaging__ranges</text>
+</g>
+
+<g id="edge24" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__ranges-&gt;packaging___ranges</title>
+<path fill="none" stroke="#2563eb" d="M1944.34,-248.23C1967.95,-243.88 1993.9,-239.1 2018.34,-234.6" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2018.76,-238.08 2027.96,-232.83 2017.49,-231.2 2018.76,-238.08" />
+<text xml:space="preserve" text-anchor="middle" x="1986.85" y="-246.05" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge25" class="edge" data-kind="dependency" data-violation="true">
+<title>packaging__ranges-&gt;packaging__specifiers</title>
+<path fill="none" stroke="#dc2626" stroke-width="2.5" d="M1776.59,-268.9C1753.8,-270.39 1728.77,-272.02 1704.89,-273.58" />
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="2.5" points="1704.9,-270.08 1695.14,-274.22 1705.35,-277.06 1704.9,-270.08" />
+<text xml:space="preserve" text-anchor="middle" x="1734.05" y="-275.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge26" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__ranges-&gt;packaging__version</title>
+<path fill="none" stroke="#2563eb" d="M1944.35,-268.05C2038.8,-273.25 2192.91,-281.73 2292.45,-287.21" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2292.02,-290.69 2302.19,-287.75 2292.4,-283.7 2292.02,-290.69" />
+<text xml:space="preserve" text-anchor="middle" x="2117.75" y="-285.53" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge27" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__requirements-&gt;packaging___parser</title>
+<path fill="none" stroke="#2563eb" d="M561.56,-238.66C673.4,-238.85 848.54,-239.14 956.97,-239.32" />
+<polygon fill="#2563eb" stroke="#2563eb" points="956.71,-242.82 966.71,-239.34 956.72,-235.82 956.71,-242.82" />
+<text xml:space="preserve" text-anchor="middle" x="764.88" y="-242.45" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge28" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__requirements-&gt;packaging___tokenizer</title>
+<path fill="none" stroke="#2563eb" d="M561.8,-222.03C696.98,-203.81 937.87,-180.77 1141.2,-211.49 1182.35,-217.7 1227.03,-231.43 1261.73,-243.74" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1260.14,-246.89 1270.73,-247 1262.52,-240.31 1260.14,-246.89" />
+<text xml:space="preserve" text-anchor="middle" x="925.4" y="-199.85" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge29" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__requirements-&gt;packaging__markers</title>
+<path fill="none" stroke="#2563eb" d="M531.77,-258.4C575.67,-269.96 631.14,-284.56 676.85,-296.58" />
+<polygon fill="#2563eb" stroke="#2563eb" points="675.92,-299.96 686.48,-299.12 677.7,-293.19 675.92,-299.96" />
+<text xml:space="preserve" text-anchor="middle" x="604.35" y="-284.66" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge30" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__requirements-&gt;packaging__specifiers</title>
+<path fill="none" stroke="#2563eb" d="M498.33,-218.53C556.69,-192.84 665.86,-151.49 763.88,-151.49 763.88,-151.49 763.88,-151.49 1324.35,-151.49 1419.13,-151.49 1516.2,-215.86 1565.02,-253.66" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1562.64,-256.24 1572.66,-259.67 1566.97,-250.74 1562.64,-256.24" />
+<text xml:space="preserve" text-anchor="middle" x="1054.8" y="-154.74" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge31" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__requirements-&gt;packaging__utils</title>
+<path fill="none" stroke="#2563eb" d="M465.13,-258.31C482.65,-293.96 524.94,-367.91 586.35,-397.49 692.67,-448.7 1507.56,-426.3 1774.84,-417.46" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1774.62,-420.97 1784.5,-417.14 1774.39,-413.97 1774.62,-420.97" />
+<text xml:space="preserve" text-anchor="middle" x="1184.2" y="-433.1" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge32" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__specifiers-&gt;packaging___ranges</title>
+<path fill="none" stroke="#2563eb" d="M1647.35,-260.58C1682.58,-247.06 1731.92,-230.31 1777.05,-222.74 1857.5,-209.24 1950.17,-208.5 2018.38,-210.67" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2017.91,-214.16 2028.02,-211.01 2018.15,-207.16 2017.91,-214.16" />
+<text xml:space="preserve" text-anchor="middle" x="1860.45" y="-225.99" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge33" class="edge" data-kind="dependency" data-violation="true">
+<title>packaging__specifiers-&gt;packaging__ranges</title>
+<path fill="none" stroke="#dc2626" stroke-width="2.5" d="M1675.17,-260.5C1688.69,-257.69 1702.72,-255.24 1716.05,-253.74 1731.95,-251.94 1736.07,-253.01 1752.05,-253.74 1755.69,-253.9 1759.41,-254.1 1763.15,-254.32" />
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="2.5" points="1762.84,-257.81 1773.05,-254.97 1763.3,-250.82 1762.84,-257.81" />
+<text xml:space="preserve" text-anchor="middle" x="1734.05" y="-256.99" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge34" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__specifiers-&gt;packaging__utils</title>
+<path fill="none" stroke="#2563eb" d="M1650.42,-300.36C1680.54,-312.63 1719.07,-329.32 1752.05,-346.74 1775.67,-359.21 1800.99,-375.06 1821.11,-388.28" />
+<polygon fill="#2563eb" stroke="#2563eb" points="1819.01,-391.09 1829.28,-393.71 1822.88,-385.26 1819.01,-391.09" />
+<text xml:space="preserve" text-anchor="middle" x="1734.05" y="-349.99" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge35" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__specifiers-&gt;packaging__version</title>
+<path fill="none" stroke="#2563eb" d="M1691.36,-287.96C1699.71,-288.53 1708.03,-289.04 1716.05,-289.49 1743.13,-290.97 1749.94,-290.67 1777.05,-291.49 1994.57,-298.06 2049.09,-303.85 2266.65,-298.49 2274.95,-298.28 2283.57,-298 2292.22,-297.66" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2292.21,-301.17 2302.06,-297.26 2291.92,-294.17 2292.21,-301.17" />
+<text xml:space="preserve" text-anchor="middle" x="1986.85" y="-302.23" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge36" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__tags-&gt;packaging___manylinux</title>
+<path fill="none" stroke="#2563eb" d="M2192.31,-631.95C2308.5,-631.43 2541.58,-631.76 2739,-640.49 2763.17,-641.55 2789.09,-643.2 2813.65,-644.99" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2813.08,-648.46 2823.32,-645.71 2813.6,-641.48 2813.08,-648.46" />
+<text xml:space="preserve" text-anchor="middle" x="2529.95" y="-637.67" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge37" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__tags-&gt;packaging___musllinux</title>
+<path fill="none" stroke="#2563eb" d="M2192.41,-642.32C2219.43,-645.93 2250.61,-650.1 2280.03,-654.03" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2279.34,-657.46 2289.71,-655.32 2280.26,-650.52 2279.34,-657.46" />
+<text xml:space="preserve" text-anchor="middle" x="2248.65" y="-654.81" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge38" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__utils-&gt;packaging__tags</title>
+<path fill="none" stroke="#2563eb" d="M1884.56,-434.22C1930.39,-473.35 2032.87,-560.86 2084.99,-605.37" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2082.48,-607.83 2092.36,-611.66 2087.03,-602.5 2082.48,-607.83" />
+<text xml:space="preserve" text-anchor="middle" x="1986.85" y="-539.79" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+
+<g id="edge39" class="edge" data-kind="dependency" data-violation="false">
+<title>packaging__utils-&gt;packaging__version</title>
+<path fill="none" stroke="#2563eb" d="M1934.95,-399.87C2016.36,-383.38 2151.37,-355.09 2266.65,-326.49 2280.25,-323.11 2294.65,-319.3 2308.59,-315.48" />
+<polygon fill="#2563eb" stroke="#2563eb" points="2309.48,-318.87 2318.19,-312.83 2307.62,-312.12 2309.48,-318.87" />
+<text xml:space="preserve" text-anchor="middle" x="2117.75" y="-382.32" font-family="sans-serif" font-size="10.00">depends</text>
+</g>
+</g>
+</svg>

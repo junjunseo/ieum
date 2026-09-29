@@ -1,0 +1,36 @@
+digraph ieum {
+  graph [rankdir=LR, bgcolor="white"];
+  node [shape=box, style="rounded,filled", fillcolor="#f8fafc", color="#334155", fontname="sans-serif"];
+  edge [fontname="sans-serif", fontsize=10];
+
+  "itsdangerous";
+  "itsdangerous___json";
+  "itsdangerous__encoding";
+  "itsdangerous__exc";
+  "itsdangerous__serializer";
+  "itsdangerous__signer";
+  "itsdangerous__timed";
+  "itsdangerous__url_safe";
+
+  "itsdangerous" -> "itsdangerous__encoding" [label="depends", color="#2563eb"];
+  "itsdangerous" -> "itsdangerous__exc" [label="depends", color="#2563eb"];
+  "itsdangerous" -> "itsdangerous__serializer" [label="depends", color="#2563eb"];
+  "itsdangerous" -> "itsdangerous__signer" [label="depends", color="#2563eb"];
+  "itsdangerous" -> "itsdangerous__timed" [label="depends", color="#2563eb"];
+  "itsdangerous" -> "itsdangerous__url_safe" [label="depends", color="#2563eb"];
+  "itsdangerous__encoding" -> "itsdangerous__exc" [label="depends", color="#2563eb"];
+  "itsdangerous__serializer" -> "itsdangerous__encoding" [label="depends", color="#2563eb"];
+  "itsdangerous__serializer" -> "itsdangerous__exc" [label="depends", color="#2563eb"];
+  "itsdangerous__serializer" -> "itsdangerous__signer" [label="depends", color="#2563eb"];
+  "itsdangerous__signer" -> "itsdangerous__encoding" [label="depends", color="#2563eb"];
+  "itsdangerous__signer" -> "itsdangerous__exc" [label="depends", color="#2563eb"];
+  "itsdangerous__timed" -> "itsdangerous__encoding" [label="depends", color="#2563eb"];
+  "itsdangerous__timed" -> "itsdangerous__exc" [label="depends", color="#2563eb"];
+  "itsdangerous__timed" -> "itsdangerous__serializer" [label="depends", color="#2563eb"];
+  "itsdangerous__timed" -> "itsdangerous__signer" [label="depends", color="#2563eb"];
+  "itsdangerous__url_safe" -> "itsdangerous___json" [label="depends", color="#2563eb"];
+  "itsdangerous__url_safe" -> "itsdangerous__encoding" [label="depends", color="#2563eb"];
+  "itsdangerous__url_safe" -> "itsdangerous__exc" [label="depends", color="#2563eb"];
+  "itsdangerous__url_safe" -> "itsdangerous__serializer" [label="depends", color="#2563eb"];
+  "itsdangerous__url_safe" -> "itsdangerous__timed" [label="depends", color="#2563eb"];
+}

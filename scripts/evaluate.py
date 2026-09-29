@@ -1,4 +1,4 @@
-"""Evaluate the hand-authored seed corpus; deliberately excludes timing."""
+"""Evaluate a corpus manifest; deliberately excludes timing."""
 import argparse
 from datetime import datetime, timezone
 import json
@@ -40,14 +40,25 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "build/evaluation/results.json")
     args = parser.parse_args()
     ieum = executable(args.ieum)
-    results = [run_case(ieum, case) for case in load_cases(args.manifest)]
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    cases = load_cases(args.manifest)
+    results = [dict(run_case(ieum, case), category=case.get("category", "seed"),
+                    group=case.get("group", "seed"), review_status=case.get("review_status", "not-recorded"))
+               for case in cases]
     summary = summarize(results)
     report = {
-        "scope": "Hand-authored seed corpus; not independent real-project accuracy.",
+        "scope": manifest.get("scope", "Hand-authored seed corpus; not independent real-project accuracy."),
+        "review_status": manifest.get("review_status", "not-recorded"),
+        "sources": manifest.get("sources", []),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "environment": {"os": platform.platform(), "python": platform.python_version()},
         "executable_sha256": digest(ieum), "manifest_sha256": text_digest(args.manifest),
-        "summary": summary, "cases": results,
+        "summary": summary,
+        "by_category": {key: summarize([r for r in results if r["category"] == key])
+                        for key in sorted({r["category"] for r in results})},
+        "by_group": {key: summarize([r for r in results if r["group"] == key])
+                     for key in sorted({r["group"] for r in results})},
+        "cases": results,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

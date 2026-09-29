@@ -1,0 +1,431 @@
+{
+  "scope": "Two pinned Python package projections and related mutations/policies; separate synthetic scale cases. Human review pending. Not runtime-import or population accuracy.",
+  "review_status": "pending-human-review",
+  "sources": [
+    {
+      "id": "itsdangerous",
+      "snapshot": "evaluation/real/snapshots/itsdangerous.json",
+      "snapshot_sha256": "769e534b174881f2d78417e9fdea110c09db6b6a675d268fb3d3bb2f70fbccf4",
+      "repository": "https://github.com/pallets/itsdangerous",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd"
+    },
+    {
+      "id": "packaging",
+      "snapshot": "evaluation/real/snapshots/packaging.json",
+      "snapshot_sha256": "c79a49fa8649577c4808340f22530e4f8ca56d8d5c7f648475316a054a805aad",
+      "repository": "https://github.com/pypa/packaging",
+      "commit": "7b898d9f0b343ca06993157fc328d7caad51d5c2"
+    }
+  ],
+  "created_at": "2026-09-29T06:53:34.413775+00:00",
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.14.3"
+  },
+  "executable_sha256": "74dc4d68187f388852e4c586551ab63d7c79023f269914f489dfb8bb1fb3f451",
+  "manifest_sha256": "a715a1d747de6993f4e039fac29e31c98479c7c703a572362681a65592c7b1d3",
+  "summary": {
+    "total": 14,
+    "classified": 14,
+    "unclassified": 0,
+    "exact_matches": 14,
+    "true_positive": 10,
+    "true_negative": 4,
+    "false_positive": 0,
+    "false_negative": 0,
+    "classification_coverage": 1.0,
+    "accuracy_on_classified": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0
+  },
+  "by_category": {
+    "real_mutation": {
+      "total": 4,
+      "classified": 4,
+      "unclassified": 0,
+      "exact_matches": 4,
+      "true_positive": 4,
+      "true_negative": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": null,
+      "false_negative_rate": 0.0
+    },
+    "real_original": {
+      "total": 2,
+      "classified": 2,
+      "unclassified": 0,
+      "exact_matches": 2,
+      "true_positive": 1,
+      "true_negative": 1,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0
+    },
+    "real_policy": {
+      "total": 4,
+      "classified": 4,
+      "unclassified": 0,
+      "exact_matches": 4,
+      "true_positive": 3,
+      "true_negative": 1,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0
+    },
+    "synthetic": {
+      "total": 4,
+      "classified": 4,
+      "unclassified": 0,
+      "exact_matches": 4,
+      "true_positive": 2,
+      "true_negative": 2,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0
+    }
+  },
+  "by_group": {
+    "itsdangerous": {
+      "total": 5,
+      "classified": 5,
+      "unclassified": 0,
+      "exact_matches": 5,
+      "true_positive": 3,
+      "true_negative": 2,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0
+    },
+    "medium_25": {
+      "total": 2,
+      "classified": 2,
+      "unclassified": 0,
+      "exact_matches": 2,
+      "true_positive": 1,
+      "true_negative": 1,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0
+    },
+    "medium_50": {
+      "total": 2,
+      "classified": 2,
+      "unclassified": 0,
+      "exact_matches": 2,
+      "true_positive": 1,
+      "true_negative": 1,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0
+    },
+    "packaging": {
+      "total": 5,
+      "classified": 5,
+      "unclassified": 0,
+      "exact_matches": 5,
+      "true_positive": 5,
+      "true_negative": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "classification_coverage": 1.0,
+      "accuracy_on_classified": 1.0,
+      "false_positive_rate": null,
+      "false_negative_rate": 0.0
+    }
+  },
+  "cases": [
+    {
+      "id": "itsdangerous_original",
+      "source": "evaluation/real/corpus/itsdangerous_original.ieum",
+      "source_sha256": "f2aee018ab934f07f528939a23e5181778b6dd8639aa296cf8b11cfd88004a93",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 8개, 계층 선언 0개 (modules=8, layers=0)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": "",
+      "category": "real_original",
+      "group": "itsdangerous",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "itsdangerous_undefined",
+      "source": "evaluation/real/corpus/itsdangerous_undefined.ieum",
+      "source_sha256": "0fa59081a9e4ce65008a7e457d9e4f46ea5119a33de98549d78736721e724d50",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "undefined_dependency": 1
+      },
+      "actual_labels": {
+        "암묵적 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 8개, 계층 선언 0개 (modules=8, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [암묵적 의존] 모듈 'itsdangerous___json'가 선언되지 않은 모듈 'missing_external_module'에 의존합니다 (3행)\n",
+      "stderr": "",
+      "category": "real_mutation",
+      "group": "itsdangerous",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "itsdangerous_self_cycle",
+      "source": "evaluation/real/corpus/itsdangerous_self_cycle.ieum",
+      "source_sha256": "c9dd0b6cbbfc491664442113c0dbc82eadda2d48ca7a52eef9d88af6dcf77cb8",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 8개, 계층 선언 0개 (modules=8, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [순환 의존] 순환 의존 발견: itsdangerous___json -> itsdangerous___json (3행)\n",
+      "stderr": "",
+      "category": "real_mutation",
+      "group": "itsdangerous",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "itsdangerous_policy_forward",
+      "source": "evaluation/real/corpus/itsdangerous_policy_forward.ieum",
+      "source_sha256": "d25042221c7cd6bd42eb37456bad2e4f28ce97aff59cfaf76ecefddd9f3b5955",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 8개, 계층 선언 1개 (modules=8, layers=1)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": "",
+      "category": "real_policy",
+      "group": "itsdangerous",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "itsdangerous_policy_reverse",
+      "source": "evaluation/real/corpus/itsdangerous_policy_reverse.ieum",
+      "source_sha256": "045362108e71dcf193e6475d7d38222cfdeca91d7813b460cbff5c8f0b3c096f",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "layer_violation": 1
+      },
+      "actual_labels": {
+        "계층 위반": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 8개, 계층 선언 1개 (modules=8, layers=1)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [계층 위반] 계층 위반: 하위 계층 'itsdangerous__serializer'가 상위 계층 'itsdangerous__signer'에 의존합니다 (6행)\n",
+      "stderr": "",
+      "category": "real_policy",
+      "group": "itsdangerous",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "packaging_original",
+      "source": "evaluation/real/corpus/packaging_original.ieum",
+      "source_sha256": "44387828e98e540c33ad92495eafaf45330e0195c0553c29eba5849d911e9da3",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 22개, 계층 선언 0개 (modules=22, layers=0)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [순환 의존] 순환 의존 발견: packaging__specifiers -> packaging__ranges -> packaging__specifiers (18행)\n",
+      "stderr": "",
+      "category": "real_original",
+      "group": "packaging",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "packaging_undefined",
+      "source": "evaluation/real/corpus/packaging_undefined.ieum",
+      "source_sha256": "c0d0964b7fb9cd60c6ac3b891025c6c0e2793bf1c1becdd9c27be5aee3bb6e9d",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "undefined_dependency": 1
+      },
+      "actual_labels": {
+        "암묵적 의존": 1,
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 22개, 계층 선언 0개 (modules=22, layers=0)\n\n✗ 구조 검사 실패: 위반 2건\n\n  [암묵적 의존] 모듈 'packaging'가 선언되지 않은 모듈 'missing_external_module'에 의존합니다 (2행)\n  [순환 의존] 순환 의존 발견: packaging__specifiers -> packaging__ranges -> packaging__specifiers (18행)\n",
+      "stderr": "",
+      "category": "real_mutation",
+      "group": "packaging",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "packaging_self_cycle",
+      "source": "evaluation/real/corpus/packaging_self_cycle.ieum",
+      "source_sha256": "551fed19edbc6d5d9303093064addf054835d939876f963aea023ef156c27ba2",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 2
+      },
+      "actual_labels": {
+        "순환 의존": 2
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 22개, 계층 선언 0개 (modules=22, layers=0)\n\n✗ 구조 검사 실패: 위반 2건\n\n  [순환 의존] 순환 의존 발견: packaging -> packaging (2행)\n  [순환 의존] 순환 의존 발견: packaging__specifiers -> packaging__ranges -> packaging__specifiers (18행)\n",
+      "stderr": "",
+      "category": "real_mutation",
+      "group": "packaging",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "packaging_policy_forward",
+      "source": "evaluation/real/corpus/packaging_policy_forward.ieum",
+      "source_sha256": "45e3b2b1edfee8c30e9d224e1bde8185c626df2f6d8691d9d2542bbeccfdb614",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 22개, 계층 선언 1개 (modules=22, layers=1)\n\n✗ 구조 검사 실패: 위반 1건\n\n  [순환 의존] 순환 의존 발견: packaging__specifiers -> packaging__ranges -> packaging__specifiers (18행)\n",
+      "stderr": "",
+      "category": "real_policy",
+      "group": "packaging",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "packaging_policy_reverse",
+      "source": "evaluation/real/corpus/packaging_policy_reverse.ieum",
+      "source_sha256": "a564209e799fc873d179527d1f8100428d7d8fbdf32635567d1eb900ae003891",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 1
+      },
+      "actual_labels": {
+        "순환 의존": 1,
+        "계층 위반": 1
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 22개, 계층 선언 1개 (modules=22, layers=1)\n\n✗ 구조 검사 실패: 위반 2건\n\n  [순환 의존] 순환 의존 발견: packaging__specifiers -> packaging__ranges -> packaging__specifiers (18행)\n  [계층 위반] 계층 위반: 하위 계층 'packaging___manylinux'가 상위 계층 'packaging___elffile'에 의존합니다 (4행)\n",
+      "stderr": "",
+      "category": "real_policy",
+      "group": "packaging",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "medium_25_valid",
+      "source": "evaluation/real/corpus/medium_25_valid.ieum",
+      "source_sha256": "30d1c5f835f5e0b269c219a80e7ce75ef95e8b9e0ea9bb36aa8a13b4f1b1b39c",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 25개, 계층 선언 20개 (modules=25, layers=20)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": "",
+      "category": "synthetic",
+      "group": "medium_25",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "medium_25_cycle",
+      "source": "evaluation/real/corpus/medium_25_cycle.ieum",
+      "source_sha256": "7763e3e1b38ff773f635ac22ff3b836078cd3b15ce956f689ea4485033802382",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 10
+      },
+      "actual_labels": {
+        "순환 의존": 1,
+        "계층 위반": 10
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 25개, 계층 선언 20개 (modules=25, layers=20)\n\n✗ 구조 검사 실패: 위반 11건\n\n  [순환 의존] 순환 의존 발견: m20 -> m21 -> m22 -> m23 -> m24 -> m20 (26행)\n  [계층 위반] 계층 위반: 하위 계층 'm23'가 의존 경로를 통해 상위 계층 'm22'에 의존합니다 (경로: m23 -> m24 -> m20 -> m21 -> m22) (25행)\n  [계층 위반] 계층 위반: 하위 계층 'm23'가 의존 경로를 통해 상위 계층 'm20'에 의존합니다 (경로: m23 -> m24 -> m20) (25행)\n  [계층 위반] 계층 위반: 하위 계층 'm23'가 의존 경로를 통해 상위 계층 'm21'에 의존합니다 (경로: m23 -> m24 -> m20 -> m21) (25행)\n  [계층 위반] 계층 위반: 하위 계층 'm22'가 의존 경로를 통해 상위 계층 'm20'에 의존합니다 (경로: m22 -> m23 -> m24 -> m20) (24행)\n  [계층 위반] 계층 위반: 하위 계층 'm22'가 의존 경로를 통해 상위 계층 'm21'에 의존합니다 (경로: m22 -> m23 -> m24 -> m20 -> m21) (24행)\n  [계층 위반] 계층 위반: 하위 계층 'm24'가 상위 계층 'm20'에 의존합니다 (26행)\n  [계층 위반] 계층 위반: 하위 계층 'm24'가 의존 경로를 통해 상위 계층 'm23'에 의존합니다 (경로: m24 -> m20 -> m21 -> m22 -> m23) (26행)\n  [계층 위반] 계층 위반: 하위 계층 'm24'가 의존 경로를 통해 상위 계층 'm22'에 의존합니다 (경로: m24 -> m20 -> m21 -> m22) (26행)\n  [계층 위반] 계층 위반: 하위 계층 'm24'가 의존 경로를 통해 상위 계층 'm21'에 의존합니다 (경로: m24 -> m20 -> m21) (26행)\n  [계층 위반] 계층 위반: 하위 계층 'm21'가 의존 경로를 통해 상위 계층 'm20'에 의존합니다 (경로: m21 -> m22 -> m23 -> m24 -> m20) (23행)\n",
+      "stderr": "",
+      "category": "synthetic",
+      "group": "medium_25",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "medium_50_valid",
+      "source": "evaluation/real/corpus/medium_50_valid.ieum",
+      "source_sha256": "6ef309f984898a2db7474f6137b3718cd178b220e4a20111157a41d1c819f482",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "expected_kinds": {},
+      "actual_labels": {},
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 50개, 계층 선언 40개 (modules=50, layers=40)\n\n✓ 구조 검사 통과: 위반 없음\n✓ 의미 검사 통과: 위반 없음\n",
+      "stderr": "",
+      "category": "synthetic",
+      "group": "medium_50",
+      "review_status": "pending-human-review"
+    },
+    {
+      "id": "medium_50_cycle",
+      "source": "evaluation/real/corpus/medium_50_cycle.ieum",
+      "source_sha256": "226daf6b6504a0ffdd605990702e5a14dd80f35a71d12a69a5a60a8243bf0da7",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "expected_kinds": {
+        "cycle": 1,
+        "layer_violation": 10
+      },
+      "actual_labels": {
+        "순환 의존": 1,
+        "계층 위반": 10
+      },
+      "classified": true,
+      "exact_match": true,
+      "stdout": "── 파싱 결과 ──\n모듈 50개, 계층 선언 40개 (modules=50, layers=40)\n\n✗ 구조 검사 실패: 위반 11건\n\n  [순환 의존] 순환 의존 발견: m45 -> m46 -> m47 -> m48 -> m49 -> m45 (51행)\n  [계층 위반] 계층 위반: 하위 계층 'm48'가 의존 경로를 통해 상위 계층 'm47'에 의존합니다 (경로: m48 -> m49 -> m45 -> m46 -> m47) (50행)\n  [계층 위반] 계층 위반: 하위 계층 'm48'가 의존 경로를 통해 상위 계층 'm46'에 의존합니다 (경로: m48 -> m49 -> m45 -> m46) (50행)\n  [계층 위반] 계층 위반: 하위 계층 'm48'가 의존 경로를 통해 상위 계층 'm45'에 의존합니다 (경로: m48 -> m49 -> m45) (50행)\n  [계층 위반] 계층 위반: 하위 계층 'm47'가 의존 경로를 통해 상위 계층 'm46'에 의존합니다 (경로: m47 -> m48 -> m49 -> m45 -> m46) (49행)\n  [계층 위반] 계층 위반: 하위 계층 'm47'가 의존 경로를 통해 상위 계층 'm45'에 의존합니다 (경로: m47 -> m48 -> m49 -> m45) (49행)\n  [계층 위반] 계층 위반: 하위 계층 'm46'가 의존 경로를 통해 상위 계층 'm45'에 의존합니다 (경로: m46 -> m47 -> m48 -> m49 -> m45) (48행)\n  [계층 위반] 계층 위반: 하위 계층 'm49'가 상위 계층 'm45'에 의존합니다 (51행)\n  [계층 위반] 계층 위반: 하위 계층 'm49'가 의존 경로를 통해 상위 계층 'm48'에 의존합니다 (경로: m49 -> m45 -> m46 -> m47 -> m48) (51행)\n  [계층 위반] 계층 위반: 하위 계층 'm49'가 의존 경로를 통해 상위 계층 'm47'에 의존합니다 (경로: m49 -> m45 -> m46 -> m47) (51행)\n  [계층 위반] 계층 위반: 하위 계층 'm49'가 의존 경로를 통해 상위 계층 'm46'에 의존합니다 (경로: m49 -> m45 -> m46) (51행)\n",
+      "stderr": "",
+      "category": "synthetic",
+      "group": "medium_50",
+      "review_status": "pending-human-review"
+    }
+  ]
+}

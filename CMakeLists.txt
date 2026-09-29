@@ -155,6 +155,9 @@ add_ieum_graph_failure_test(invalid cyclic_dependency 1)
 # Python is optional for the core. CI also exercises the demo/evaluation tools.
 find_package(Python3 3.9 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
+    add_test(NAME real_corpus_tools COMMAND ${Python3_EXECUTABLE} -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/test_real_corpus.py"
+        --ieum $<TARGET_FILE:ieum> --benchmark $<TARGET_FILE:benchmarkChecker>)
     add_test(NAME workflow_tools COMMAND ${Python3_EXECUTABLE} -B
         "${CMAKE_CURRENT_SOURCE_DIR}/test/test_workflows.py"
         --ieum $<TARGET_FILE:ieum>)

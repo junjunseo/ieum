@@ -1,0 +1,1311 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "packaging",
+    "repository": "https://github.com/pypa/packaging",
+    "commit": "7b898d9f0b343ca06993157fc328d7caad51d5c2",
+    "package_path": "src/packaging",
+    "archive_sha256": "54ecb08985b6643ef6067e6669a12b6fd39765c60111d1198d70ff06ec6038f8",
+    "license_files": [
+      "LICENSE",
+      "LICENSE.BSD",
+      "LICENSE.APACHE"
+    ]
+  },
+  "policy": "all-static-imports-v1; internal-explicit-edges; no-package-init-side-effects",
+  "modules": [
+    {
+      "module": "packaging",
+      "file": "__init__.py",
+      "is_package": true,
+      "ieum": "packaging",
+      "source_sha256": "bd88511068f82d7a5ecc0cc6f9cf4d519b6e3cc2828ac6e88d51acfda806e65e",
+      "imports": [],
+      "dependencies": []
+    },
+    {
+      "module": "packaging._elffile",
+      "file": "_elffile.py",
+      "is_package": false,
+      "ieum": "packaging___elffile",
+      "source_sha256": "1f025f54c573f1a85740c4fbd908cc1d1fb0c177c14377ebf5f09d6cd5368780",
+      "imports": [
+        {
+          "line": 10,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "import enum",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "import os",
+          "targets": []
+        },
+        {
+          "line": 14,
+          "statement": "import struct",
+          "targets": []
+        },
+        {
+          "line": 15,
+          "statement": "from typing import IO",
+          "targets": []
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "module": "packaging._manylinux",
+      "file": "_manylinux.py",
+      "is_package": false,
+      "ieum": "packaging___manylinux",
+      "source_sha256": "a39300be4712ee92b61b880c6424a0693822c6224f22773832ebd1533f24ff23",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import collections",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "import contextlib",
+          "targets": []
+        },
+        {
+          "line": 5,
+          "statement": "import functools",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "import os",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import warnings",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "from typing import TYPE_CHECKING, NamedTuple",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "from ._elffile import EIClass, EIData, ELFFile, EMachine",
+          "targets": [
+            "packaging._elffile"
+          ]
+        },
+        {
+          "line": 15,
+          "statement": "import types",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from collections.abc import Generator, Iterator, Sequence",
+          "targets": []
+        },
+        {
+          "line": 112,
+          "statement": "import ctypes",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging._elffile"
+      ]
+    },
+    {
+      "module": "packaging._musllinux",
+      "file": "_musllinux.py",
+      "is_package": false,
+      "ieum": "packaging___musllinux",
+      "source_sha256": "0328fb827b1170c77df4c107d49be8df8d37262103490a61e8acad8a2f9cadff",
+      "imports": [
+        {
+          "line": 7,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import functools",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 11,
+          "statement": "import subprocess",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "from typing import TYPE_CHECKING, NamedTuple",
+          "targets": []
+        },
+        {
+          "line": 15,
+          "statement": "from ._elffile import ELFFile",
+          "targets": [
+            "packaging._elffile"
+          ]
+        },
+        {
+          "line": 18,
+          "statement": "from collections.abc import Iterator, Sequence",
+          "targets": []
+        },
+        {
+          "line": 79,
+          "statement": "import sysconfig",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging._elffile"
+      ]
+    },
+    {
+      "module": "packaging._parser",
+      "file": "_parser.py",
+      "is_package": false,
+      "ieum": "packaging___parser",
+      "source_sha256": "dfdb87431ee48e2e8da76c92c8e57abeb2acfa7ef6f09eb3838faef0ec868cf9",
+      "imports": [
+        {
+          "line": 7,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import ast",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "from collections.abc import Sequence",
+          "targets": []
+        },
+        {
+          "line": 11,
+          "statement": "from typing import Literal, NamedTuple, TypeAlias",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "from ._tokenizer import DEFAULT_RULES, ParserSyntaxError, Tokenizer",
+          "targets": [
+            "packaging._tokenizer"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging._tokenizer"
+      ]
+    },
+    {
+      "module": "packaging._ranges",
+      "file": "_ranges.py",
+      "is_package": false,
+      "ieum": "packaging___ranges",
+      "source_sha256": "d812faf511809ccd48116cab03a8b4c9ded93cdcef9f046a8f58dd6acd169341",
+      "imports": [
+        {
+          "line": 6,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "import enum",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import functools",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "from typing import TYPE_CHECKING, Any, Final",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from .version import InvalidVersion, Version",
+          "targets": [
+            "packaging.version"
+          ]
+        },
+        {
+          "line": 19,
+          "statement": "from collections.abc import Callable, Iterable, Iterator, Sequence",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging.version"
+      ]
+    },
+    {
+      "module": "packaging._structures",
+      "file": "_structures.py",
+      "is_package": false,
+      "ieum": "packaging___structures",
+      "source_sha256": "eb48d16c5efca7ccf930a9cd77a700a6b80e69d0891d5d03966526441a8565cb",
+      "imports": [
+        {
+          "line": 15,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "module": "packaging._tokenizer",
+      "file": "_tokenizer.py",
+      "is_package": false,
+      "ieum": "packaging___tokenizer",
+      "source_sha256": "326969de61e1f8607e5f29b778599388a4977c10cfbc130a1249817b172cead1",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import contextlib",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 5,
+          "statement": "from dataclasses import dataclass",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "from typing import TYPE_CHECKING, NoReturn",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "from .specifiers import Specifier",
+          "targets": [
+            "packaging.specifiers"
+          ]
+        },
+        {
+          "line": 11,
+          "statement": "from collections.abc import Generator, Mapping",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging.specifiers"
+      ]
+    },
+    {
+      "module": "packaging.dependency_groups",
+      "file": "dependency_groups.py",
+      "is_package": false,
+      "ieum": "packaging__dependency_groups",
+      "source_sha256": "5309cc564ca3022dfb594816e9d593bb09cdf34208c1fb8c5ec9afb6c670278c",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "from collections.abc import Mapping, Sequence",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "from .errors import _ErrorCollector",
+          "targets": [
+            "packaging.errors"
+          ]
+        },
+        {
+          "line": 7,
+          "statement": "from .requirements import InvalidRequirement, Requirement",
+          "targets": [
+            "packaging.requirements"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging.errors",
+        "packaging.requirements"
+      ]
+    },
+    {
+      "module": "packaging.direct_url",
+      "file": "direct_url.py",
+      "is_package": false,
+      "ieum": "packaging__direct_url",
+      "source_sha256": "b645fd3298cf44ff6bb6ac17ef94975f0bf8bd02bb411e2b57afc77b032ad72c",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import dataclasses",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 5,
+          "statement": "import urllib.parse",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "from collections.abc import Mapping",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "from typing import TYPE_CHECKING, Any, Protocol, TypeVar",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 11,
+          "statement": "from collections.abc import Collection",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "from urllib.parse import SplitResult",
+          "targets": []
+        },
+        {
+          "line": 15,
+          "statement": "from typing import Self",
+          "targets": []
+        },
+        {
+          "line": 17,
+          "statement": "from typing_extensions import Self",
+          "targets": []
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "module": "packaging.errors",
+      "file": "errors.py",
+      "is_package": false,
+      "ieum": "packaging__errors",
+      "source_sha256": "4f40ab237cfa55cfa4c745b7c6f3d7737210cb70215bb115b83bcfecdec4cf4d",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import contextlib",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "import dataclasses",
+          "targets": []
+        },
+        {
+          "line": 5,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "import typing",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from builtins import ExceptionGroup",
+          "targets": []
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "module": "packaging.licenses",
+      "file": "licenses/__init__.py",
+      "is_package": true,
+      "ieum": "packaging__licenses",
+      "source_sha256": "590d12eee73ddbec53b4e9ee5bfc64d9cb3aacb4940e8ebcba260757ce56740b",
+      "imports": [
+        {
+          "line": 32,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 34,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 35,
+          "statement": "from typing import NewType, cast",
+          "targets": []
+        },
+        {
+          "line": 37,
+          "statement": "from ._spdx import EXCEPTIONS, LICENSES",
+          "targets": [
+            "packaging.licenses._spdx"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging.licenses._spdx"
+      ]
+    },
+    {
+      "module": "packaging.licenses._spdx",
+      "file": "licenses/_spdx.py",
+      "is_package": false,
+      "ieum": "packaging__licenses___spdx",
+      "source_sha256": "3535b48e8ea739daed1fed42f5a1814f5e6537516f749fb04846c75766a32c68",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "from typing import TypedDict",
+          "targets": []
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "module": "packaging.markers",
+      "file": "markers.py",
+      "is_package": false,
+      "ieum": "packaging__markers",
+      "source_sha256": "3b23a07a624eafee599a608f8196b405edb3f9f3cfcb0849335026fe9c6b993e",
+      "imports": [
+        {
+          "line": 5,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "import functools",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "import operator",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import os",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "import platform",
+          "targets": []
+        },
+        {
+          "line": 11,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "from collections.abc import Callable",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "from collections.abc import Set as AbstractSet",
+          "targets": []
+        },
+        {
+          "line": 14,
+          "statement": "from typing import TYPE_CHECKING, Final, Literal, TypedDict, cast",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from ._parser import MarkerAtom, MarkerList, Op, Value, Variable",
+          "targets": [
+            "packaging._parser"
+          ]
+        },
+        {
+          "line": 17,
+          "statement": "from ._parser import parse_marker as _parse_marker",
+          "targets": [
+            "packaging._parser"
+          ]
+        },
+        {
+          "line": 18,
+          "statement": "from ._tokenizer import ParserSyntaxError",
+          "targets": [
+            "packaging._tokenizer"
+          ]
+        },
+        {
+          "line": 19,
+          "statement": "from .specifiers import InvalidSpecifier, Specifier",
+          "targets": [
+            "packaging.specifiers"
+          ]
+        },
+        {
+          "line": 20,
+          "statement": "from .utils import canonicalize_name",
+          "targets": [
+            "packaging.utils"
+          ]
+        },
+        {
+          "line": 23,
+          "statement": "from collections.abc import Mapping",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging._parser",
+        "packaging._tokenizer",
+        "packaging.specifiers",
+        "packaging.utils"
+      ]
+    },
+    {
+      "module": "packaging.metadata",
+      "file": "metadata.py",
+      "is_package": false,
+      "ieum": "packaging__metadata",
+      "source_sha256": "4428aa1c2fccd27c953460e4db151f8e4fdc79b59bb710184c9585b24069b671",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import email.header",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "import email.message",
+          "targets": []
+        },
+        {
+          "line": 5,
+          "statement": "import email.parser",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "import email.policy",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "import keyword",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "import pathlib",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "import typing",
+          "targets": []
+        },
+        {
+          "line": 11,
+          "statement": "from typing import Any, Generic, Literal, TypedDict, cast",
+          "targets": []
+        },
+        {
+          "line": 19,
+          "statement": "from . import licenses, requirements, specifiers, utils",
+          "targets": [
+            "packaging.licenses",
+            "packaging.requirements",
+            "packaging.specifiers",
+            "packaging.utils"
+          ]
+        },
+        {
+          "line": 20,
+          "statement": "from . import version as version_module",
+          "targets": [
+            "packaging.version"
+          ]
+        },
+        {
+          "line": 21,
+          "statement": "from .errors import ExceptionGroup, _ErrorCollector",
+          "targets": [
+            "packaging.errors"
+          ]
+        },
+        {
+          "line": 24,
+          "statement": "from collections.abc import Callable",
+          "targets": []
+        },
+        {
+          "line": 26,
+          "statement": "from .licenses import NormalizedLicenseExpression",
+          "targets": [
+            "packaging.licenses"
+          ]
+        },
+        {
+          "line": 27,
+          "statement": "from .version import Version",
+          "targets": [
+            "packaging.version"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging.errors",
+        "packaging.licenses",
+        "packaging.requirements",
+        "packaging.specifiers",
+        "packaging.utils",
+        "packaging.version"
+      ]
+    },
+    {
+      "module": "packaging.pylock",
+      "file": "pylock.py",
+      "is_package": false,
+      "ieum": "packaging__pylock",
+      "source_sha256": "b3982ba187bc23bf94841223841cc8540c5b19736792c7909372128ce3fc048e",
+      "imports": [
+        {
+          "line": 1,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 3,
+          "statement": "import dataclasses",
+          "targets": []
+        },
+        {
+          "line": 4,
+          "statement": "import logging",
+          "targets": []
+        },
+        {
+          "line": 5,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "from collections.abc import Callable, Mapping, Sequence",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "from dataclasses import dataclass",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "from datetime import datetime",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from urllib.parse import unquote, urlparse",
+          "targets": []
+        },
+        {
+          "line": 18,
+          "statement": "from .markers import Environment, Marker, _pep440_python_full_version, default_environment",
+          "targets": [
+            "packaging.markers"
+          ]
+        },
+        {
+          "line": 24,
+          "statement": "from .specifiers import SpecifierSet",
+          "targets": [
+            "packaging.specifiers"
+          ]
+        },
+        {
+          "line": 25,
+          "statement": "from .tags import create_compatible_tags_selector, sys_tags",
+          "targets": [
+            "packaging.tags"
+          ]
+        },
+        {
+          "line": 26,
+          "statement": "from .utils import NormalizedName, is_normalized_name, parse_sdist_filename, parse_wheel_filename",
+          "targets": [
+            "packaging.utils"
+          ]
+        },
+        {
+          "line": 32,
+          "statement": "from .version import Version",
+          "targets": [
+            "packaging.version"
+          ]
+        },
+        {
+          "line": 35,
+          "statement": "from collections.abc import Collection, Iterator",
+          "targets": []
+        },
+        {
+          "line": 36,
+          "statement": "from pathlib import Path",
+          "targets": []
+        },
+        {
+          "line": 38,
+          "statement": "from typing_extensions import Self",
+          "targets": []
+        },
+        {
+          "line": 40,
+          "statement": "from .tags import Tag",
+          "targets": [
+            "packaging.tags"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging.markers",
+        "packaging.specifiers",
+        "packaging.tags",
+        "packaging.utils",
+        "packaging.version"
+      ]
+    },
+    {
+      "module": "packaging.ranges",
+      "file": "ranges.py",
+      "is_package": false,
+      "ieum": "packaging__ranges",
+      "source_sha256": "36ea5c9f2871a57a8e4b91c9a8e1f7f89ee911453f594408a3dbe44f95750af0",
+      "imports": [
+        {
+          "line": 20,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 22,
+          "statement": "import enum",
+          "targets": []
+        },
+        {
+          "line": 23,
+          "statement": "import typing",
+          "targets": []
+        },
+        {
+          "line": 24,
+          "statement": "from typing import TYPE_CHECKING, Any, TypeVar",
+          "targets": []
+        },
+        {
+          "line": 30,
+          "statement": "from ._ranges import FULL_RANGE, MIN_VERSION, NEG_INF, POS_INF, BoundaryKind, BoundaryVersion, LowerBound, UpperBound, coerce_version, filter_by_ranges, intersect_ranges, least_version_above, matches_bounds_only, range_is_empty, ranges_are_prerelease_only, trim_release",
+          "targets": [
+            "packaging._ranges"
+          ]
+        },
+        {
+          "line": 48,
+          "statement": "from .version import Version",
+          "targets": [
+            "packaging.version"
+          ]
+        },
+        {
+          "line": 51,
+          "statement": "from collections.abc import Callable, Iterable, Iterator, Sequence",
+          "targets": []
+        },
+        {
+          "line": 53,
+          "statement": "from ._ranges import Interval",
+          "targets": [
+            "packaging._ranges"
+          ]
+        },
+        {
+          "line": 54,
+          "statement": "from .specifiers import SpecifierSet",
+          "targets": [
+            "packaging.specifiers"
+          ]
+        },
+        {
+          "line": 1769,
+          "statement": "from .specifiers import InvalidSpecifier, SpecifierSet",
+          "targets": [
+            "packaging.specifiers"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging._ranges",
+        "packaging.specifiers",
+        "packaging.version"
+      ]
+    },
+    {
+      "module": "packaging.requirements",
+      "file": "requirements.py",
+      "is_package": false,
+      "ieum": "packaging__requirements",
+      "source_sha256": "459476eb2107fe30e6b1310051a5bdb44c7d3b7f78e0e87bada268282cba62f5",
+      "imports": [
+        {
+          "line": 4,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 6,
+          "statement": "from typing import TYPE_CHECKING",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "from ._parser import parse_requirement as _parse_requirement",
+          "targets": [
+            "packaging._parser"
+          ]
+        },
+        {
+          "line": 9,
+          "statement": "from ._tokenizer import ParserSyntaxError",
+          "targets": [
+            "packaging._tokenizer"
+          ]
+        },
+        {
+          "line": 10,
+          "statement": "from .markers import Marker, _normalize_extra_values",
+          "targets": [
+            "packaging.markers"
+          ]
+        },
+        {
+          "line": 11,
+          "statement": "from .specifiers import InvalidSpecifier, SpecifierSet",
+          "targets": [
+            "packaging.specifiers"
+          ]
+        },
+        {
+          "line": 12,
+          "statement": "from .utils import canonicalize_name",
+          "targets": [
+            "packaging.utils"
+          ]
+        },
+        {
+          "line": 15,
+          "statement": "from collections.abc import Iterator",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging._parser",
+        "packaging._tokenizer",
+        "packaging.markers",
+        "packaging.specifiers",
+        "packaging.utils"
+      ]
+    },
+    {
+      "module": "packaging.specifiers",
+      "file": "specifiers.py",
+      "is_package": false,
+      "ieum": "packaging__specifiers",
+      "source_sha256": "e051010a0fd2cdd8dd1bfeebd90c5e33d02d78c10c43fd6afc8701ba96915085",
+      "imports": [
+        {
+          "line": 11,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "import abc",
+          "targets": []
+        },
+        {
+          "line": 14,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 15,
+          "statement": "import typing",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from typing import TYPE_CHECKING, Any, Final, TypeVar",
+          "targets": []
+        },
+        {
+          "line": 23,
+          "statement": "from ._ranges import FULL_RANGE, bounds_for_spec, coerce_version, filter_by_ranges, intersect_specifier_bounds, matches_bounds_only, ranges_are_prerelease_only, resolve_prereleases, trim_release",
+          "targets": [
+            "packaging._ranges"
+          ]
+        },
+        {
+          "line": 34,
+          "statement": "from .utils import canonicalize_version",
+          "targets": [
+            "packaging.utils"
+          ]
+        },
+        {
+          "line": 35,
+          "statement": "from .version import Version",
+          "targets": [
+            "packaging.version"
+          ]
+        },
+        {
+          "line": 38,
+          "statement": "from collections.abc import Callable, Iterable, Iterator, Sequence",
+          "targets": []
+        },
+        {
+          "line": 39,
+          "statement": "from typing import TypeGuard",
+          "targets": []
+        },
+        {
+          "line": 41,
+          "statement": "from . import ranges",
+          "targets": [
+            "packaging.ranges"
+          ]
+        },
+        {
+          "line": 42,
+          "statement": "from ._ranges import Interval",
+          "targets": [
+            "packaging._ranges"
+          ]
+        },
+        {
+          "line": 1132,
+          "statement": "from .ranges import VersionRange",
+          "targets": [
+            "packaging.ranges"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging._ranges",
+        "packaging.ranges",
+        "packaging.utils",
+        "packaging.version"
+      ]
+    },
+    {
+      "module": "packaging.tags",
+      "file": "tags.py",
+      "is_package": false,
+      "ieum": "packaging__tags",
+      "source_sha256": "3f1200163bcddff3bcac0eace448f18ba0b3036853edb41a21c0c6c9f22b790b",
+      "imports": [
+        {
+          "line": 5,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "import logging",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "import operator",
+          "targets": []
+        },
+        {
+          "line": 9,
+          "statement": "import platform",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 11,
+          "statement": "import struct",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "import subprocess",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 14,
+          "statement": "import sysconfig",
+          "targets": []
+        },
+        {
+          "line": 15,
+          "statement": "from collections.abc import Iterable, Iterator, Sequence",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from importlib.machinery import EXTENSION_SUFFIXES",
+          "targets": []
+        },
+        {
+          "line": 17,
+          "statement": "from typing import TYPE_CHECKING, TypeVar, cast",
+          "targets": []
+        },
+        {
+          "line": 23,
+          "statement": "from . import _manylinux, _musllinux",
+          "targets": [
+            "packaging._manylinux",
+            "packaging._musllinux"
+          ]
+        },
+        {
+          "line": 26,
+          "statement": "from collections.abc import Callable",
+          "targets": []
+        },
+        {
+          "line": 27,
+          "statement": "from collections.abc import Set as AbstractSet",
+          "targets": []
+        }
+      ],
+      "dependencies": [
+        "packaging._manylinux",
+        "packaging._musllinux"
+      ]
+    },
+    {
+      "module": "packaging.utils",
+      "file": "utils.py",
+      "is_package": false,
+      "ieum": "packaging__utils",
+      "source_sha256": "ba6bf332779835fe3ca10f8821201a822ad14284eadb3b589187a765a1ee90e5",
+      "imports": [
+        {
+          "line": 5,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 7,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 8,
+          "statement": "from typing import NewType, cast",
+          "targets": []
+        },
+        {
+          "line": 10,
+          "statement": "from .tags import InvalidTag, Tag, UnsortedTagsError, parse_tag",
+          "targets": [
+            "packaging.tags"
+          ]
+        },
+        {
+          "line": 11,
+          "statement": "from .version import InvalidVersion, Version, _TrimmedRelease",
+          "targets": [
+            "packaging.version"
+          ]
+        }
+      ],
+      "dependencies": [
+        "packaging.tags",
+        "packaging.version"
+      ]
+    },
+    {
+      "module": "packaging.version",
+      "file": "version.py",
+      "is_package": false,
+      "ieum": "packaging__version",
+      "source_sha256": "a63be088daf383d3b85444ce3850fbbcedca6a4cf12945efb89c3d75b14659c1",
+      "imports": [
+        {
+          "line": 10,
+          "statement": "from __future__ import annotations",
+          "targets": []
+        },
+        {
+          "line": 12,
+          "statement": "import re",
+          "targets": []
+        },
+        {
+          "line": 13,
+          "statement": "import sys",
+          "targets": []
+        },
+        {
+          "line": 14,
+          "statement": "import typing",
+          "targets": []
+        },
+        {
+          "line": 15,
+          "statement": "from collections.abc import Callable",
+          "targets": []
+        },
+        {
+          "line": 16,
+          "statement": "from typing import Any, Literal, NamedTuple, SupportsInt, TypedDict",
+          "targets": []
+        },
+        {
+          "line": 25,
+          "statement": "from typing_extensions import Self, Unpack",
+          "targets": []
+        },
+        {
+          "line": 28,
+          "statement": "from warnings import deprecated as _deprecated",
+          "targets": []
+        },
+        {
+          "line": 30,
+          "statement": "from typing_extensions import deprecated as _deprecated",
+          "targets": []
+        },
+        {
+          "line": 32,
+          "statement": "import functools",
+          "targets": []
+        },
+        {
+          "line": 33,
+          "statement": "import warnings",
+          "targets": []
+        }
+      ],
+      "dependencies": []
+    }
+  ],
+  "licenses": {
+    "LICENSE": "This software is made available under the terms of *either* of the licenses\nfound in LICENSE.APACHE or LICENSE.BSD. Contributions to this software is made\nunder the terms of *both* these licenses.\n",
+    "LICENSE.BSD": "Copyright (c) Donald Stufft and individual contributors.\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n    1. Redistributions of source code must retain the above copyright notice,\n       this list of conditions and the following disclaimer.\n\n    2. Redistributions in binary form must reproduce the above copyright\n       notice, this list of conditions and the following disclaimer in the\n       documentation and/or other materials provided with the distribution.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\nANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\nWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE\nFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\nDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\nCAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\nOR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n",
+    "LICENSE.APACHE": "\n                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n"
+  }
+}

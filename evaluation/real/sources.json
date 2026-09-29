@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "itsdangerous",
+      "repository": "https://github.com/pallets/itsdangerous",
+      "commit": "672971d66a2ef9f85151e53283113f33d642dabd",
+      "package_path": "src/itsdangerous",
+      "archive_sha256": "6a4dcbb1acbaf36fa22047f9c0a416897b0714f4e1bf06b28a50a68626d28d16",
+      "license_files": ["LICENSE.txt"]
+    },
+    {
+      "id": "packaging",
+      "repository": "https://github.com/pypa/packaging",
+      "commit": "7b898d9f0b343ca06993157fc328d7caad51d5c2",
+      "package_path": "src/packaging",
+      "archive_sha256": "54ecb08985b6643ef6067e6669a12b6fd39765c60111d1198d70ff06ec6038f8",
+      "license_files": ["LICENSE", "LICENSE.BSD", "LICENSE.APACHE"]
+    }
+  ]
+}
