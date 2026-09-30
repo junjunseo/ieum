@@ -1,0 +1,22 @@
+module data {
+  let total: int = 0
+
+  fn accumulate(amount: int) {
+    total = total + amount
+  }
+}
+
+module app depends data {
+  fn main() {
+    let result = 1 + 2 * 3
+    let grouped: int = (1 + 2) * 3
+    let greeting = "안녕" + " 이음"
+    let safe = false && (1 / 0 == 0)
+    let ready = result == 7 && grouped == 9
+    result = result + 1
+    call accumulate(result)
+    call accumulate(grouped)
+  }
+}
+
+layer app above data

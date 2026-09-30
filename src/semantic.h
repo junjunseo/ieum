@@ -23,13 +23,15 @@ enum class SemanticViolationKind {
     AmbiguousFunction,
     MissingCallDependency,
     ArityMismatch,
-    RecursiveCall
+    RecursiveCall,
+    TypeMismatch
 };
 
 struct SemanticViolation {
     SemanticViolationKind kind;
     std::string message;
     int line;
+    SourceSpan span = {};
 };
 
 struct FunctionRef {
@@ -46,6 +48,7 @@ struct ResolvedCall {
     std::size_t statement;
     FunctionRef target;
     int line;
+    NodeId node = 0;
 };
 
 struct SemanticResult {
@@ -53,6 +56,13 @@ struct SemanticResult {
     std::vector<ResolvedCall> resolvedCalls;
 
     bool ok() const { return violations.empty(); }
+
+    const ResolvedCall* findCallByNode(NodeId node) const {
+        for (const auto& call : resolvedCalls) {
+            if (node != 0 && call.node == node) return &call;
+        }
+        return nullptr;
+    }
 
     const ResolvedCall* findCall(
         const FunctionRef& caller,
@@ -190,38 +200,42 @@ private:
              moduleIndex < program_.modules.size();
              ++moduleIndex) {
             const auto& module = program_.modules[moduleIndex];
-            std::unordered_set<std::string> moduleVariables;
+            TypeScope moduleVariables;
             for (const auto& variable : module.variables) {
-                moduleVariables.insert(variable.name);
+                const auto type = expressionType(variable.initializer, {}, moduleVariables, result);
+                checkType(variable.annotation, type, variable.span, result);
+                moduleVariables.emplace(variable.name, variable.annotation.value_or(type.value_or(ValueType::Unit)));
             }
 
             for (std::size_t functionIndex = 0;
                  functionIndex < module.functions.size();
                  ++functionIndex) {
                 const auto& function = module.functions[functionIndex];
-                std::unordered_set<std::string> functionScope(
-                    function.parameters.begin(), function.parameters.end());
+                TypeScope functionScope;
+                for (std::size_t p = 0; p < function.parameters.size(); ++p) {
+                    functionScope.emplace(function.parameters[p], parameterType(function, p));
+                }
 
                 for (std::size_t statementIndex = 0;
                      statementIndex < function.body.size();
                      ++statementIndex) {
                     const auto& statement = function.body[statementIndex];
                     if (statement.kind == Statement::Kind::VariableDeclaration) {
-                        functionScope.insert(statement.name);
+                        const auto type = expressionType(statement.expression, functionScope, moduleVariables, result);
+                        checkType(statement.annotation, type, statement.span, result);
+                        functionScope.emplace(statement.name, statement.annotation.value_or(type.value_or(ValueType::Unit)));
+                        continue;
+                    }
+                    if (statement.kind == Statement::Kind::Assignment) {
+                        const auto target = lookupType(statement.name, functionScope, moduleVariables, statement.span, result);
+                        const auto type = expressionType(statement.expression, functionScope, moduleVariables, result);
+                        checkType(target, type, statement.span, result);
                         continue;
                     }
 
+                    std::vector<std::optional<ValueType>> argumentTypes;
                     for (const auto& argument : statement.arguments) {
-                        if (functionScope.find(argument) == functionScope.end() &&
-                            moduleVariables.find(argument) == moduleVariables.end()) {
-                            result.violations.push_back({
-                                SemanticViolationKind::UndefinedVariable,
-                                "함수 '" + module.name + "." + function.name +
-                                    "'의 호출 인자 '" + argument +
-                                    "'가 현재 Scope에 선언되지 않았습니다",
-                                statement.line
-                            });
-                        }
+                        argumentTypes.push_back(lookupType(argument, functionScope, moduleVariables, statement.span, result));
                     }
 
                     const auto target = resolveFunction(
@@ -241,16 +255,78 @@ private:
                             statement.line
                         });
                     }
+                    for (std::size_t p = 0; p < std::min(argumentTypes.size(), targetFunction.parameters.size()); ++p) {
+                        checkType(parameterType(targetFunction, p), argumentTypes[p], statement.span, result);
+                    }
 
                     result.resolvedCalls.push_back({
                         {moduleIndex, functionIndex},
                         statementIndex,
                         *target,
-                        statement.line
+                        statement.line,
+                        statement.id
                     });
                 }
             }
         }
+    }
+
+    using TypeScope = std::unordered_map<std::string, ValueType>;
+
+    static ValueType parameterType(const FunctionDecl& function, std::size_t p) {
+        return p < function.parameterTypes.size() ? function.parameterTypes[p] : ValueType::Unit;
+    }
+
+    static void checkType(std::optional<ValueType> expected, std::optional<ValueType> actual,
+                          const SourceSpan& span, SemanticResult& result) {
+        if (expected && actual && *expected != *actual) {
+            result.violations.push_back({SemanticViolationKind::TypeMismatch,
+                "type_mismatch: " + typeName(*expected) + " 타입이 필요하지만 " + typeName(*actual) + "입니다",
+                span.line, span});
+        }
+    }
+
+    static std::optional<ValueType> lookupType(const std::string& name,
+            const TypeScope& locals, const TypeScope& module,
+            const SourceSpan& span, SemanticResult& result) {
+        const auto local = locals.find(name);
+        if (local != locals.end()) return local->second;
+        const auto global = module.find(name);
+        if (global != module.end()) return global->second;
+        result.violations.push_back({SemanticViolationKind::UndefinedVariable,
+            "변수 '" + name + "'가 현재 Scope에 선언되지 않았습니다", span.line, span});
+        return std::nullopt;
+    }
+
+    std::optional<ValueType> expressionType(const Expr& expr, const TypeScope& locals,
+                                          const TypeScope& module, SemanticResult& result) const {
+        if (!expr) return ValueType::Unit;
+        if (expr->kind == Expression::Kind::Literal) return valueType(expr->literal);
+        if (expr->kind == Expression::Kind::Name) return lookupType(expr->text, locals, module, expr->span, result);
+        if (expr->kind == Expression::Kind::Unary) {
+            const auto type = expressionType(expr->right, locals, module, result);
+            const auto expected = expr->text == "!" ? ValueType::Bool : ValueType::Int;
+            checkType(expected, type, expr->span, result);
+            return type && *type == expected ? type : std::nullopt;
+        }
+        // Type-check both sides even when evaluation can short-circuit.
+        const auto left = expressionType(expr->left, locals, module, result);
+        const auto right = expressionType(expr->right, locals, module, result);
+        if (!left || !right) return std::nullopt;
+        const auto& op = expr->text;
+        if (*left == *right) {
+            if (op == "==" || op == "!=") return ValueType::Bool;
+            if (op == "+" && *left == ValueType::String) return ValueType::String;
+            if ((op == "&&" || op == "||") && *left == ValueType::Bool) return ValueType::Bool;
+            if (*left == ValueType::Int) {
+                if (op == "+" || op == "-" || op == "*" || op == "/" || op == "%") return ValueType::Int;
+                if (op == "<" || op == "<=" || op == ">" || op == ">=") return ValueType::Bool;
+            }
+        }
+        result.violations.push_back({SemanticViolationKind::TypeMismatch,
+            "type_mismatch: 연산 '" + op + "'에 " + typeName(*left) + ", " + typeName(*right) + " 타입을 사용할 수 없습니다",
+            expr->span.line, expr->span});
+        return std::nullopt;
     }
 
     std::optional<FunctionRef> resolveFunction(
