@@ -15,10 +15,11 @@ TEST_CHECKER = $(BUILD_DIR)/testChecker$(EXE)
 TEST_GRAPH = $(BUILD_DIR)/testGraph$(EXE)
 TEST_SEMANTIC = $(BUILD_DIR)/testSemantic$(EXE)
 TEST_INTERPRETER = $(BUILD_DIR)/testInterpreter$(EXE)
+TEST_VALUES = $(BUILD_DIR)/testValues$(EXE)
 BENCHMARK_CHECKER = $(BUILD_DIR)/benchmarkChecker$(EXE)
 BENCHMARK_MODULES ?= 200
 BENCHMARK_ITERATIONS ?= 7
-HEADERS = src/token.h src/ast.h src/lexer.h src/parser.h src/checker.h src/graph.h src/semantic.h src/interpreter.h src/version.h
+HEADERS = src/token.h src/source.h src/value.h src/evaluator.h src/ast.h src/lexer.h src/parser.h src/checker.h src/graph.h src/semantic.h src/interpreter.h src/version.h
 INVALID_EXAMPLES = \
 	examples/implicit_dependency.ieum \
 	examples/cyclic_dependency.ieum \
@@ -41,7 +42,7 @@ $(BUILD_DIR):
 $(TARGET): src/main.cpp $(HEADERS) VERSION | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
-$(TEST_PARSER): test/testParser.cpp src/token.h src/ast.h src/parser.h | $(BUILD_DIR)
+$(TEST_PARSER): test/testParser.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(TEST_PIPELINE): test/testPipeline.cpp $(HEADERS) | $(BUILD_DIR)
@@ -59,25 +60,30 @@ $(TEST_SEMANTIC): test/testSemantic.cpp $(HEADERS) | $(BUILD_DIR)
 $(TEST_INTERPRETER): test/testInterpreter.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
+$(TEST_VALUES): test/testValues.cpp $(HEADERS) | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
 $(BENCHMARK_CHECKER): benchmark/benchmarkChecker.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -O2 -DNDEBUG $< -o $@
 
 run: $(TARGET)
 	./$(TARGET) examples/valid.ieum
 
-test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMANTIC) $(TEST_INTERPRETER) $(TARGET) $(BENCHMARK_CHECKER)
+test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMANTIC) $(TEST_INTERPRETER) $(TEST_VALUES) $(TARGET) $(BENCHMARK_CHECKER)
 	./$(TEST_PARSER)
 	./$(TEST_PIPELINE)
 	./$(TEST_CHECKER)
 	./$(TEST_GRAPH)
 	./$(TEST_SEMANTIC)
 	./$(TEST_INTERPRETER)
+	./$(TEST_VALUES)
 	./$(BENCHMARK_CHECKER) 2 1
 	test "$$(./$(TARGET) --version)" = "ieum $(VERSION)"
 	@for example in $(VALID_EXAMPLES); do \
 		./$(TARGET) $$example || exit 1; \
 	done
 	./$(TARGET) examples/execution.ieum --run service.main
+	./$(TARGET) examples/values.ieum --run app.main
 	@./$(TARGET) examples/execution.ieum --run service.missing >/dev/null 2>&1; \
 		status=$$?; \
 		if [ $$status -ne 1 ]; then \

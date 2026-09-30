@@ -29,7 +29,8 @@ try {
         @{ Source = "test/testChecker.cpp";  Output = "build/testChecker.exe" },
         @{ Source = "test/testGraph.cpp";    Output = "build/testGraph.exe" },
         @{ Source = "test/testSemantic.cpp"; Output = "build/testSemantic.exe" },
-        @{ Source = "test/testInterpreter.cpp"; Output = "build/testInterpreter.exe" }
+        @{ Source = "test/testInterpreter.cpp"; Output = "build/testInterpreter.exe" },
+        @{ Source = "test/testValues.cpp"; Output = "build/testValues.exe" }
     )
 
     foreach ($target in $targets) {
@@ -243,6 +244,13 @@ try {
         }
     } else {
         Write-Host "Python unavailable: demo/evaluation checks skipped (requires Python 3.9+)."
+    }
+
+    $valueOutput = & ".\build\ieum.exe" "examples/values.ieum" "--run" "app.main" 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "Value example execution failed" }
+    $valueText = $valueOutput -join "`n"
+    foreach ($expected in @("value data.total: int = 17", "value app.main.result: int = 8", "value app.main.safe: bool = false")) {
+        if (-not $valueText.Contains($expected)) { throw "Value example missing: $expected" }
     }
 
     Write-Host "All tests passed."

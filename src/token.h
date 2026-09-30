@@ -2,6 +2,8 @@
 #define IEUM_TOKEN_H
 
 #include <string>
+#include <utility>
+#include "source.h"
 
 // ── 토큰 타입 ──────────────────────────────────────────
 // 구조 선언과 F1 모듈 본문 문법을 다룬다.
@@ -16,6 +18,10 @@ enum class TokenType {
     FN,         // fn      — 함수 선언
     LET,        // let     — 변수 선언
     CALL,       // call    — 함수 호출
+    INTEGER, STRING, TRUE_VALUE, FALSE_VALUE,
+    COLON, ASSIGN, PLUS, MINUS, STAR, SLASH, PERCENT,
+    BANG, EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
+    AND, OR,
 
     // 기타
     IDENTIFIER, // 모듈/계층/변수/함수 이름
@@ -39,6 +45,8 @@ inline std::string tokenTypeName(TokenType t) {
         case TokenType::FN:         return "키워드(fn)";
         case TokenType::LET:        return "키워드(let)";
         case TokenType::CALL:       return "키워드(call)";
+        case TokenType::INTEGER:    return "정수";
+        case TokenType::STRING:     return "문자열";
         case TokenType::IDENTIFIER: return "식별자";
         case TokenType::LEFT_BRACE: return "왼쪽 중괄호({)";
         case TokenType::RIGHT_BRACE: return "오른쪽 중괄호(})";
@@ -56,9 +64,10 @@ struct Token {
     TokenType type;
     std::string value;
     int line;
+    SourceSpan span;
 
-    Token(TokenType t, std::string v, int l)
-        : type(t), value(v), line(l) {}
+    Token(TokenType t, std::string v, int l, SourceSpan s = {})
+        : type(t), value(v), line(l), span(std::move(s)) { span.line = l; }
 };
 
 #endif // IEUM_TOKEN_H

@@ -21,6 +21,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(IEUM_HEADERS
     src/token.h
+    src/source.h
+    src/value.h
+    src/evaluator.h
     src/ast.h
     src/lexer.h
     src/parser.h
@@ -50,6 +53,7 @@ add_ieum_executable(testChecker test/testChecker.cpp)
 add_ieum_executable(testGraph test/testGraph.cpp)
 add_ieum_executable(testSemantic test/testSemantic.cpp)
 add_ieum_executable(testInterpreter test/testInterpreter.cpp)
+add_ieum_executable(testValues test/testValues.cpp)
 add_ieum_executable(benchmarkChecker benchmark/benchmarkChecker.cpp)
 
 if(MSVC)
@@ -66,6 +70,7 @@ add_test(NAME checker COMMAND testChecker)
 add_test(NAME graph COMMAND testGraph)
 add_test(NAME semantic COMMAND testSemantic)
 add_test(NAME interpreter COMMAND testInterpreter)
+add_test(NAME values COMMAND testValues)
 add_test(NAME benchmark_smoke COMMAND benchmarkChecker 2 1)
 set_tests_properties(benchmark_smoke PROPERTIES
     PASS_REGULAR_EXPRESSION "scenario=layered-valid-chain"
@@ -104,6 +109,7 @@ endfunction()
 add_ieum_example_test(valid 0 "")
 add_ieum_example_test(module_body 0 "body_modules=2")
 add_ieum_run_test(example_execution execution "service.main" 0 "calls_executed=2")
+add_ieum_run_test(example_values values "app.main" 0 "value data.total: int = 17")
 add_ieum_run_test(cli_run_missing_function execution "service.missing" 1 "service.missing")
 add_ieum_run_test(cli_run_parameterized_entry execution "service.prepare" 1 "service.prepare")
 add_ieum_run_test(cli_run_invalid_entry execution "service" 2 "entry_format=module.function")

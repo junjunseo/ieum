@@ -5,9 +5,11 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "ast.h"
 #include "semantic.h"
+#include "evaluator.h"
 
 enum class ExecutionEventKind {
     EnterFunction,
@@ -29,6 +31,8 @@ struct ExecutionResult {
     std::vector<ExecutionEvent> events;
     std::size_t functionsExecuted = 0;
     std::size_t callsExecuted = 0;
+    std::map<std::string, Value> moduleValues;
+    std::map<std::string, Value> entryLocals;
 };
 
 class Interpreter {
@@ -57,7 +61,26 @@ public:
         }
 
         result.success = true;
-        execute(*entry, 0, result);
+        std::vector<ValueScope> globals(program_.modules.size());
+        try {
+            for (std::size_t m = 0; m < program_.modules.size(); ++m) {
+                for (const auto& variable : program_.modules[m].variables) {
+                    const Value value = evaluateExpression(variable.initializer, {}, globals[m]);
+                    globals[m].emplace(variable.name, value);
+                }
+            }
+            execute(*entry, {}, globals, 0, result);
+            if (result.success) {
+                for (std::size_t m = 0; m < globals.size(); ++m) {
+                    for (const auto& [name, value] : globals[m]) {
+                        result.moduleValues.emplace(program_.modules[m].name + "." + name, value);
+                    }
+                }
+            }
+        } catch (const std::exception& error) {
+            result.success = false;
+            result.error = error.what();
+        }
         return result;
     }
 
@@ -108,6 +131,8 @@ private:
 
     void execute(
         const FunctionRef& functionRef,
+        const std::vector<Value>& arguments,
+        std::vector<ValueScope>& globals,
         std::size_t depth,
         ExecutionResult& result) const {
         if (!result.success) return;
@@ -120,6 +145,11 @@ private:
         const auto& function =
             program_.modules[functionRef.module].functions[functionRef.function];
         const std::string name = qualifiedName(functionRef);
+        ValueScope locals;
+        for (std::size_t p = 0; p < function.parameters.size(); ++p) {
+            locals.emplace(function.parameters[p], arguments.at(p));
+        }
+        auto& module = globals[functionRef.module];
         result.events.push_back({
             ExecutionEventKind::EnterFunction,
             name,
@@ -133,9 +163,21 @@ private:
              statementIndex < function.body.size();
              ++statementIndex) {
             const auto& statement = function.body[statementIndex];
-            if (statement.kind != Statement::Kind::FunctionCall) continue;
+            if (statement.kind == Statement::Kind::VariableDeclaration) {
+                const Value value = evaluateExpression(statement.expression, locals, module);
+                locals.emplace(statement.name, value);
+                continue;
+            }
+            if (statement.kind == Statement::Kind::Assignment) {
+                Value value = evaluateExpression(statement.expression, locals, module);
+                const auto local = locals.find(statement.name);
+                if (local != locals.end()) local->second = std::move(value);
+                else module.at(statement.name) = std::move(value);
+                continue;
+            }
 
-            const auto* call = semantics_.findCall(functionRef, statementIndex);
+            const auto* call = statement.id != 0 ? semantics_.findCallByNode(statement.id)
+                                               : semantics_.findCall(functionRef, statementIndex);
             if (call == nullptr) {
                 result.success = false;
                 result.error = "해석되지 않은 호출이 실행 경로에 남아 있습니다";
@@ -143,6 +185,10 @@ private:
             }
 
             const std::string target = qualifiedName(call->target);
+            std::vector<Value> values;
+            for (const auto& argument : statement.arguments) {
+                values.push_back(lookupValue(argument, locals, module, statement.span));
+            }
             result.events.push_back({
                 ExecutionEventKind::CallFunction,
                 name,
@@ -151,9 +197,11 @@ private:
                 statement.line
             });
             result.callsExecuted++;
-            execute(call->target, depth + 1, result);
+            execute(call->target, values, globals, depth + 1, result);
             if (!result.success) return;
         }
+
+        if (depth == 0) result.entryLocals.insert(locals.begin(), locals.end());
 
         result.events.push_back({
             ExecutionEventKind::ExitFunction,

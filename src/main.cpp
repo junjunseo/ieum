@@ -37,6 +37,7 @@ static std::string semanticKindLabel(SemanticViolationKind kind) {
         case SemanticViolationKind::MissingCallDependency:   return "호출 의존 누락";
         case SemanticViolationKind::ArityMismatch:            return "인자 개수 불일치";
         case SemanticViolationKind::RecursiveCall:            return "재귀 호출";
+        case SemanticViolationKind::TypeMismatch:             return "타입 불일치";
     }
     return "알 수 없음";
 }
@@ -177,7 +178,7 @@ int main(int argc, char** argv) {
     }
 
     // 1) 파일 읽기
-    std::ifstream file(options.sourcePath);
+    std::ifstream file(options.sourcePath, std::ios::binary);
     if (!file) {
         std::cerr << "오류: 파일을 열 수 없습니다 — " << options.sourcePath << "\n";
         return 2;
@@ -188,7 +189,7 @@ int main(int argc, char** argv) {
 
     try {
         // 2) 렉싱 → 파싱
-        Lexer lexer(source);
+        Lexer lexer(source, options.sourcePath);
         Parser parser(lexer.tokenize());
         Program prog = parser.parse();
 
@@ -250,6 +251,9 @@ int main(int argc, char** argv) {
             for (const auto& violation : semantics.violations) {
                 std::cout << "  [" << semanticKindLabel(violation.kind) << "] "
                           << violation.message;
+                if (!violation.span.file.empty()) {
+                    std::cout << " (" << sourceLocation(violation.span) << ")";
+                }
                 if (violation.line > 0) {
                     std::cout << " (" << violation.line << "행)";
                 }
@@ -261,7 +265,7 @@ int main(int argc, char** argv) {
 
         if (!options.shouldRun) return 0;
 
-        // 6) unit 값만 사용하는 최소 함수 호출 실행
+        // 6) 의미 검사를 통과한 값과 함수 호출 실행
         Interpreter interpreter(prog, semantics);
         const ExecutionResult execution =
             interpreter.run(options.entryModule, options.entryFunction);
@@ -272,6 +276,19 @@ int main(int argc, char** argv) {
 
         std::cout << "\n";
         printExecutionTrace(execution);
+        for (const auto& [name, value] : execution.moduleValues) {
+            if (valueType(value) != ValueType::Unit) {
+                std::cout << "value " << name << ": " << typeName(valueType(value))
+                          << " = " << valueText(value) << "\n";
+            }
+        }
+        for (const auto& [name, value] : execution.entryLocals) {
+            if (valueType(value) != ValueType::Unit) {
+                std::cout << "value " << options.entryModule << "." << options.entryFunction
+                          << "." << name << ": " << typeName(valueType(value))
+                          << " = " << valueText(value) << "\n";
+            }
+        }
         return 0;
 
     } catch (const std::exception& e) {

@@ -36,7 +36,28 @@ module <모듈 이름> [depends <의존 대상>] {
 layer <상위 계층> above <하위 계층>
 ```
 
-식별자는 현재 unit 값으로 취급하며, 검사를 통과한 프로그램은 함수 호출 순서대로 실행할 수 있습니다. 전체 EBNF와 의미 규칙은 [문법 문서](docs/GRAMMAR.md)를 참고합니다.
+`int`(64비트 정수), `bool`, UTF-8 `string`, `unit` 값과 표현식·변수 초기화·재대입을 지원합니다. 초기화 없는 기존 `let name`과 타입 없는 매개변수는 `unit`을 유지합니다. 타입이 다른 대입·연산·호출 인자는 실행 전에 거부하고, 정수 범위 초과와 0 나눗셈은 위치를 포함한 실행 오류로 보고합니다. 전체 EBNF와 의미 규칙은 [문법 문서](docs/GRAMMAR.md)를 참고합니다.
+
+값 계산 예제:
+
+```text
+module app {
+  fn main() {
+    let result: int = 1 + 2 * 3
+    let greeting = "안녕" + " 이음"
+    let safe = false && (1 / 0 == 0)
+    result = result + 1
+  }
+}
+```
+
+`--run app.main`으로 실행하면 호출 Trace 다음에 진입 함수의 최종 지역 값이 표시됩니다. 위 예제의 `result`는 8, `greeting`은 `"안녕 이음"`, `safe`는 false입니다. [값 실행 예제](examples/values.ieum)는 `depends` 모듈의 함수에 정수를 전달하고 모듈 변수에 합계를 저장합니다.
+
+```powershell
+.\build\ieum.exe .\examples\values.ieum --run app.main
+```
+
+이 예제의 최종 `data.total`은 17입니다. 현재 함수는 unit을 반환하며 호출 인자는 변수 이름입니다. 반환값·호출식·조건·반복·중첩 블록은 아직 지원하지 않습니다.
 
 정상적인 구조의 예:
 

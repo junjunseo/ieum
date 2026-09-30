@@ -2,6 +2,9 @@
 #define IEUM_PARSER_H
 
 #include <stdexcept>
+#include <algorithm>
+#include <charconv>
+#include <limits>
 #include <string>
 #include <utility>
 #include <vector>
@@ -37,6 +40,8 @@ public:
 private:
     std::vector<Token> tokens_;
     size_t pos_ = 0;
+    NodeId nextId_ = 1;
+    std::size_t expressionDepth_ = 0;
 
     // ── 선언 파싱 ──────────────────────────────────────
     ModuleDecl parseModule() {
@@ -46,6 +51,7 @@ private:
         ModuleDecl decl;
         decl.name = name.value;
         decl.line = kw.line;
+        decl.span = kw.span;
 
         if (check(TokenType::DEPENDS)) {
             advance();                        // DEPENDS
@@ -101,7 +107,14 @@ private:
         Token kw = advance(); // LET
         Token name = expect(TokenType::IDENTIFIER,
                             "let 다음에는 변수 이름이 와야 합니다");
-        return VariableDecl{name.value, kw.line};
+        VariableDecl variable;
+        variable.name = name.value;
+        variable.line = kw.line;
+        variable.span = kw.span;
+        variable.id = nextId_++;
+        if (check(TokenType::COLON)) { advance(); variable.annotation = parseType(); }
+        if (check(TokenType::ASSIGN)) { advance(); variable.initializer = parseExpression(); }
+        return variable;
     }
 
     FunctionDecl parseFunction() {
@@ -113,8 +126,16 @@ private:
         FunctionDecl function;
         function.name = name.value;
         function.line = kw.line;
+        function.span = kw.span;
         if (!check(TokenType::RIGHT_PAREN)) {
-            function.parameters = parseIdentifierList("함수 매개변수 이름이 필요합니다");
+            do {
+                function.parameters.push_back(expect(TokenType::IDENTIFIER, "함수 매개변수 이름이 필요합니다").value);
+                ValueType type = ValueType::Unit;
+                if (check(TokenType::COLON)) { advance(); type = parseType(); }
+                function.parameterTypes.push_back(type);
+                if (!check(TokenType::COMMA)) break;
+                advance();
+            } while (true);
         }
         expect(TokenType::RIGHT_PAREN, "함수 매개변수 목록을 닫는 ')'가 필요합니다");
         expect(TokenType::LEFT_BRACE, "함수 본문을 여는 '{'가 필요합니다");
@@ -138,16 +159,30 @@ private:
 
             if (check(TokenType::LET)) {
                 const VariableDecl variable = parseVariable();
-                function.body.push_back({
-                    Statement::Kind::VariableDeclaration,
-                    variable.name,
-                    {},
-                    variable.line
-                });
+                Statement statement;
+                statement.kind = Statement::Kind::VariableDeclaration;
+                statement.name = variable.name;
+                statement.line = variable.line;
+                statement.span = variable.span;
+                statement.id = variable.id;
+                statement.annotation = variable.annotation;
+                statement.expression = variable.initializer;
+                function.body.push_back(std::move(statement));
             } else if (check(TokenType::CALL)) {
                 function.body.push_back(parseCall());
+            } else if (check(TokenType::IDENTIFIER)) {
+                const auto name = advance();
+                expect(TokenType::ASSIGN, "변수 이름 뒤에는 '='가 필요합니다");
+                Statement statement;
+                statement.kind = Statement::Kind::Assignment;
+                statement.name = name.value;
+                statement.line = name.line;
+                statement.span = name.span;
+                statement.id = nextId_++;
+                statement.expression = parseExpression();
+                function.body.push_back(std::move(statement));
             } else {
-                throw error("함수 본문에는 'let' 또는 'call' 문장만 올 수 있습니다");
+                throw error("함수 본문에는 'let', 대입 또는 'call' 문장이 필요합니다");
             }
 
             consumeBlockMemberEnd("함수 본문의 문장 뒤에는 줄바꿈이 필요합니다");
@@ -169,12 +204,14 @@ private:
         }
         expect(TokenType::RIGHT_PAREN, "호출 인자 목록을 닫는 ')'가 필요합니다");
 
-        return Statement{
-            Statement::Kind::FunctionCall,
-            callee.value,
-            std::move(arguments),
-            kw.line
-        };
+        Statement statement;
+        statement.kind = Statement::Kind::FunctionCall;
+        statement.name = callee.value;
+        statement.arguments = std::move(arguments);
+        statement.line = kw.line;
+        statement.span = kw.span;
+        statement.id = nextId_++;
+        return statement;
     }
 
     std::vector<std::string> parseIdentifierList(const std::string& itemError) {
@@ -199,7 +236,111 @@ private:
         decl.upper = upper.value;
         decl.lower = lower.value;
         decl.line  = kw.line;
+        decl.span = kw.span;
         return decl;
+    }
+
+    ValueType parseType() {
+        const auto token = expect(TokenType::IDENTIFIER, "타입 이름이 필요합니다");
+        if (token.value == "int") return ValueType::Int;
+        if (token.value == "bool") return ValueType::Bool;
+        if (token.value == "string") return ValueType::String;
+        if (token.value == "unit") return ValueType::Unit;
+        throw std::runtime_error(sourceLocation(token.span) + " 알 수 없는 타입: " + token.value);
+    }
+
+    static int precedence(TokenType type) {
+        switch (type) {
+            case TokenType::OR: return 1;
+            case TokenType::AND: return 2;
+            case TokenType::EQUAL: case TokenType::NOT_EQUAL: return 3;
+            case TokenType::LESS: case TokenType::LESS_EQUAL:
+            case TokenType::GREATER: case TokenType::GREATER_EQUAL: return 4;
+            case TokenType::PLUS: case TokenType::MINUS: return 5;
+            case TokenType::STAR: case TokenType::SLASH: case TokenType::PERCENT: return 6;
+            default: return 0;
+        }
+    }
+
+    Expr node(Expression::Kind kind, const Token& token) {
+        auto expr = std::make_shared<Expression>();
+        expr->kind = kind; expr->id = nextId_++; expr->span = token.span;
+        expr->text = token.value;
+        return expr;
+    }
+
+    // Bounds recursive parsing, type checking, evaluation and destruction.
+    struct ExpressionGuard {
+        std::size_t& depth;
+        explicit ExpressionGuard(std::size_t& d) : depth(d) { ++depth; }
+        ~ExpressionGuard() { --depth; }
+    };
+
+    Expr parseExpression(int minimum = 1) {
+        ExpressionGuard guard(expressionDepth_);
+        if (expressionDepth_ > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+        Expr left = parseUnary();
+        while (precedence(peek().type) >= minimum) {
+            const auto op = advance();
+            auto expr = node(Expression::Kind::Binary, op);
+            expr->left = left;
+            expr->right = parseExpression(precedence(op.type) + 1);
+            expr->treeDepth = 1 + std::max(left->treeDepth, expr->right->treeDepth);
+            if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+            expr->span = left->span;
+            expr->span.endLine = expr->right->span.endLine;
+            expr->span.endColumn = expr->right->span.endColumn;
+            left = expr;
+        }
+        return left;
+    }
+
+    Expr integerLiteral(const Token& token, bool negative = false) {
+        std::uint64_t magnitude = 0;
+        const auto parsed = std::from_chars(token.value.data(), token.value.data() + token.value.size(), magnitude);
+        const auto maximum = static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
+        if (parsed.ec != std::errc{} || parsed.ptr != token.value.data() + token.value.size() || magnitude > maximum + (negative ? 1U : 0U)) {
+            throw std::runtime_error(sourceLocation(token.span) + " integer_overflow: 정수 리터럴이 int64 범위를 초과했습니다");
+        }
+        auto expr = node(Expression::Kind::Literal, token);
+        expr->literal = negative && magnitude == maximum + 1
+            ? std::numeric_limits<std::int64_t>::min()
+            : negative ? -static_cast<std::int64_t>(magnitude) : static_cast<std::int64_t>(magnitude);
+        return expr;
+    }
+
+    Expr parseUnary() {
+        ExpressionGuard guard(expressionDepth_);
+        if (expressionDepth_ > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+        if (check(TokenType::MINUS) || check(TokenType::PLUS) || check(TokenType::BANG)) {
+            const auto op = advance();
+            if (op.type == TokenType::MINUS && check(TokenType::INTEGER)) {
+                auto expr = integerLiteral(advance(), true);
+                expr->span.column = op.span.column;
+                return expr;
+            }
+            auto expr = node(Expression::Kind::Unary, op);
+            expr->right = parseUnary();
+            expr->treeDepth = 1 + expr->right->treeDepth;
+            if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+            expr->span.endLine = expr->right->span.endLine;
+            expr->span.endColumn = expr->right->span.endColumn;
+            return expr;
+        }
+        const auto token = advance();
+        if (token.type == TokenType::INTEGER) return integerLiteral(token);
+        auto expr = node(Expression::Kind::Literal, token);
+        if (token.type == TokenType::STRING) expr->literal = token.value;
+        else if (token.type == TokenType::TRUE_VALUE || token.type == TokenType::FALSE_VALUE) expr->literal = token.type == TokenType::TRUE_VALUE;
+        else if (token.type == TokenType::IDENTIFIER) expr->kind = Expression::Kind::Name;
+        else if (token.type == TokenType::LEFT_PAREN) {
+            if (!check(TokenType::RIGHT_PAREN)) expr = parseExpression();
+            const auto close = expect(TokenType::RIGHT_PAREN, "표현식을 닫는 ')'가 필요합니다");
+            expr->span = token.span;
+            expr->span.endLine = close.span.endLine;
+            expr->span.endColumn = close.span.endColumn;
+        } else throw std::runtime_error(sourceLocation(token.span) + " 표현식이 필요합니다");
+        return expr;
     }
 
     // ── 토큰 유틸 ──────────────────────────────────────
@@ -244,7 +385,7 @@ private:
 
     std::runtime_error error(const std::string& msg) const {
         return std::runtime_error(
-            "[" + std::to_string(peek().line) + "행] 파싱 오류: " + msg +
+            sourceLocation(peek().span) + " [" + std::to_string(peek().line) + "행] 파싱 오류: " + msg +
             " (현재 토큰: " + tokenTypeName(peek().type) +
             (peek().value.empty() ? "" : " '" + peek().value + "'") + ")");
     }
