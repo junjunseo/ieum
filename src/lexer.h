@@ -40,6 +40,12 @@ public:
                 else if (word == "call") type = TokenType::CALL;
                 else if (word == "true") type = TokenType::TRUE_VALUE;
                 else if (word == "false") type = TokenType::FALSE_VALUE;
+                else if (word == "return") type = TokenType::RETURN;
+                else if (word == "if") type = TokenType::IF;
+                else if (word == "else") type = TokenType::ELSE;
+                else if (word == "while") type = TokenType::WHILE;
+                else if (word == "break") type = TokenType::BREAK;
+                else if (word == "continue") type = TokenType::CONTINUE;
                 tokens.push_back(make(type, word, start));
             } else if (digit(c)) {
                 const auto begin = pos;
@@ -59,7 +65,7 @@ public:
                     case ',': type = TokenType::COMMA; break;
                     case ':': type = TokenType::COLON; break;
                     case '+': type = TokenType::PLUS; break;
-                    case '-': type = TokenType::MINUS; break;
+                    case '-': type = match('>') ? TokenType::ARROW : TokenType::MINUS; break;
                     case '*': type = TokenType::STAR; break;
                     case '/': type = TokenType::SLASH; break;
                     case '%': type = TokenType::PERCENT; break;

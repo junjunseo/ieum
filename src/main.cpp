@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <charconv>
 #include "token.h"
 #include "ast.h"
 #include "lexer.h"
@@ -36,8 +37,10 @@ static std::string semanticKindLabel(SemanticViolationKind kind) {
         case SemanticViolationKind::AmbiguousFunction:       return "모호한 함수";
         case SemanticViolationKind::MissingCallDependency:   return "호출 의존 누락";
         case SemanticViolationKind::ArityMismatch:            return "인자 개수 불일치";
-        case SemanticViolationKind::RecursiveCall:            return "재귀 호출";
         case SemanticViolationKind::TypeMismatch:             return "타입 불일치";
+        case SemanticViolationKind::MissingReturn:            return "반환 누락";
+        case SemanticViolationKind::InvalidControlFlow:       return "잘못된 제어 흐름";
+        case SemanticViolationKind::IncompleteSignature:     return "불완전한 함수 타입";
     }
     return "알 수 없음";
 }
@@ -49,6 +52,14 @@ struct BodySummary {
     std::size_t functionStatements = 0;
 };
 
+static std::size_t countStatements(const std::vector<Statement>& body) {
+    std::size_t count = body.size();
+    for (const auto& statement : body) {
+        count += countStatements(statement.body) + countStatements(statement.alternative);
+    }
+    return count;
+}
+
 static BodySummary summarizeBodies(const Program& program) {
     BodySummary summary;
     for (const auto& module : program.modules) {
@@ -56,7 +67,7 @@ static BodySummary summarizeBodies(const Program& program) {
         summary.moduleVariables += module.variables.size();
         summary.functions += module.functions.size();
         for (const auto& function : module.functions) {
-            summary.functionStatements += function.body.size();
+            summary.functionStatements += countStatements(function.body);
         }
     }
     return summary;
@@ -84,6 +95,7 @@ struct CliOptions {
     std::string entryFunction;
     bool shouldEmitDot = false;
     std::string dotPath;
+    ExecutionLimits limits;
 };
 
 static void printUsage() {
@@ -91,12 +103,20 @@ static void printUsage() {
               << "       ieum <소스파일.ieum> --run <모듈>.<함수>\n"
               << "       ieum <소스파일.ieum> --emit-dot <출력파일.dot>\n"
               << "       ieum <소스파일.ieum> --run <모듈>.<함수> --emit-dot <출력파일.dot>\n"
+              << "       실행 한도: --max-steps <양의 정수> --max-call-depth <양의 정수>\n"
               << "       ieum --version\n";
+}
+
+static bool parseLimit(const std::string& text, std::size_t& value) {
+    if (text.empty() || text.find_first_not_of("0123456789") != std::string::npos) return false;
+    const auto parsed = std::from_chars(text.data(), text.data() + text.size(), value);
+    return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size() && value > 0;
 }
 
 static bool parseCliOptions(int argc, char** argv, CliOptions& options) {
     if (argc < 2) return false;
     options.sourcePath = argv[1];
+    bool hasSteps = false, hasDepth = false;
 
     for (int i = 2; i < argc;) {
         const std::string option = argv[i];
@@ -122,9 +142,17 @@ static bool parseCliOptions(int argc, char** argv, CliOptions& options) {
             i += 2;
             continue;
         }
+        if (option == "--max-steps" || option == "--max-call-depth") {
+            bool& supplied = option == "--max-steps" ? hasSteps : hasDepth;
+            auto& value = option == "--max-steps" ? options.limits.maxSteps : options.limits.maxCallDepth;
+            if (supplied || i + 1 >= argc || !parseLimit(argv[i + 1], value)) return false;
+            supplied = true;
+            i += 2;
+            continue;
+        }
         return false;
     }
-    return true;
+    return options.shouldRun || (!hasSteps && !hasDepth);
 }
 
 static bool writeDotFile(
@@ -266,7 +294,7 @@ int main(int argc, char** argv) {
         if (!options.shouldRun) return 0;
 
         // 6) 의미 검사를 통과한 값과 함수 호출 실행
-        Interpreter interpreter(prog, semantics);
+        Interpreter interpreter(prog, semantics, options.limits);
         const ExecutionResult execution =
             interpreter.run(options.entryModule, options.entryFunction);
         if (!execution.success) {
@@ -276,6 +304,11 @@ int main(int argc, char** argv) {
 
         std::cout << "\n";
         printExecutionTrace(execution);
+        if (valueType(execution.returnValue) != ValueType::Unit) {
+            std::cout << "return " << options.entryModule << "." << options.entryFunction
+                      << ": " << typeName(valueType(execution.returnValue))
+                      << " = " << valueText(execution.returnValue) << "\n";
+        }
         for (const auto& [name, value] : execution.moduleValues) {
             if (valueType(value) != ValueType::Unit) {
                 std::cout << "value " << name << ": " << typeName(valueType(value))

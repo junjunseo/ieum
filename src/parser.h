@@ -42,6 +42,7 @@ private:
     size_t pos_ = 0;
     NodeId nextId_ = 1;
     std::size_t expressionDepth_ = 0;
+    std::size_t statementDepth_ = 0;
 
     // ── 선언 파싱 ──────────────────────────────────────
     ModuleDecl parseModule() {
@@ -131,6 +132,7 @@ private:
             do {
                 function.parameters.push_back(expect(TokenType::IDENTIFIER, "함수 매개변수 이름이 필요합니다").value);
                 ValueType type = ValueType::Unit;
+                function.explicitParameterTypes.push_back(check(TokenType::COLON));
                 if (check(TokenType::COLON)) { advance(); type = parseType(); }
                 function.parameterTypes.push_back(type);
                 if (!check(TokenType::COMMA)) break;
@@ -138,91 +140,112 @@ private:
             } while (true);
         }
         expect(TokenType::RIGHT_PAREN, "함수 매개변수 목록을 닫는 ')'가 필요합니다");
+        if (check(TokenType::ARROW)) { advance(); function.returnType = parseType(); }
         expect(TokenType::LEFT_BRACE, "함수 본문을 여는 '{'가 필요합니다");
-        parseFunctionBody(function);
+        function.body = parseBlock();
         return function;
     }
 
-    void parseFunctionBody(FunctionDecl& function) {
-        if (check(TokenType::RIGHT_BRACE)) {
-            advance();
-            return;
-        }
-
-        consumeBlockStart("함수 본문의 여는 중괄호 뒤에는 줄바꿈이 필요합니다");
+    std::vector<Statement> parseBlock() {
+        std::vector<Statement> body;
+        if (check(TokenType::RIGHT_BRACE)) { advance(); return body; }
+        consumeBlockStart("본문의 여는 중괄호 뒤에는 줄바꿈이 필요합니다");
         skipNewlines();
-
         while (!check(TokenType::RIGHT_BRACE)) {
-            if (isAtEnd()) {
-                throw error("함수 본문을 닫는 '}'가 필요합니다");
-            }
-
-            if (check(TokenType::LET)) {
-                const VariableDecl variable = parseVariable();
-                Statement statement;
-                statement.kind = Statement::Kind::VariableDeclaration;
-                statement.name = variable.name;
-                statement.line = variable.line;
-                statement.span = variable.span;
-                statement.id = variable.id;
-                statement.annotation = variable.annotation;
-                statement.expression = variable.initializer;
-                function.body.push_back(std::move(statement));
-            } else if (check(TokenType::CALL)) {
-                function.body.push_back(parseCall());
-            } else if (check(TokenType::IDENTIFIER)) {
-                const auto name = advance();
-                expect(TokenType::ASSIGN, "변수 이름 뒤에는 '='가 필요합니다");
-                Statement statement;
-                statement.kind = Statement::Kind::Assignment;
-                statement.name = name.value;
-                statement.line = name.line;
-                statement.span = name.span;
-                statement.id = nextId_++;
-                statement.expression = parseExpression();
-                function.body.push_back(std::move(statement));
-            } else {
-                throw error("함수 본문에는 'let', 대입 또는 'call' 문장이 필요합니다");
-            }
-
-            consumeBlockMemberEnd("함수 본문의 문장 뒤에는 줄바꿈이 필요합니다");
+            if (isAtEnd()) throw error("본문을 닫는 '}'가 필요합니다");
+            body.push_back(parseStatement());
+            consumeBlockMemberEnd("문장 뒤에는 줄바꿈이 필요합니다");
             skipNewlines();
         }
-
-        advance(); // RIGHT_BRACE
+        advance();
+        return body;
     }
 
-    Statement parseCall() {
-        Token kw = advance(); // CALL
-        Token callee = expect(TokenType::IDENTIFIER,
-                              "call 다음에는 함수 이름이 와야 합니다");
-        expect(TokenType::LEFT_PAREN, "호출할 함수 이름 뒤에는 '('가 필요합니다");
-
-        std::vector<std::string> arguments;
-        if (!check(TokenType::RIGHT_PAREN)) {
-            arguments = parseIdentifierList("호출 인자 이름이 필요합니다");
+    Statement parseStatement() {
+        ExpressionGuard guard(statementDepth_);
+        if (statementDepth_ > 128) throw error("문장 최대 중첩 깊이를 초과했습니다");
+        if (check(TokenType::LET)) {
+            const auto variable = parseVariable();
+            Statement statement;
+            statement.kind = Statement::Kind::VariableDeclaration;
+            statement.name = variable.name;
+            statement.line = variable.line;
+            statement.span = variable.span;
+            statement.id = variable.id;
+            statement.annotation = variable.annotation;
+            statement.expression = variable.initializer;
+            return statement;
         }
-        expect(TokenType::RIGHT_PAREN, "호출 인자 목록을 닫는 ')'가 필요합니다");
-
+        const auto token = advance();
         Statement statement;
-        statement.kind = Statement::Kind::FunctionCall;
-        statement.name = callee.value;
-        statement.arguments = std::move(arguments);
-        statement.line = kw.line;
-        statement.span = kw.span;
+        statement.line = token.line;
+        statement.span = token.span;
         statement.id = nextId_++;
+        switch (token.type) {
+            case TokenType::CALL: {
+                statement.kind = Statement::Kind::FunctionCall;
+                statement.name = expect(TokenType::IDENTIFIER, "call 다음에는 함수 이름이 필요합니다").value;
+                expect(TokenType::LEFT_PAREN, "호출 이름 뒤에는 '('가 필요합니다");
+                statement.callArguments = parseArguments();
+                for (const auto& argument : statement.callArguments) {
+                    statement.arguments.push_back(argument->kind == Expression::Kind::Name ? argument->text : "");
+                }
+                break;
+            }
+            case TokenType::IDENTIFIER:
+                statement.kind = Statement::Kind::Assignment;
+                statement.name = token.value;
+                expect(TokenType::ASSIGN, "변수 이름 뒤에는 '='가 필요합니다");
+                statement.expression = parseExpression();
+                break;
+            case TokenType::RETURN:
+                statement.kind = Statement::Kind::Return;
+                if (!check(TokenType::NEWLINE) && !check(TokenType::END)) statement.expression = parseExpression();
+                break;
+            case TokenType::BREAK: statement.kind = Statement::Kind::Break; break;
+            case TokenType::CONTINUE: statement.kind = Statement::Kind::Continue; break;
+            case TokenType::LEFT_BRACE:
+                statement.kind = Statement::Kind::Block;
+                statement.body = parseBlock();
+                break;
+            case TokenType::IF:
+            case TokenType::WHILE: {
+                statement.kind = token.type == TokenType::IF ? Statement::Kind::If : Statement::Kind::While;
+                statement.expression = parseExpression();
+                expect(TokenType::LEFT_BRACE, "조건 뒤에는 '{'가 필요합니다");
+                statement.body = parseBlock();
+                if (token.type == TokenType::IF) {
+                    std::size_t next = pos_;
+                    while (tokens_[next].type == TokenType::NEWLINE) ++next;
+                    if (tokens_[next].type == TokenType::ELSE) {
+                        pos_ = next + 1;
+                        if (check(TokenType::IF)) statement.alternative.push_back(parseStatement());
+                        else {
+                            expect(TokenType::LEFT_BRACE, "else 뒤에는 '{' 또는 if가 필요합니다");
+                            statement.alternative = parseBlock();
+                        }
+                    }
+                }
+                break;
+            }
+            default: throw std::runtime_error(sourceLocation(token.span) + " 지원하지 않는 문장입니다");
+        }
+        statement.span.endLine = tokens_[pos_ - 1].span.endLine;
+        statement.span.endColumn = tokens_[pos_ - 1].span.endColumn;
         return statement;
     }
 
-    std::vector<std::string> parseIdentifierList(const std::string& itemError) {
-        std::vector<std::string> names;
-        names.push_back(expect(TokenType::IDENTIFIER, itemError).value);
-        while (check(TokenType::COMMA)) {
-            advance();
-            names.push_back(expect(TokenType::IDENTIFIER,
-                                   "',' 다음에는 식별자가 와야 합니다").value);
+    std::vector<Expr> parseArguments() {
+        std::vector<Expr> arguments;
+        if (!check(TokenType::RIGHT_PAREN)) {
+            do {
+                arguments.push_back(parseExpression());
+                if (!check(TokenType::COMMA)) break;
+                advance();
+            } while (true);
         }
-        return names;
+        expect(TokenType::RIGHT_PAREN, "인자 목록을 닫는 ')'가 필요합니다");
+        return arguments;
     }
 
     LayerDecl parseLayer() {
@@ -332,7 +355,18 @@ private:
         auto expr = node(Expression::Kind::Literal, token);
         if (token.type == TokenType::STRING) expr->literal = token.value;
         else if (token.type == TokenType::TRUE_VALUE || token.type == TokenType::FALSE_VALUE) expr->literal = token.type == TokenType::TRUE_VALUE;
-        else if (token.type == TokenType::IDENTIFIER) expr->kind = Expression::Kind::Name;
+        else if (token.type == TokenType::IDENTIFIER) {
+            expr->kind = Expression::Kind::Name;
+            if (check(TokenType::LEFT_PAREN)) {
+                advance();
+                expr->kind = Expression::Kind::Call;
+                expr->arguments = parseArguments();
+                for (const auto& argument : expr->arguments) expr->treeDepth = std::max(expr->treeDepth, 1 + argument->treeDepth);
+                if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+                expr->span.endLine = tokens_[pos_ - 1].span.endLine;
+                expr->span.endColumn = tokens_[pos_ - 1].span.endColumn;
+            }
+        }
         else if (token.type == TokenType::LEFT_PAREN) {
             if (!check(TokenType::RIGHT_PAREN)) expr = parseExpression();
             const auto close = expect(TokenType::RIGHT_PAREN, "표현식을 닫는 ')'가 필요합니다");

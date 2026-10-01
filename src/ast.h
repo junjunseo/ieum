@@ -9,7 +9,7 @@
 #include "value.h"
 
 struct Expression {
-    enum class Kind { Literal, Name, Unary, Binary };
+    enum class Kind { Literal, Name, Unary, Binary, Call };
     Kind kind = Kind::Literal;
     NodeId id = 0;
     std::size_t treeDepth = 1;
@@ -18,6 +18,7 @@ struct Expression {
     std::string text; // name or operator
     std::shared_ptr<Expression> left;
     std::shared_ptr<Expression> right;
+    std::vector<std::shared_ptr<Expression>> arguments;
 };
 using Expr = std::shared_ptr<Expression>;
 
@@ -36,7 +37,8 @@ struct Statement {
     enum class Kind {
         VariableDeclaration,
         FunctionCall,
-        Assignment
+        Assignment,
+        Return, Block, If, While, Break, Continue
     };
 
     Kind kind;
@@ -47,6 +49,9 @@ struct Statement {
     NodeId id = 0;
     std::optional<ValueType> annotation;
     Expr expression;
+    std::vector<Expr> callArguments;
+    std::vector<Statement> body;
+    std::vector<Statement> alternative;
 };
 
 struct FunctionDecl {
@@ -56,6 +61,8 @@ struct FunctionDecl {
     int line;
     SourceSpan span = {};
     std::vector<ValueType> parameterTypes; // omitted types remain unit
+    std::vector<bool> explicitParameterTypes;
+    ValueType returnType = ValueType::Unit;
 };
 
 // module <name> [depends <dep1>, <dep2>, ...] [moduleBody]

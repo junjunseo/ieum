@@ -23,8 +23,8 @@ enum class SemanticViolationKind {
     AmbiguousFunction,
     MissingCallDependency,
     ArityMismatch,
-    RecursiveCall,
-    TypeMismatch
+    TypeMismatch,
+    MissingReturn, InvalidControlFlow, IncompleteSignature
 };
 
 struct SemanticViolation {
@@ -87,7 +87,6 @@ public:
         SemanticResult result;
         checkDeclarations(result);
         resolveCalls(result);
-        checkRecursiveCalls(result);
         return result;
     }
 
@@ -97,13 +96,11 @@ private:
     std::vector<std::unordered_map<std::string, std::vector<std::size_t>>>
         functionsByModule_;
     std::vector<std::size_t> functionOffsets_;
-    std::vector<FunctionRef> functionByNode_;
 
     void buildIndexes() {
         moduleByName_.clear();
         functionsByModule_.clear();
         functionOffsets_.clear();
-        functionByNode_.clear();
 
         functionsByModule_.resize(program_.modules.size());
         functionOffsets_.resize(program_.modules.size());
@@ -121,7 +118,6 @@ private:
                  ++functionIndex) {
                 functionsByModule_[moduleIndex][module.functions[functionIndex].name]
                     .push_back(functionIndex);
-                functionByNode_.push_back({moduleIndex, functionIndex});
                 node++;
             }
         }
@@ -173,105 +169,131 @@ private:
                     }
                 }
 
-                for (const auto& statement : function.body) {
-                    if (statement.kind != Statement::Kind::VariableDeclaration) {
-                        continue;
-                    }
-
-                    const auto [it, inserted] =
-                        functionScope.emplace(statement.name, statement.line);
-                    if (!inserted) {
-                        result.violations.push_back({
-                            SemanticViolationKind::DuplicateLocalVariable,
-                            "함수 '" + module.name + "." + function.name +
-                                "'의 지역 이름 '" + statement.name +
-                                "'가 중복 선언되었습니다 (최초 선언: " +
-                                std::to_string(it->second) + "행)",
-                            statement.line
-                        });
+                if (function.returnType != ValueType::Unit) {
+                    for (std::size_t p = 0; p < function.parameters.size(); ++p) {
+                        if (p >= function.explicitParameterTypes.size() || !function.explicitParameterTypes[p]) {
+                            result.violations.push_back({SemanticViolationKind::IncompleteSignature,
+                                "non-unit 함수의 매개변수 타입을 명시해야 합니다: " + function.parameters[p],
+                                function.line, function.span});
+                        }
                     }
                 }
+
             }
         }
     }
 
     void resolveCalls(SemanticResult& result) const {
-        for (std::size_t moduleIndex = 0;
-             moduleIndex < program_.modules.size();
-             ++moduleIndex) {
-            const auto& module = program_.modules[moduleIndex];
-            TypeScope moduleVariables;
-            for (const auto& variable : module.variables) {
-                const auto type = expressionType(variable.initializer, {}, moduleVariables, result);
+        std::vector<TypeScope> moduleTypes(program_.modules.size());
+        for (std::size_t m = 0; m < program_.modules.size(); ++m) {
+            for (const auto& variable : program_.modules[m].variables) {
+                const auto type = expressionType(variable.initializer, {}, moduleTypes[m], result, {m, noStatement});
                 checkType(variable.annotation, type, variable.span, result);
-                moduleVariables.emplace(variable.name, variable.annotation.value_or(type.value_or(ValueType::Unit)));
+                moduleTypes[m].emplace(variable.name, variable.annotation.value_or(type.value_or(ValueType::Unit)));
             }
-
-            for (std::size_t functionIndex = 0;
-                 functionIndex < module.functions.size();
-                 ++functionIndex) {
-                const auto& function = module.functions[functionIndex];
-                TypeScope functionScope;
-                for (std::size_t p = 0; p < function.parameters.size(); ++p) {
-                    functionScope.emplace(function.parameters[p], parameterType(function, p));
-                }
-
-                for (std::size_t statementIndex = 0;
-                     statementIndex < function.body.size();
-                     ++statementIndex) {
-                    const auto& statement = function.body[statementIndex];
-                    if (statement.kind == Statement::Kind::VariableDeclaration) {
-                        const auto type = expressionType(statement.expression, functionScope, moduleVariables, result);
-                        checkType(statement.annotation, type, statement.span, result);
-                        functionScope.emplace(statement.name, statement.annotation.value_or(type.value_or(ValueType::Unit)));
-                        continue;
-                    }
-                    if (statement.kind == Statement::Kind::Assignment) {
-                        const auto target = lookupType(statement.name, functionScope, moduleVariables, statement.span, result);
-                        const auto type = expressionType(statement.expression, functionScope, moduleVariables, result);
-                        checkType(target, type, statement.span, result);
-                        continue;
-                    }
-
-                    std::vector<std::optional<ValueType>> argumentTypes;
-                    for (const auto& argument : statement.arguments) {
-                        argumentTypes.push_back(lookupType(argument, functionScope, moduleVariables, statement.span, result));
-                    }
-
-                    const auto target = resolveFunction(
-                        moduleIndex, statement.name, statement.line, result);
-                    if (!target.has_value()) continue;
-
-                    const auto& targetFunction =
-                        program_.modules[target->module].functions[target->function];
-                    if (targetFunction.parameters.size() != statement.arguments.size()) {
-                        result.violations.push_back({
-                            SemanticViolationKind::ArityMismatch,
-                            "함수 '" + qualifiedName(*target) + "'는 인자 " +
-                                std::to_string(targetFunction.parameters.size()) +
-                                "개가 필요하지만 " +
-                                std::to_string(statement.arguments.size()) +
-                                "개를 받았습니다",
-                            statement.line
-                        });
-                    }
-                    for (std::size_t p = 0; p < std::min(argumentTypes.size(), targetFunction.parameters.size()); ++p) {
-                        checkType(parameterType(targetFunction, p), argumentTypes[p], statement.span, result);
-                    }
-
-                    result.resolvedCalls.push_back({
-                        {moduleIndex, functionIndex},
-                        statementIndex,
-                        *target,
-                        statement.line,
-                        statement.id
-                    });
+        }
+        for (std::size_t m = 0; m < program_.modules.size(); ++m) {
+            for (std::size_t f = 0; f < program_.modules[m].functions.size(); ++f) {
+                const auto& function = program_.modules[m].functions[f];
+                TypeScopes locals(1);
+                for (std::size_t p = 0; p < function.parameters.size(); ++p) locals.back().emplace(function.parameters[p], parameterType(function, p));
+                const auto flow = checkStatements(function.body, locals, moduleTypes[m], {m,f}, 0, result);
+                if (function.returnType != ValueType::Unit && (flow & Fallthrough)) {
+                    result.violations.push_back({SemanticViolationKind::MissingReturn,
+                        "missing_return: 함수 '" + qualifiedName({m,f}) + "'의 모든 경로에 반환값이 필요합니다",
+                        function.line, function.span});
                 }
             }
         }
     }
 
     using TypeScope = std::unordered_map<std::string, ValueType>;
+    using TypeScopes = std::vector<TypeScope>;
+    static constexpr std::size_t noStatement = static_cast<std::size_t>(-1);
+    enum Flow { Fallthrough = 1, Returns = 2, Breaks = 4, Continues = 8 };
+
+    unsigned checkStatements(const std::vector<Statement>& statements, TypeScopes& locals,
+            const TypeScope& module, FunctionRef caller, unsigned loops, SemanticResult& result) const {
+        unsigned flow = Fallthrough;
+        for (std::size_t i = 0; i < statements.size(); ++i) {
+            const auto& statement = statements[i];
+            unsigned next = Fallthrough;
+            switch (statement.kind) {
+                case Statement::Kind::VariableDeclaration: {
+                    const auto type = expressionType(statement.expression, locals, module, result, caller);
+                    checkType(statement.annotation, type, statement.span, result);
+                    if (!locals.back().emplace(statement.name, statement.annotation.value_or(type.value_or(ValueType::Unit))).second) {
+                        result.violations.push_back({SemanticViolationKind::DuplicateLocalVariable,
+                            "같은 블록의 지역 이름 '" + statement.name + "'가 중복 선언되었습니다", statement.line, statement.span});
+                    }
+                    break;
+                }
+                case Statement::Kind::Assignment: {
+                    const auto expected = lookupType(statement.name, locals, module, statement.span, result);
+                    const auto actual = expressionType(statement.expression, locals, module, result, caller);
+                    checkType(expected, actual, statement.span, result);
+                    break;
+                }
+                case Statement::Kind::FunctionCall:
+                    resolveTypedCall(caller, statement.name, statement.callArguments, statement.id, statement.span,
+                                     locals, module, result, i);
+                    break;
+                case Statement::Kind::Return:
+                    checkType(program_.modules[caller.module].functions[caller.function].returnType,
+                        expressionType(statement.expression, locals, module, result, caller), statement.span, result);
+                    next = Returns;
+                    break;
+                case Statement::Kind::Break:
+                case Statement::Kind::Continue:
+                    if (loops == 0) result.violations.push_back({SemanticViolationKind::InvalidControlFlow,
+                        "invalid_control_flow: break/continue는 반복문 안에서만 사용할 수 있습니다", statement.line, statement.span});
+                    next = statement.kind == Statement::Kind::Break ? Breaks : Continues;
+                    break;
+                case Statement::Kind::Block:
+                    locals.emplace_back();
+                    next = checkStatements(statement.body, locals, module, caller, loops, result);
+                    locals.pop_back();
+                    break;
+                case Statement::Kind::If:
+                case Statement::Kind::While: {
+                    checkType(ValueType::Bool, expressionType(statement.expression, locals, module, result, caller), statement.span, result);
+                    locals.emplace_back();
+                    const auto bodyFlow = checkStatements(statement.body, locals, module, caller,
+                        loops + (statement.kind == Statement::Kind::While ? 1 : 0), result);
+                    locals.pop_back();
+                    if (statement.kind == Statement::Kind::If) {
+                        locals.emplace_back();
+                        next = bodyFlow | checkStatements(statement.alternative, locals, module, caller, loops, result);
+                        locals.pop_back();
+                    } else next = Fallthrough | (bodyFlow & Returns); // loops may execute zero times
+                    break;
+                }
+            }
+            // Still check unreachable statements for name/type/dependency errors.
+            if (flow & Fallthrough) flow = (flow & ~Fallthrough) | next;
+        }
+        return flow;
+    }
+
+    std::optional<ValueType> resolveTypedCall(FunctionRef caller, const std::string& name,
+            const std::vector<Expr>& arguments, NodeId node, const SourceSpan& span,
+            const TypeScopes& locals, const TypeScope& module, SemanticResult& result,
+            std::size_t statement = noStatement) const {
+        std::vector<std::optional<ValueType>> types;
+        for (const auto& argument : arguments) types.push_back(expressionType(argument, locals, module, result, caller));
+        const auto before = result.violations.size();
+        const auto target = resolveFunction(caller.module, name, span.line, result);
+        for (std::size_t i = before; i < result.violations.size(); ++i) result.violations[i].span = span;
+        if (!target) return std::nullopt;
+        const auto& function = program_.modules[target->module].functions[target->function];
+        if (arguments.size() != function.parameters.size()) {
+            result.violations.push_back({SemanticViolationKind::ArityMismatch,
+                "함수 '" + qualifiedName(*target) + "'의 인자 개수가 일치하지 않습니다", span.line, span});
+        }
+        for (std::size_t p = 0; p < std::min(types.size(), function.parameters.size()); ++p) checkType(parameterType(function,p), types[p], span, result);
+        result.resolvedCalls.push_back({caller, statement, *target, span.line, node});
+        return function.returnType;
+    }
 
     static ValueType parameterType(const FunctionDecl& function, std::size_t p) {
         return p < function.parameterTypes.size() ? function.parameterTypes[p] : ValueType::Unit;
@@ -287,10 +309,12 @@ private:
     }
 
     static std::optional<ValueType> lookupType(const std::string& name,
-            const TypeScope& locals, const TypeScope& module,
+            const TypeScopes& locals, const TypeScope& module,
             const SourceSpan& span, SemanticResult& result) {
-        const auto local = locals.find(name);
-        if (local != locals.end()) return local->second;
+        for (auto scope = locals.rbegin(); scope != locals.rend(); ++scope) {
+            const auto local = scope->find(name);
+            if (local != scope->end()) return local->second;
+        }
         const auto global = module.find(name);
         if (global != module.end()) return global->second;
         result.violations.push_back({SemanticViolationKind::UndefinedVariable,
@@ -298,20 +322,21 @@ private:
         return std::nullopt;
     }
 
-    std::optional<ValueType> expressionType(const Expr& expr, const TypeScope& locals,
-                                          const TypeScope& module, SemanticResult& result) const {
+    std::optional<ValueType> expressionType(const Expr& expr, const TypeScopes& locals,
+                                          const TypeScope& module, SemanticResult& result, FunctionRef caller) const {
         if (!expr) return ValueType::Unit;
         if (expr->kind == Expression::Kind::Literal) return valueType(expr->literal);
         if (expr->kind == Expression::Kind::Name) return lookupType(expr->text, locals, module, expr->span, result);
+        if (expr->kind == Expression::Kind::Call) return resolveTypedCall(caller, expr->text, expr->arguments, expr->id, expr->span, locals, module, result);
         if (expr->kind == Expression::Kind::Unary) {
-            const auto type = expressionType(expr->right, locals, module, result);
+            const auto type = expressionType(expr->right, locals, module, result, caller);
             const auto expected = expr->text == "!" ? ValueType::Bool : ValueType::Int;
             checkType(expected, type, expr->span, result);
             return type && *type == expected ? type : std::nullopt;
         }
         // Type-check both sides even when evaluation can short-circuit.
-        const auto left = expressionType(expr->left, locals, module, result);
-        const auto right = expressionType(expr->right, locals, module, result);
+        const auto left = expressionType(expr->left, locals, module, result, caller);
+        const auto right = expressionType(expr->right, locals, module, result, caller);
         if (!left || !right) return std::nullopt;
         const auto& op = expr->text;
         if (*left == *right) {
@@ -415,59 +440,6 @@ private:
             candidates.push_back({moduleIndex, functionIndex});
         }
         return candidates;
-    }
-
-    void checkRecursiveCalls(SemanticResult& result) const {
-        using Edge = std::pair<std::size_t, int>;
-        std::vector<std::vector<Edge>> graph(functionByNode_.size());
-        for (const auto& call : result.resolvedCalls) {
-            graph[functionNode(call.caller)].push_back({
-                functionNode(call.target), call.line
-            });
-        }
-
-        std::vector<int> color(functionByNode_.size(), 0);
-        std::vector<std::size_t> stack;
-        std::unordered_set<std::string> reported;
-
-        std::function<void(std::size_t)> visit = [&](std::size_t node) {
-            color[node] = 1;
-            stack.push_back(node);
-
-            for (const auto& [target, line] : graph[node]) {
-                if (color[target] == 0) {
-                    visit(target);
-                    continue;
-                }
-                if (color[target] != 1) continue;
-
-                const auto cycleStart =
-                    std::find(stack.begin(), stack.end(), target);
-                if (cycleStart == stack.end()) continue;
-
-                std::ostringstream path;
-                for (auto it = cycleStart; it != stack.end(); ++it) {
-                    if (it != cycleStart) path << " -> ";
-                    path << qualifiedName(functionByNode_[*it]);
-                }
-                path << " -> " << qualifiedName(functionByNode_[target]);
-
-                if (reported.insert(path.str()).second) {
-                    result.violations.push_back({
-                        SemanticViolationKind::RecursiveCall,
-                        "종료 조건이 없는 재귀 호출 경로입니다: " + path.str(),
-                        line
-                    });
-                }
-            }
-
-            stack.pop_back();
-            color[node] = 2;
-        };
-
-        for (std::size_t node = 0; node < graph.size(); ++node) {
-            if (color[node] == 0) visit(node);
-        }
     }
 
     std::size_t functionNode(const FunctionRef& ref) const {

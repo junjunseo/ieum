@@ -16,6 +16,7 @@ TEST_GRAPH = $(BUILD_DIR)/testGraph$(EXE)
 TEST_SEMANTIC = $(BUILD_DIR)/testSemantic$(EXE)
 TEST_INTERPRETER = $(BUILD_DIR)/testInterpreter$(EXE)
 TEST_VALUES = $(BUILD_DIR)/testValues$(EXE)
+TEST_CONTROL_FLOW = $(BUILD_DIR)/testControlFlow$(EXE)
 BENCHMARK_CHECKER = $(BUILD_DIR)/benchmarkChecker$(EXE)
 BENCHMARK_MODULES ?= 200
 BENCHMARK_ITERATIONS ?= 7
@@ -63,13 +64,16 @@ $(TEST_INTERPRETER): test/testInterpreter.cpp $(HEADERS) | $(BUILD_DIR)
 $(TEST_VALUES): test/testValues.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
+$(TEST_CONTROL_FLOW): test/testControlFlow.cpp $(HEADERS) | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
 $(BENCHMARK_CHECKER): benchmark/benchmarkChecker.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -O2 -DNDEBUG $< -o $@
 
 run: $(TARGET)
 	./$(TARGET) examples/valid.ieum
 
-test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMANTIC) $(TEST_INTERPRETER) $(TEST_VALUES) $(TARGET) $(BENCHMARK_CHECKER)
+test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMANTIC) $(TEST_INTERPRETER) $(TEST_VALUES) $(TEST_CONTROL_FLOW) $(TARGET) $(BENCHMARK_CHECKER)
 	./$(TEST_PARSER)
 	./$(TEST_PIPELINE)
 	./$(TEST_CHECKER)
@@ -77,6 +81,7 @@ test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMAN
 	./$(TEST_SEMANTIC)
 	./$(TEST_INTERPRETER)
 	./$(TEST_VALUES)
+	./$(TEST_CONTROL_FLOW)
 	./$(BENCHMARK_CHECKER) 2 1
 	test "$$(./$(TARGET) --version)" = "ieum $(VERSION)"
 	@for example in $(VALID_EXAMPLES); do \
@@ -84,6 +89,7 @@ test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMAN
 	done
 	./$(TARGET) examples/execution.ieum --run service.main
 	./$(TARGET) examples/values.ieum --run app.main
+	./$(TARGET) examples/control_flow.ieum --run app.main
 	@./$(TARGET) examples/execution.ieum --run service.missing >/dev/null 2>&1; \
 		status=$$?; \
 		if [ $$status -ne 1 ]; then \

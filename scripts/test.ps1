@@ -30,7 +30,8 @@ try {
         @{ Source = "test/testGraph.cpp";    Output = "build/testGraph.exe" },
         @{ Source = "test/testSemantic.cpp"; Output = "build/testSemantic.exe" },
         @{ Source = "test/testInterpreter.cpp"; Output = "build/testInterpreter.exe" },
-        @{ Source = "test/testValues.cpp"; Output = "build/testValues.exe" }
+        @{ Source = "test/testValues.cpp"; Output = "build/testValues.exe" },
+        @{ Source = "test/testControlFlow.cpp"; Output = "build/testControlFlow.exe" }
     )
 
     foreach ($target in $targets) {
@@ -232,7 +233,7 @@ try {
 
     $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
     if ($pythonCommand) {
-        foreach ($script in @("test/test_workflows.py", "scripts/evaluate.py", "scripts/demo.py")) {
+        foreach ($script in @("test/test_workflows.py", "test/test_control_flow_cli.py", "scripts/evaluate.py", "scripts/demo.py")) {
             & $pythonCommand.Source -B $script --ieum "build/ieum.exe"
             if ($LASTEXITCODE -ne 0) {
                 throw "Workflow validation failed: $script"
