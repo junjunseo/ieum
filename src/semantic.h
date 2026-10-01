@@ -254,6 +254,21 @@ private:
                     next = checkStatements(statement.body, locals, module, caller, loops, result);
                     locals.pop_back();
                     break;
+                case Statement::Kind::For: {
+                    // The header lives for the whole loop; each body iteration has its own scope.
+                    locals.emplace_back();
+                    checkStatements(statement.initializer, locals, module, caller, loops, result);
+                    if (statement.expression) {
+                        checkType(ValueType::Bool, expressionType(statement.expression, locals, module, result, caller), statement.span, result);
+                    }
+                    checkStatements(statement.update, locals, module, caller, loops, result);
+                    locals.emplace_back();
+                    const auto bodyFlow = checkStatements(statement.body, locals, module, caller, loops + 1, result);
+                    locals.pop_back();
+                    locals.pop_back();
+                    next = Fallthrough | (bodyFlow & Returns);
+                    break;
+                }
                 case Statement::Kind::If:
                 case Statement::Kind::While: {
                     checkType(ValueType::Bool, expressionType(statement.expression, locals, module, result, caller), statement.span, result);

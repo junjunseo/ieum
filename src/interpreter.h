@@ -131,7 +131,7 @@ private:
     class Machine {
         enum class Kind { Statement, Expression, Unary, Binary, Logical,
             Invoke, Entry, ExitFunction, Return, Drop, StoreLocal, StoreAssign,
-            StoreGlobal, EnterScope, ExitScope, Branch, LoopTest, LoopChoice };
+            StoreGlobal, EnterScope, ExitScope, Branch, LoopTest, LoopChoice, ForUpdate };
         struct Task {
             Kind kind;
             std::size_t module;
@@ -228,7 +228,7 @@ private:
         }
         void loopControl(bool isBreak, const SourceSpan& span) {
             while (!work.empty() && work.back().kind != Kind::ExitFunction) {
-                if (work.back().kind == Kind::LoopTest) {
+                if (work.back().kind == Kind::LoopTest || work.back().kind == Kind::ForUpdate) {
                     if (isBreak) work.pop_back();
                     return;
                 }
@@ -270,6 +270,12 @@ private:
                     next.kind = Kind::Branch; work.push_back(next); expression(stmt.expression.get(), task.module); break;
                 case Statement::Kind::While:
                     next.kind = Kind::LoopTest; work.push_back(next); break;
+                case Statement::Kind::For:
+                    frames.back().scopes.emplace_back();
+                    work.emplace_back(Kind::ExitScope, task.module, stmt.span);
+                    next.kind = Kind::LoopTest; work.push_back(next);
+                    statements(stmt.initializer, task.module);
+                    break;
                 case Statement::Kind::Break: loopControl(true, stmt.span); break;
                 case Statement::Kind::Continue: loopControl(false, stmt.span); break;
             }
@@ -318,14 +324,24 @@ private:
                     block(std::get<bool>(pop()) ? task.statement->body : task.statement->alternative, task); break;
                 case Kind::LoopTest: {
                     auto next = task; next.kind = Kind::LoopChoice; work.push_back(next);
-                    expression(task.statement->expression.get(), task.module); break;
+                    if (task.statement->kind == Statement::Kind::For && !task.statement->expression) values.emplace_back(true);
+                    else expression(task.statement->expression.get(), task.module);
+                    break;
                 }
                 case Kind::LoopChoice:
                     if (std::get<bool>(pop())) {
-                        auto next = task; next.kind = Kind::LoopTest; work.push_back(next);
+                        auto next = task;
+                        // Continue keeps this marker, so a for update runs before the next condition.
+                        next.kind = task.statement->kind == Statement::Kind::For ? Kind::ForUpdate : Kind::LoopTest;
+                        work.push_back(next);
                         block(task.statement->body, task);
                     }
                     break;
+                case Kind::ForUpdate: {
+                    auto next = task; next.kind = Kind::LoopTest; work.push_back(next);
+                    statements(task.statement->update, task.module);
+                    break;
+                }
             }
         }
     public:

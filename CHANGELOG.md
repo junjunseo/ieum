@@ -4,6 +4,10 @@
 
 ### 추가
 
+- C 스타일 for 반복문, 헤더 Scope와 생략 가능한 초기화·조건·증감
+- for의 continue 증감 실행, break/return 탈출, 중첩 while/for·실행 한도·오류 검증과 예제
+- for 예약어 추가: 기존에 식별자로 사용했다면 이름 변경 필요
+
 - 명시적 함수 반환 타입, return과 호출식·리터럴/식 인자
 - 중첩 블록 Scope, if/else, while, break/continue와 반환 경로 검사
 - 직접·간접 함수 재귀, 호출별 프레임과 실행 단계·깊이 제한 CLI

@@ -41,6 +41,28 @@ class ControlFlowCliTests(unittest.TestCase):
             with self.subTest(flag=flag, invalid="without run"):
                 self.assertEqual(self.invoke(source, flag, "10").returncode, 2)
 
+    def test_for_example(self):
+        result = self.invoke(ROOT / "examples/for_loop.ieum", "--run", "app.main")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("return app.main: int = 55", result.stdout)
+        self.assertIn("value app.main.sum: int = 55", result.stdout)
+        self.assertIn("value app.main.oddSum: int = 25", result.stdout)
+        self.assertNotIn("value app.main.i:", result.stdout)
+
+    def test_infinite_for_stops_with_location(self):
+        result = self.temporary_source("module app {\nfn main() {\nfor (;;) {}\n}\n}\n",
+                                       "--run", "app.main", "--max-steps", "40")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("step_limit", result.stdout)
+        self.assertIn("control.ieum:3:", result.stdout)
+
+    def test_for_update_failure_has_header_location(self):
+        result = self.temporary_source("module app {\nfn main() {\nfor (let i = 0;; i = 1 / 0) {}\n}\n}\n",
+                                       "--run", "app.main")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("division_by_zero", result.stdout)
+        self.assertIn("control.ieum:3:", result.stdout)
+
     def test_limit_order_and_graph_are_compatible(self):
         with tempfile.TemporaryDirectory() as directory:
             graph = Path(directory) / "out.dot"

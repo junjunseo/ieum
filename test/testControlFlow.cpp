@@ -169,6 +169,7 @@ int main() {
                 expr(s.expression);
                 for (const auto& a : s.callArguments) expr(a);
                 statements(s.body); statements(s.alternative);
+                statements(s.initializer); statements(s.update);
             }
         };
         for (const auto& f : program.modules[0].functions) statements(f.body);
@@ -195,6 +196,75 @@ int main() {
     std::string calls = "1";
     for (int i = 0; i < 140; ++i) calls = "id(" + calls + ")";
     parseError("call expression nesting is bounded", app("return " + calls, identity));
+
+    expect("for sum 1 through 10 is 55", app("let sum = 0\nfor (let i = 1; i <= 10; i = i + 1) {\nsum = sum + i\n}\nreturn sum"), std::int64_t{55});
+    expect("for continue runs update once and unwinds nested scopes", app("let sum = 0\nfor (let i = 1; i <= 10; i = i + 1) {\n{\nlet local = i\nif local % 2 == 0 {\ncontinue\n}\n}\nsum = sum + i\n}\nreturn sum"), std::int64_t{25});
+    expect("for break skips update", app("let n = 0\nfor (;; n = 1 / 0) {\n{\nbreak\n}\n}\nreturn n"), std::int64_t{0});
+    expect("for return skips update and later statements", app("let n = 0\nfor (;; n = 1 / 0) {\nif true {\nreturn 7\n}\n}\nreturn 0"), std::int64_t{7});
+    expect("omitted for condition means true", app("let sum = 0\nfor (let i = 1;; i = i + 1) {\nif i > 10 {\nbreak\n}\nsum = sum + i\n}\nreturn sum"), std::int64_t{55});
+    expect("for allows omitted update", app("let i = 0\nfor (; i < 3;) {\ni = i + 1\ncontinue\n}\nreturn i"), std::int64_t{3});
+    expect("for assignment initializer runs once", app("let i = 9\nfor (i = 0; i < 3; i = i + 1) {}\nreturn i"), std::int64_t{3});
+    expect("false for condition skips body and update", app("let n = 0\nfor (n = 7; false; n = 1 / 0) {\nn = 1 / 0\n}\nreturn n"), std::int64_t{7});
+    expect("for initializer shadows outer variable after evaluating it", app("let i = 8\nlet n = 0\nfor (let i = i + 1; i < 11; i = i + 1) {\nn = n + i\n}\nreturn i * 100 + n"), std::int64_t{819});
+    expect("for body shadow does not replace header binding", app("let n = 0\nfor (let i = 0; i < 3; i = i + 1) {\nlet i = 100\nn = n + i\n}\nreturn n"), std::int64_t{300});
+    expect("for scope removed after break", app("let i = 8\nfor (let i = 0;; i = i + 1) {\nbreak\n}\nreturn i"), std::int64_t{8});
+    expect("for scope removed after zero iterations", app("let i = 8\nfor (let i = 0; false;) {}\nreturn i"), std::int64_t{8});
+    expect("sibling for headers reuse names", app("let n = 0\nfor (let i = 0; i < 2; i = i + 1) {\nn = n + 1\n}\nfor (let i = 0; i < 3; i = i + 1) {\nn = n + 1\n}\nreturn n"), std::int64_t{5});
+    expect("nested for break and outer continue select nearest loop", app("let n = 0\nfor (let i = 0; i < 3; i = i + 1) {\nfor (let j = 0;; j = j + 1) {\nn = n + 1\nif j == 1 {\nbreak\n}\n}\ncontinue\nn = 1 / 0\n}\nreturn n"), std::int64_t{6});
+    expect("while inside for continue preserves both loop markers", app("let n = 0\nfor (let i = 0; i < 3; i = i + 1) {\nlet j = 0\nwhile j < 2 {\nj = j + 1\nn = n + 1\ncontinue\n}\n}\nreturn n"), std::int64_t{6});
+    expect("for break inside while preserves outer loop", app("let i = 0\nlet n = 0\nwhile i < 3 {\ni = i + 1\nfor (;;) {\nn = n + 1\nbreak\n}\n}\nreturn n"), std::int64_t{3});
+    expect("nested for return escapes all loops", app("for (let i = 0; i < 3; i = i + 1) {\nfor (;;) {\nreturn 9\n}\n}\nreturn 0"), std::int64_t{9});
+    expect("for supports boolean initializer and update", app("let n = 0\nfor (let again: bool = true; again; again = false) {\nn = n + 1\n}\nreturn n"), std::int64_t{1});
+    expect("unit for initializer remains compatible", app("for (let u; u == ();) {\nbreak\n}\nreturn 1"), std::int64_t{1});
+    expect("for header nested call expressions", app("let n = 0\nfor (let i: int = id(1); i <= id(3); i = id(i + 1)) {\nn = n + i\n}\nreturn n", identity), std::int64_t{6});
+    const std::string forCalls = "let trace = 0\nlet n = 0\nfn start() {\ntrace = trace * 10 + 1\n}\nfn condition() -> bool {\ntrace = trace * 10 + 2\nreturn n < 2\n}\nfn step() {\nn = n + 1\ntrace = trace * 10 + 4\n}\n";
+    expect("for header calls run init condition body update in order", app("for (call start(); condition(); call step()) {\ntrace = trace * 10 + 3\n}\nreturn trace", forCalls), std::int64_t{12342342});
+    expect("for call update runs after continue", app("for (call start(); condition(); call step()) {\ncontinue\n}\nreturn trace", forCalls), std::int64_t{124242});
+    expect("for call update not run after break", app("for (call start(); condition(); call step()) {\nbreak\n}\nreturn trace", forCalls), std::int64_t{12});
+    expect("call return in for update is discarded", app("for (; n < 3; call bump()) {}\nreturn n", bump), std::int64_t{3});
+    runtimeError("empty for loop is step limited", app("for (;;) {}", "", "unit"), "step_limit", {75, 8});
+    runtimeError("for continue loop is step limited", app("for (;;) {\ncontinue\n}", "", "unit"), "step_limit", {75, 8});
+    runtimeError("for update arithmetic checked", app("for (let i = 9223372036854775807;; i = i + 1) {}\nreturn 0"), "integer_overflow");
+    runtimeError("for initializer failure checked", app("for (let i = 1 / 0; false;) {}\nreturn 0"), "division_by_zero");
+    runtimeError("for condition failure checked", app("for (; 1 / 0 == 0;) {}\nreturn 0"), "division_by_zero");
+    runtimeError("for header calls obey depth limits", app("for (let i = id(1); false;) {}\nreturn 0", identity), "call_depth_limit", {1000, 1});
+    rejects("for condition must be bool", app("for (; 1;) {}\nreturn 0"), K::TypeMismatch);
+    rejects("for initializer annotation checked", app("for (let i: int = false;;) {\nbreak\n}\nreturn 0"), K::TypeMismatch);
+    rejects("for update assignment type checked even if never executed", app("for (let i = 0; false; i = true) {}\nreturn 0"), K::TypeMismatch);
+    rejects("for initializer cannot see body variable", app("for (let i = x; false;) {\nlet x = 1\n}\nreturn 0"), K::UndefinedVariable);
+    rejects("for condition cannot see body variable", app("for (; x == 1;) {\nlet x = 1\n}\nreturn 0"), K::UndefinedVariable);
+    rejects("for update cannot see body variable", app("for (; false; x = 2) {\nlet x = 1\n}\nreturn 0"), K::UndefinedVariable);
+    rejects("for header variable cannot escape", app("for (let i = 0; false;) {}\nreturn i"), K::UndefinedVariable);
+    rejects("for body variable cannot escape", app("for (; false;) {\nlet x = 1\n}\nreturn x"), K::UndefinedVariable);
+    rejects("for still needs explicit return after loop", app("for (;;) {\nreturn 1\n}"), K::MissingReturn);
+    rejects("for initializer call needs depends", data + app("for (let i = answer(); false;) {}\nreturn 0"), K::MissingCallDependency);
+    rejects("for condition call needs depends", data + app("for (; answer() > 0;) {\nbreak\n}\nreturn 0"), K::MissingCallDependency);
+    rejects("for update call needs depends", data + app("for (; false; call answer()) {}\nreturn 0"), K::MissingCallDependency);
+    parseError("for requires parentheses", app("for let i = 0; i < 3; i = i + 1 {}\nreturn 0"));
+    parseError("for requires both semicolons", app("for (let i = 0 i < 3; i = i + 1) {}\nreturn 0"));
+    parseError("for update cannot declare variable", app("for (;; let i = 0) {}\nreturn 0"));
+    parseError("for initializer cannot break", app("for (break;;) {}\nreturn 0"));
+    parseError("for update cannot continue", app("for (;; continue) {}\nreturn 0"));
+    parseError("for update cannot return", app("for (;; return 1) {}\nreturn 0"));
+    parseError("for empty header still requires separators", app("for () {}\nreturn 0"));
+    parseError("semicolon is not a general statement separator", app("let i = 1;\nreturn i"));
+    try {
+        const auto program = parse(app("for (call start(); condition(); call step()) {\ncontinue\n}\nreturn trace", forCalls));
+        const auto& loop = program.modules[0].functions.back().body[0];
+        const auto semantics = SemanticAnalyzer(program).analyze();
+        const auto* init = semantics.findCallByNode(loop.initializer[0].id);
+        const auto* condition = semantics.findCallByNode(loop.expression->id);
+        const auto* update = semantics.findCallByNode(loop.update[0].id);
+        check(semantics.ok() && init && condition && update &&
+            init->target.function == 0 && condition->target.function == 1 && update->target.function == 2,
+            "for header call nodes independently resolve their targets");
+        check(loop.initializer[0].id != loop.update[0].id && loop.expression->id != loop.id &&
+            loop.span.file == "control.ieum" && loop.span.endLine > loop.span.line,
+            "for header IDs and full body source span preserved");
+        const auto result = Interpreter(program, semantics).run("app", "main");
+        check(result.success && result.entryLocals.empty() && result.callsExecuted == 6,
+            "for header calls maintain trace counts without leaking locals");
+    } catch (const std::exception& e) { check(false, e.what()); }
 
     std::cout << "Control flow tests: " << passed << " passed, " << failed << " failed\n";
     return failed == 0 ? 0 : 1;

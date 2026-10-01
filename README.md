@@ -57,7 +57,7 @@ module app {
 .\build\ieum.exe .\examples\values.ieum --run app.main
 ```
 
-이 예제의 최종 `data.total`은 17입니다. 함수 반환 타입(`-> int` 등), `return`, 호출식과 리터럴 인자, 중첩 블록, `if`/`else`, `while`, `break`/`continue`, 유한 재귀도 지원합니다. non-unit 함수는 매개변수/반환 타입을 명시해야 합니다.
+이 예제의 최종 `data.total`은 17입니다. 함수 반환 타입(`-> int` 등), `return`, 호출식과 리터럴 인자, 중첩 블록, `if`/`else`, `while`, `for`, `break`/`continue`, 유한 재귀도 지원합니다. non-unit 함수는 매개변수/반환 타입을 명시해야 합니다.
 
 [제어 흐름 예제](examples/control_flow.ieum)는 1~10 합계 55, 재귀 팩토리얼 120, 홀수 합계 25를 계산하고 175를 반환합니다.
 
@@ -66,6 +66,17 @@ module app {
 ```
 
 기본 실행 한도는 내부 단계 100,000회와 호출 깊이 1,024이며 무한 실행은 한도 오류로 종료합니다. 함수 재귀는 허용하지만 모듈 의존 순환은 계속 금지합니다. 리스트·레코드·표준 입출력·여러 파일 로딩은 아직 지원하지 않습니다.
+
+`for`는 초기화·조건·증감을 괄호 안에 작성합니다. `continue`는 증감 후 조건 검사로 돌아가며, 초기화에서 선언한 변수는 반복문 밖에 남지 않습니다.
+
+```text
+let sum = 0
+for (let i = 1; i <= 10; i = i + 1) {
+  sum = sum + i
+}
+```
+
+[for 실행 예제](examples/for_loop.ieum)는 `--run app.main`으로 실행하면 55를 반환합니다. 세 부분을 각각 생략할 수 있고 `for (;;) { ... }`도 실행 한도의 적용을 받습니다.
 
 정상적인 구조의 예:
 

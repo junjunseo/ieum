@@ -22,7 +22,7 @@ enum class TokenType {
     COLON, ASSIGN, PLUS, MINUS, STAR, SLASH, PERCENT,
     BANG, EQUAL, NOT_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL,
     AND, OR,
-    RETURN, IF, ELSE, WHILE, BREAK, CONTINUE, ARROW,
+    RETURN, IF, ELSE, WHILE, FOR, BREAK, CONTINUE, ARROW, SEMICOLON,
 
     // 기타
     IDENTIFIER, // 모듈/계층/변수/함수 이름
@@ -46,6 +46,8 @@ inline std::string tokenTypeName(TokenType t) {
         case TokenType::FN:         return "키워드(fn)";
         case TokenType::LET:        return "키워드(let)";
         case TokenType::CALL:       return "키워드(call)";
+        case TokenType::FOR:        return "키워드(for)";
+        case TokenType::SEMICOLON:  return "세미콜론(;)";
         case TokenType::INTEGER:    return "정수";
         case TokenType::STRING:     return "문자열";
         case TokenType::IDENTIFIER: return "식별자";
