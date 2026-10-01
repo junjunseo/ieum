@@ -313,42 +313,19 @@ int main() {
     }
 
     {
-        const auto violations = analyze(
-            "module app {\n"
-            "  fn run() {\n"
-            "    call run()\n"
-            "  }\n"
-            "}\n").semantics.violations;
-        assertTrue(countKind(
-                       violations,
-                       SemanticViolationKind::RecursiveCall) == 1,
-                   "detects direct recursive call");
-        assertTrue(hasViolationLine(
-                       violations,
-                       SemanticViolationKind::RecursiveCall,
-                       3),
-                   "reports recursive call line");
+        const auto semantics = analyze(
+            "module app {\n fn run() {\n call run()\n }\n}\n").semantics;
+        assertTrue(semantics.ok(), "allows direct recursion under runtime limits");
+        assertTrue(semantics.resolvedCalls.size() == 1 && semantics.resolvedCalls[0].line == 3,
+                   "resolves recursive call and source line");
     }
 
     {
-        const auto violations = analyze(
-            "module app {\n"
-            "  fn first() {\n"
-            "    call second()\n"
-            "  }\n"
-            "  fn second() {\n"
-            "    call first()\n"
-            "  }\n"
-            "}\n").semantics.violations;
-        assertTrue(countKind(
-                       violations,
-                       SemanticViolationKind::RecursiveCall) == 1,
-                   "detects multi-function recursion");
-        assertTrue(hasMessage(
-                       violations,
-                       SemanticViolationKind::RecursiveCall,
-                       "app.first -> app.second -> app.first"),
-                   "reports recursive call path");
+        const auto semantics = analyze(
+            "module app {\n fn first() {\n call second()\n }\n"
+            " fn second() {\n call first()\n }\n}\n").semantics;
+        assertTrue(semantics.ok(), "allows mutual function recursion");
+        assertTrue(semantics.resolvedCalls.size() == 2, "resolves both recursive edges");
     }
 
     {
