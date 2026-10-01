@@ -90,6 +90,7 @@ test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMAN
 	./$(TARGET) examples/execution.ieum --run service.main
 	./$(TARGET) examples/values.ieum --run app.main
 	./$(TARGET) examples/control_flow.ieum --run app.main
+	./$(TARGET) examples/for_loop.ieum --run app.main
 	@./$(TARGET) examples/execution.ieum --run service.missing >/dev/null 2>&1; \
 		status=$$?; \
 		if [ $$status -ne 1 ]; then \

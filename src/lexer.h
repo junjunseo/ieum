@@ -44,6 +44,7 @@ public:
                 else if (word == "if") type = TokenType::IF;
                 else if (word == "else") type = TokenType::ELSE;
                 else if (word == "while") type = TokenType::WHILE;
+                else if (word == "for") type = TokenType::FOR;
                 else if (word == "break") type = TokenType::BREAK;
                 else if (word == "continue") type = TokenType::CONTINUE;
                 tokens.push_back(make(type, word, start));
@@ -64,6 +65,7 @@ public:
                     case ')': type = TokenType::RIGHT_PAREN; break;
                     case ',': type = TokenType::COMMA; break;
                     case ':': type = TokenType::COLON; break;
+                    case ';': type = TokenType::SEMICOLON; break;
                     case '+': type = TokenType::PLUS; break;
                     case '-': type = match('>') ? TokenType::ARROW : TokenType::MINUS; break;
                     case '*': type = TokenType::STAR; break;

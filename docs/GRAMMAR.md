@@ -22,7 +22,7 @@ parameter      := IDENTIFIER [ COLON type ]
 block          := LEFT_BRACE RIGHT_BRACE
                 | LEFT_BRACE NEWLINE { NEWLINE | statement NEWLINE } RIGHT_BRACE
 statement      := variableDecl | assignment | callStatement | returnStatement
-                | block | ifStatement | whileStatement | "break" | "continue"
+                | block | ifStatement | whileStatement | forStatement | "break" | "continue"
 assignment     := IDENTIFIER ASSIGN expression
 callStatement  := CALL callExpression
 callExpression := IDENTIFIER LEFT_PAREN [ argumentList ] RIGHT_PAREN
@@ -30,6 +30,9 @@ argumentList   := expression { COMMA expression }
 returnStatement := "return" [ expression ]
 ifStatement    := "if" expression block [ { NEWLINE } "else" (block | ifStatement) ]
 whileStatement := "while" expression block
+forStatement   := "for" LEFT_PAREN [ forInit ] ";" [ expression ] ";" [ forUpdate ] RIGHT_PAREN block
+forInit        := variableDecl | assignment | callStatement
+forUpdate      := assignment | callStatement
 
 expression     := logicalOr
 logicalOr      := logicalAnd { "||" logicalAnd }
@@ -74,13 +77,13 @@ layer service above data
 - 비어 있는 모듈·함수·조건·반복·독립 블록은 `{}`로 작성할 수 있습니다. `else`는 앞의 `}`와 같은 줄 또는 다음 줄에 작성할 수 있고, `else if`도 지원합니다.
 - 함수 안에 함수를 선언할 수 없습니다.
 - 모듈 바로 아래에는 `let`과 `fn`만 올 수 있습니다.
-- 함수 본문에는 `let`, 변수 재대입, `call`, `return`, 블록, `if`/`else`, `while`, `break`/`continue`가 올 수 있습니다. 함수 호출 자체를 문장으로 쓸 때는 `call f(...)`를 사용합니다.
+- 함수 본문에는 `let`, 변수 재대입, `call`, `return`, 블록, `if`/`else`, `while`, `for`, `break`/`continue`가 올 수 있습니다. 함수 호출 자체를 문장으로 쓸 때는 `call f(...)`를 사용합니다.
 - `#`부터 줄 끝까지는 주석입니다.
 
 ## 식별자와 예약어
 
 - 식별자 형식은 `[A-Za-z_][A-Za-z0-9_]*`입니다.
-- `module`, `depends`, `layer`, `above`, `fn`, `let`, `call`, `true`, `false`, `return`, `if`, `else`, `while`, `break`, `continue`는 예약어입니다. 이 확장으로 예약어가 된 이름을 이전 코드에서 사용했다면 다른 이름으로 변경해야 합니다.
+- `module`, `depends`, `layer`, `above`, `fn`, `let`, `call`, `true`, `false`, `return`, `if`, `else`, `while`, `for`, `break`, `continue`는 예약어입니다. 이 확장으로 예약어가 된 이름을 이전 코드에서 사용했다면 다른 이름으로 변경해야 합니다.
 - 타입 이름은 `:` 또는 `->` 뒤에서 해석하므로 기존 변수 이름 `unit`, `int` 등은 계속 사용할 수 있습니다. unit 리터럴은 `()`입니다.
 - 함수 반환 타입은 `fn f(n: int) -> int { ... }`처럼 명시합니다. 생략 시 unit입니다. non-unit 함수는 모든 매개변수 타입도 명시해야 합니다. 호출 인자는 리터럴과 중첩 호출을 포함한 표현식입니다.
 
@@ -119,9 +122,29 @@ layer service above data
 - 호출 인자와 이항 연산의 피연산자는 왼쪽부터 평가합니다. `&&`/`||`에서 생략한 우변의 함수 호출은 실행하지 않습니다. 호출식은 반환값을 만들고 `call` 문장은 반환값을 버립니다.
 - `return expression`은 함수의 모든 중첩 블록·반복을 빠져나와 값을 반환합니다. `return`은 unit을 반환합니다. unit 함수는 본문 끝까지 도달해도 됩니다. non-unit 함수의 반환값 타입이 맞지 않거나 반환하지 않는 경로가 있으면 의미 오류입니다.
 - 반환 검사는 보수적으로 수행합니다. `if`는 양쪽 분기를 검사하고 `while`은 0회 실행될 가능성을 가정하므로, 반복 내부의 return만으로 반환을 보장하지 않습니다. `while true { ... }` 뒤에도 non-unit 함수의 반환 경로가 필요합니다.
-- `if`/`while` 조건은 bool이어야 합니다. while은 매 반복 전에 조건을 다시 평가합니다. `break`는 가장 가까운 반복을 종료하고 `continue`는 그 반복의 조건 검사로 돌아가며 벗어나는 Scope를 정리합니다. 반복문 밖의 break/continue는 의미 오류입니다.
+- `if`/`while` 조건은 bool이어야 합니다. while은 매 반복 전에 조건을 다시 평가합니다. `break`는 가장 가까운 반복을 종료하고 `continue`는 그 반복의 다음 단계(while은 조건 검사, for는 증감)로 이동하며 벗어나는 Scope를 정리합니다. 반복문 밖의 break/continue는 의미 오류입니다.
 - CLI의 `--run <모듈>.<함수>`로 진입 함수를 지정하며 진입 함수는 매개변수가 없어야 합니다.
 - 실행 결과는 함수 진입, 호출, 종료 순서와 실행 횟수를 Trace로 출력합니다. 이어서 non-unit 진입 함수의 반환값, 모든 모듈 변수와 진입 함수 최상위 Scope의 최종 지역 값 중 unit이 아닌 값을 이름순으로 출력합니다. 문자열은 escape를 적용해 한 줄로 표시합니다. 기존 unit 전용 예제의 Trace 출력은 유지됩니다.
+
+## for 반복문
+
+```text
+let sum = 0
+for (let i = 1; i <= 10; i = i + 1) {
+  sum = sum + i
+}
+# sum은 55, i는 이 위치에서 접근할 수 없음
+```
+
+- 괄호 안에 초기화·조건·증감을 세미콜론 두 개로 구분합니다. 헤더는 한 줄에 작성합니다. 세미콜론은 for 헤더에서만 사용하며 일반 문장의 구분자는 계속 줄바꿈입니다.
+- 초기화에는 `let`, 대입 또는 `call`을, 증감에는 대입 또는 `call`을 작성할 수 있습니다. 예: `for (call start(); ready(); call next()) { ... }`. 각 부분에는 한 문장만 허용합니다. `++`, `--`, `+=`는 지원하지 않으므로 `i = i + 1`을 사용합니다.
+- 초기화는 한 번 실행합니다. 이후 조건 → 본문 → 증감 순서를 반복합니다. 초기화·조건·증감을 각각 생략할 수 있으며, 생략한 조건은 true입니다. `for (;;) { ... }`에도 실행 한도를 적용합니다.
+- 명시한 조건은 bool이어야 합니다. 초기화·조건·증감의 호출에도 인자 타입, depends와 기존 구조 검사가 적용됩니다.
+- 초기화에서 선언한 변수는 헤더와 본문에서만 보입니다. 본문은 매 반복마다 별도 Scope를 만들며, 본문에서 선언한 변수는 조건·증감에서 보이지 않습니다. 증감은 본문 Scope를 정리한 후 헤더 Scope에서 실행합니다.
+- 가장 가까운 반복이 for일 때 `continue`는 증감을 실행한 뒤 조건 검사로 돌아갑니다. `break`는 증감 없이 가장 가까운 반복을 종료하고, `return`은 증감 없이 함수를 종료합니다. while과 for를 중첩해도 가장 가까운 반복에만 break/continue를 적용합니다.
+- 반환 경로는 while과 마찬가지로 보수적으로 검사합니다. 조건을 생략한 for도 non-unit 함수의 반환을 보장하는 것으로 간주하지 않습니다.
+
+[for 예제](../examples/for_loop.ieum)를 `--run app.main`으로 실행하면 합계 55를 반환하고 홀수 합계 `oddSum`은 25입니다.
 
 ## 실행 한도
 

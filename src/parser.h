@@ -204,6 +204,18 @@ private:
                 break;
             case TokenType::BREAK: statement.kind = Statement::Kind::Break; break;
             case TokenType::CONTINUE: statement.kind = Statement::Kind::Continue; break;
+            case TokenType::FOR:
+                statement.kind = Statement::Kind::For;
+                expect(TokenType::LEFT_PAREN, "for 뒤에는 '('가 필요합니다");
+                if (!check(TokenType::SEMICOLON)) statement.initializer.push_back(parseForClause(true));
+                expect(TokenType::SEMICOLON, "for 초기화 뒤에는 ';'가 필요합니다");
+                if (!check(TokenType::SEMICOLON)) statement.expression = parseExpression();
+                expect(TokenType::SEMICOLON, "for 조건 뒤에는 ';'가 필요합니다");
+                if (!check(TokenType::RIGHT_PAREN)) statement.update.push_back(parseForClause(false));
+                expect(TokenType::RIGHT_PAREN, "for 헤더를 닫는 ')'가 필요합니다");
+                expect(TokenType::LEFT_BRACE, "for 본문을 여는 '{'가 필요합니다");
+                statement.body = parseBlock();
+                break;
             case TokenType::LEFT_BRACE:
                 statement.kind = Statement::Kind::Block;
                 statement.body = parseBlock();
@@ -233,6 +245,13 @@ private:
         statement.span.endLine = tokens_[pos_ - 1].span.endLine;
         statement.span.endColumn = tokens_[pos_ - 1].span.endColumn;
         return statement;
+    }
+
+    Statement parseForClause(bool allowDeclaration) {
+        if (check(TokenType::IDENTIFIER) || check(TokenType::CALL) ||
+            (allowDeclaration && check(TokenType::LET))) return parseStatement();
+        throw error(allowDeclaration ? "for 초기화에는 let, 대입 또는 call이 필요합니다"
+                                    : "for 증감에는 대입 또는 call이 필요합니다");
     }
 
     std::vector<Expr> parseArguments() {

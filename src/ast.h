@@ -38,7 +38,7 @@ struct Statement {
         VariableDeclaration,
         FunctionCall,
         Assignment,
-        Return, Block, If, While, Break, Continue
+        Return, Block, If, While, For, Break, Continue
     };
 
     Kind kind;
@@ -52,6 +52,8 @@ struct Statement {
     std::vector<Expr> callArguments;
     std::vector<Statement> body;
     std::vector<Statement> alternative;
+    std::vector<Statement> initializer; // for header: zero or one simple statement
+    std::vector<Statement> update;      // for header: zero or one assignment/call
 };
 
 struct FunctionDecl {

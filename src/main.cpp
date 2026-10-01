@@ -56,6 +56,7 @@ static std::size_t countStatements(const std::vector<Statement>& body) {
     std::size_t count = body.size();
     for (const auto& statement : body) {
         count += countStatements(statement.body) + countStatements(statement.alternative);
+        count += countStatements(statement.initializer) + countStatements(statement.update);
     }
     return count;
 }

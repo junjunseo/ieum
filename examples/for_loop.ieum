@@ -1,0 +1,20 @@
+module app {
+  fn main() -> int {
+    let sum = 0
+    for (let i = 1; i <= 10; i = i + 1) {
+      sum = sum + i
+    }
+
+    let oddSum = 0
+    for (let i = 1;; i = i + 1) {
+      if i > 10 {
+        break
+      }
+      if i % 2 == 0 {
+        continue
+      }
+      oddSum = oddSum + i
+    }
+    return sum
+  }
+}
