@@ -185,7 +185,7 @@ int main() {
     } catch (const std::exception& e) { check(false, e.what()); }
     parseError("return at module scope rejected", "module app {\nreturn 1\n}\n");
     parseError("standalone else rejected", app("else {}\nreturn 0"));
-    parseError("unknown return type rejected", "module app {\nfn main() -> float {}\n}\n");
+    rejects("unknown return type rejected", "module app {\nfn main() -> float {}\n}\n", K::InvalidType);
     parseError("incomplete call rejected", app("return id(1,)", identity));
     parseError("if needs braces", app("if true\nreturn 1"));
     std::string nested;

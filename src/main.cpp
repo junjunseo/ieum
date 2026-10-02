@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 #include <charconv>
+#include <filesystem>
+#include "cli_args.h"
 #include "token.h"
 #include "ast.h"
 #include "lexer.h"
@@ -40,6 +42,8 @@ static std::string semanticKindLabel(SemanticViolationKind kind) {
         case SemanticViolationKind::TypeMismatch:             return "타입 불일치";
         case SemanticViolationKind::MissingReturn:            return "반환 누락";
         case SemanticViolationKind::InvalidControlFlow:       return "잘못된 제어 흐름";
+        case SemanticViolationKind::InvalidType:             return "자료구조 타입 오류";
+        case SemanticViolationKind::InvalidField:            return "필드 오류";
         case SemanticViolationKind::IncompleteSignature:     return "불완전한 함수 타입";
     }
     return "알 수 없음";
@@ -161,7 +165,7 @@ static bool writeDotFile(
     const Program& program,
     const std::vector<Violation>& violations) {
     try {
-        std::ofstream output(path, std::ios::binary);
+        std::ofstream output(std::filesystem::u8path(path), std::ios::binary);
         if (!output) return false;
         output << DependencyGraphExporter::toDot(program, violations);
         return output.good();
@@ -195,6 +199,18 @@ static void printExecutionTrace(const ExecutionResult& execution) {
 }
 
 int main(int argc, char** argv) {
+    std::vector<std::string> argumentStorage;
+    std::vector<char*> argumentPointers;
+    try {
+        argumentStorage = utf8Arguments(argc, argv);
+        for (auto& argument : argumentStorage) argumentPointers.push_back(argument.data());
+        argc = static_cast<int>(argumentStorage.size());
+        argumentPointers.push_back(nullptr);
+        argv = argumentPointers.data();
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << "\n";
+        return 2;
+    }
     if (argc == 2 && std::string(argv[1]) == "--version") {
         std::cout << "ieum " << kIeumVersion << "\n";
         return 0;
@@ -207,7 +223,7 @@ int main(int argc, char** argv) {
     }
 
     // 1) 파일 읽기
-    std::ifstream file(options.sourcePath, std::ios::binary);
+    std::ifstream file(std::filesystem::u8path(options.sourcePath), std::ios::binary);
     if (!file) {
         std::cerr << "오류: 파일을 열 수 없습니다 — " << options.sourcePath << "\n";
         return 2;

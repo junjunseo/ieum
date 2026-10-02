@@ -1,0 +1,20 @@
+module app depends std_list {
+  record Summary {
+    total: int
+    count: int
+  }
+
+  fn main() -> int {
+    let values = [10, 20, 30]
+    let copy = values
+    copy[0] = 99
+    let sum = 0
+    for (let i = 0; i < length(values); i = i + 1) {
+      sum = sum + values[i]
+    }
+    let summary = Summary(sum, length(values))
+    return summary.total
+  }
+}
+
+layer app above std_list

@@ -44,8 +44,8 @@ struct ExecutionLimits {
 
 class Interpreter {
 public:
-    Interpreter(const Program& program, const SemanticResult& semantics, ExecutionLimits limits = {})
-        : program_(program), semantics_(semantics), limits_(limits) {}
+    Interpreter(const Program& program, const SemanticResult& semantics, ExecutionLimits limits = {}, RuntimeIO io = {})
+        : program_(program), semantics_(semantics), limits_(limits), io_(io) {}
 
     ExecutionResult run(
         const std::string& moduleName,
@@ -73,7 +73,7 @@ public:
         }
         result.success = true;
         try {
-            Machine machine(program_, semantics_, limits_, result);
+            Machine machine(program_, semantics_, limits_, result, io_);
             machine.run(*entry);
         } catch (const std::exception& error) {
             result.success = false;
@@ -86,6 +86,7 @@ private:
     const Program& program_;
     const SemanticResult& semantics_;
     ExecutionLimits limits_;
+    RuntimeIO io_;
 
     std::optional<FunctionRef> findFunction(
         const std::string& moduleName,
@@ -131,7 +132,7 @@ private:
     class Machine {
         enum class Kind { Statement, Expression, Unary, Binary, Logical,
             Invoke, Entry, ExitFunction, Return, Drop, StoreLocal, StoreAssign,
-            StoreGlobal, EnterScope, ExitScope, Branch, LoopTest, LoopChoice, ForUpdate };
+            StoreGlobal, EnterScope, ExitScope, Branch, LoopTest, LoopChoice, ForUpdate, MakeList, ReadIndex, ReadField };
         struct Task {
             Kind kind;
             std::size_t module;
@@ -153,6 +154,7 @@ private:
         const Program& program;
         const SemanticResult& semantics;
         ExecutionLimits limits;
+        RuntimeIO io;
         ExecutionResult& result;
         std::vector<ValueScope> globals;
         std::vector<Frame> frames;
@@ -206,17 +208,27 @@ private:
                 ++result.callsExecuted;
             }
             Frame frame{ref, std::vector<ValueScope>(1), values.size(), isEntry};
-            for (std::size_t p = 0; p < args.size(); ++p) frame.scopes.back().emplace(function.parameters[p], std::move(args[p]));
+            if (function.native.empty()) for (std::size_t p = 0; p < args.size(); ++p) frame.scopes.back().emplace(function.parameters[p], std::move(args[p]));
             frames.push_back(std::move(frame));
             result.events.push_back({ExecutionEventKind::EnterFunction, name(ref), "", depth, function.line});
             ++result.functionsExecuted;
+            if (!function.native.empty()) {
+                if (function.native == "record") {
+                    const auto& type = semantics.signatures[ref.module][ref.function].result;
+                    const auto& shape = semantics.records.at(type.name);
+                    std::vector<std::pair<std::string, Value>> fields;
+                    for (std::size_t i = 0; i < args.size(); ++i) fields.emplace_back(shape.fields[i].first, std::move(args[i]));
+                    leave(makeRecord(type.name, std::move(fields)));
+                } else leave(executeStandardFunction(function.native, args, io));
+                return;
+            }
             work.emplace_back(Kind::ExitFunction, ref.module, function.span);
             statements(function.body, ref.module);
         }
         void leave(Value value) {
             const auto& frame = frames.back();
             const auto& function = program.modules[frame.ref.module].functions[frame.ref.function];
-            if (valueType(value) != function.returnType) throw EvaluationError(function.span, "missing_return: 올바른 반환값이 필요합니다");
+            if (valueType(value) != semantics.signatures[frame.ref.module][frame.ref.function].result) throw EvaluationError(function.span, "missing_return: 올바른 반환값이 필요합니다");
             if (frame.entry) {
                 result.entryLocals.insert(frame.scopes.front().begin(), frame.scopes.front().end());
                 result.returnValue = value;
@@ -244,6 +256,17 @@ private:
             if (expr->kind == Expression::Kind::Name) { values.push_back(variable(expr->text, task.module, expr->span)); return; }
             if (expr->kind == Expression::Kind::Call) { call(expr->id, expr->arguments, task); return; }
             Task apply(task);
+            if (expr->kind == Expression::Kind::List) {
+                apply.kind = Kind::MakeList; apply.count = expr->arguments.size(); work.push_back(apply);
+                for (auto it = expr->arguments.rbegin(); it != expr->arguments.rend(); ++it) expression(it->get(), task.module);
+                return;
+            }
+            if (expr->kind == Expression::Kind::Index || expr->kind == Expression::Kind::Field) {
+                apply.kind = expr->kind == Expression::Kind::Index ? Kind::ReadIndex : Kind::ReadField;
+                work.push_back(apply);
+                if (expr->right) expression(expr->right.get(), task.module);
+                expression(expr->left.get(), task.module); return;
+            }
             if (expr->kind == Expression::Kind::Unary) {
                 apply.kind = Kind::Unary; work.push_back(apply); expression(expr->right.get(), task.module); return;
             }
@@ -252,6 +275,35 @@ private:
             if (apply.kind == Kind::Binary) expression(expr->right.get(), task.module);
             expression(expr->left.get(), task.module);
         }
+        static std::vector<const Expression*> accessPath(const Expr& target) {
+            std::vector<const Expression*> path;
+            const auto* item = target.get();
+            while (item && (item->kind == Expression::Kind::Index || item->kind == Expression::Kind::Field)) {
+                path.push_back(item); item = item->left.get();
+            }
+            std::reverse(path.begin(), path.end());
+            return path;
+        }
+        static Value replacePath(const Value& base, const std::vector<const Expression*>& path,
+                const std::vector<std::int64_t>& indices, std::size_t step, std::size_t& index, Value replacement) {
+            if (step == path.size()) return replacement;
+            const auto* access = path[step];
+            if (access->kind == Expression::Kind::Index) {
+                const auto position = indices.at(index++);
+                const auto& old = indexValue(base, position);
+                const auto& list = *std::get<std::shared_ptr<const ListValue>>(base);
+                auto items = list.items;
+                items[static_cast<std::size_t>(position)] = replacePath(old, path, indices, step + 1, index, std::move(replacement));
+                return makeList(list.elementType, std::move(items));
+            }
+            const auto& record = *std::get<std::shared_ptr<const RecordValue>>(base);
+            auto fields = record.fields;
+            for (auto& field : fields) if (field.first == access->text) {
+                field.second = replacePath(field.second, path, indices, step + 1, index, std::move(replacement));
+                return makeRecord(record.name, std::move(fields));
+            }
+            throw std::runtime_error("unknown_field: 필드를 찾을 수 없습니다");
+        }
         void statement(const Task& task) {
             const auto& stmt = *task.statement;
             Task next(task);
@@ -259,7 +311,12 @@ private:
                 case Statement::Kind::VariableDeclaration:
                 case Statement::Kind::Assignment:
                     next.kind = stmt.kind == Statement::Kind::Assignment ? Kind::StoreAssign : Kind::StoreLocal;
-                    work.push_back(next); expression(stmt.expression.get(), task.module, stmt.span); break;
+                    work.push_back(next); expression(stmt.expression.get(), task.module, stmt.span);
+                    if (stmt.kind == Statement::Kind::Assignment) {
+                        const auto path = accessPath(stmt.target);
+                        for (auto it = path.rbegin(); it != path.rend(); ++it) if ((*it)->kind == Expression::Kind::Index) expression((*it)->right.get(), task.module);
+                    }
+                    break;
                 case Statement::Kind::FunctionCall:
                     work.emplace_back(Kind::Drop, task.module, stmt.span);
                     call(stmt.id, stmt.callArguments, task); break;
@@ -313,7 +370,30 @@ private:
                 }
                 case Kind::Drop: pop(); break;
                 case Kind::StoreLocal: frames.back().scopes.back().emplace(task.statement->name, pop()); break;
-                case Kind::StoreAssign: { auto value = pop(); variable(task.statement->name, task.module, task.span) = std::move(value); break; }
+                case Kind::StoreAssign: {
+                    auto value = pop();
+                    const auto path = accessPath(task.statement->target);
+                    std::vector<std::int64_t> indices;
+                    for (const auto* access : path) if (access->kind == Expression::Kind::Index) indices.push_back(0);
+                    for (std::size_t i = indices.size(); i > 0; --i) indices[i - 1] = std::get<std::int64_t>(pop());
+                    auto& base = variable(task.statement->name, task.module, task.span);
+                    std::size_t index = 0;
+                    base = replacePath(base, path, indices, 0, index, std::move(value));
+                    break;
+                }
+                case Kind::MakeList: {
+                    std::vector<Value> items(task.count);
+                    for (std::size_t i = task.count; i > 0; --i) items[i-1] = pop();
+                    values.push_back(makeList(*semantics.expressionTypes.at(task.expression->id).element, std::move(items)));
+                    break;
+                }
+                case Kind::ReadIndex: {
+                    const auto index = std::get<std::int64_t>(pop());
+                    const auto base = pop(); values.push_back(indexValue(base, index)); break;
+                }
+                case Kind::ReadField: {
+                    const auto base = pop(); values.push_back(fieldValue(base, task.expression->text)); break;
+                }
                 case Kind::StoreGlobal: globals[task.module].emplace(task.variable->name, pop()); break;
                 case Kind::EnterScope:
                     frames.back().scopes.emplace_back();
@@ -345,8 +425,8 @@ private:
             }
         }
     public:
-        Machine(const Program& p, const SemanticResult& s, ExecutionLimits l, ExecutionResult& r)
-            : program(p), semantics(s), limits(l), result(r), globals(p.modules.size()) {}
+        Machine(const Program& p, const SemanticResult& s, ExecutionLimits l, ExecutionResult& r, RuntimeIO streams)
+            : program(p), semantics(s), limits(l), io(streams), result(r), globals(p.modules.size()) {}
         void run(FunctionRef target) {
             entry = target;
             work.emplace_back(Kind::Entry, target.module, program.modules[target.module].functions[target.function].span);

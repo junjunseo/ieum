@@ -5,6 +5,7 @@ CPPFLAGS = -Isrc -DIEUM_VERSION=\"$(VERSION)\"
 
 ifeq ($(OS),Windows_NT)
 	EXE = .exe
+	LDLIBS += -lshell32
 endif
 
 BUILD_DIR = build
@@ -17,10 +18,11 @@ TEST_SEMANTIC = $(BUILD_DIR)/testSemantic$(EXE)
 TEST_INTERPRETER = $(BUILD_DIR)/testInterpreter$(EXE)
 TEST_VALUES = $(BUILD_DIR)/testValues$(EXE)
 TEST_CONTROL_FLOW = $(BUILD_DIR)/testControlFlow$(EXE)
+TEST_COLLECTIONS = $(BUILD_DIR)/testCollections$(EXE)
 BENCHMARK_CHECKER = $(BUILD_DIR)/benchmarkChecker$(EXE)
 BENCHMARK_MODULES ?= 200
 BENCHMARK_ITERATIONS ?= 7
-HEADERS = src/token.h src/source.h src/value.h src/evaluator.h src/ast.h src/lexer.h src/parser.h src/checker.h src/graph.h src/semantic.h src/interpreter.h src/version.h
+HEADERS = src/cli_args.h src/standard_library.h src/utf8.h src/token.h src/source.h src/value.h src/evaluator.h src/ast.h src/lexer.h src/parser.h src/checker.h src/graph.h src/semantic.h src/interpreter.h src/version.h
 INVALID_EXAMPLES = \
 	examples/implicit_dependency.ieum \
 	examples/cyclic_dependency.ieum \
@@ -40,8 +42,8 @@ all: $(TARGET)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET): src/main.cpp $(HEADERS) VERSION | $(BUILD_DIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+$(TARGET): src/main.cpp src/cli_args.cpp $(HEADERS) VERSION | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< src/cli_args.cpp -o $@ $(LDLIBS)
 
 $(TEST_PARSER): test/testParser.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
@@ -67,13 +69,16 @@ $(TEST_VALUES): test/testValues.cpp $(HEADERS) | $(BUILD_DIR)
 $(TEST_CONTROL_FLOW): test/testControlFlow.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
+$(TEST_COLLECTIONS): test/testCollections.cpp $(HEADERS) | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
 $(BENCHMARK_CHECKER): benchmark/benchmarkChecker.cpp $(HEADERS) | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -O2 -DNDEBUG $< -o $@
 
 run: $(TARGET)
 	./$(TARGET) examples/valid.ieum
 
-test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMANTIC) $(TEST_INTERPRETER) $(TEST_VALUES) $(TEST_CONTROL_FLOW) $(TARGET) $(BENCHMARK_CHECKER)
+test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMANTIC) $(TEST_INTERPRETER) $(TEST_VALUES) $(TEST_CONTROL_FLOW) $(TEST_COLLECTIONS) $(TARGET) $(BENCHMARK_CHECKER)
 	./$(TEST_PARSER)
 	./$(TEST_PIPELINE)
 	./$(TEST_CHECKER)
@@ -82,6 +87,7 @@ test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMAN
 	./$(TEST_INTERPRETER)
 	./$(TEST_VALUES)
 	./$(TEST_CONTROL_FLOW)
+	./$(TEST_COLLECTIONS)
 	./$(BENCHMARK_CHECKER) 2 1
 	test "$$(./$(TARGET) --version)" = "ieum $(VERSION)"
 	@for example in $(VALID_EXAMPLES); do \
@@ -91,6 +97,7 @@ test: $(TEST_PARSER) $(TEST_PIPELINE) $(TEST_CHECKER) $(TEST_GRAPH) $(TEST_SEMAN
 	./$(TARGET) examples/values.ieum --run app.main
 	./$(TARGET) examples/control_flow.ieum --run app.main
 	./$(TARGET) examples/for_loop.ieum --run app.main
+	./$(TARGET) examples/collections.ieum --run app.main
 	@./$(TARGET) examples/execution.ieum --run service.missing >/dev/null 2>&1; \
 		status=$$?; \
 		if [ $$status -ne 1 ]; then \

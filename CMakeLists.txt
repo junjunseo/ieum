@@ -20,8 +20,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(IEUM_HEADERS
+    src/cli_args.h
     src/token.h
     src/source.h
+    src/standard_library.h
+    src/utf8.h
     src/value.h
     src/evaluator.h
     src/ast.h
@@ -47,6 +50,10 @@ function(add_ieum_executable target source)
 endfunction()
 
 add_ieum_executable(ieum src/main.cpp)
+target_sources(ieum PRIVATE src/cli_args.cpp)
+if(WIN32)
+    target_link_libraries(ieum PRIVATE shell32)
+endif()
 add_ieum_executable(testParser test/testParser.cpp)
 add_ieum_executable(testPipeline test/testPipeline.cpp)
 add_ieum_executable(testChecker test/testChecker.cpp)
@@ -55,6 +62,7 @@ add_ieum_executable(testSemantic test/testSemantic.cpp)
 add_ieum_executable(testInterpreter test/testInterpreter.cpp)
 add_ieum_executable(testValues test/testValues.cpp)
 add_ieum_executable(testControlFlow test/testControlFlow.cpp)
+add_ieum_executable(testCollections test/testCollections.cpp)
 add_ieum_executable(benchmarkChecker benchmark/benchmarkChecker.cpp)
 
 if(MSVC)
@@ -73,6 +81,7 @@ add_test(NAME semantic COMMAND testSemantic)
 add_test(NAME interpreter COMMAND testInterpreter)
 add_test(NAME values COMMAND testValues)
 add_test(NAME control_flow COMMAND testControlFlow)
+add_test(NAME collections COMMAND testCollections)
 add_test(NAME benchmark_smoke COMMAND benchmarkChecker 2 1)
 set_tests_properties(benchmark_smoke PROPERTIES
     PASS_REGULAR_EXPRESSION "scenario=layered-valid-chain"
@@ -114,6 +123,7 @@ add_ieum_run_test(example_execution execution "service.main" 0 "calls_executed=2
 add_ieum_run_test(example_values values "app.main" 0 "value data.total: int = 17")
 add_ieum_run_test(example_control_flow control_flow "app.main" 0 "return app.main: int = 175")
 add_ieum_run_test(example_for_loop for_loop "app.main" 0 "return app.main: int = 55")
+add_ieum_run_test(example_collections collections "app.main" 0 "return app.main: int = 60")
 add_ieum_run_test(cli_run_missing_function execution "service.missing" 1 "service.missing")
 add_ieum_run_test(cli_run_parameterized_entry execution "service.prepare" 1 "service.prepare")
 add_ieum_run_test(cli_run_invalid_entry execution "service" 2 "entry_format=module.function")
@@ -165,6 +175,9 @@ add_ieum_graph_failure_test(invalid cyclic_dependency 1)
 # Python is optional for the core. CI also exercises the demo/evaluation tools.
 find_package(Python3 3.9 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
+    add_test(NAME collections_cli COMMAND ${Python3_EXECUTABLE} -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/test_collections_cli.py"
+        --ieum $<TARGET_FILE:ieum>)
     add_test(NAME control_flow_cli COMMAND ${Python3_EXECUTABLE} -B
         "${CMAKE_CURRENT_SOURCE_DIR}/test/test_control_flow_cli.py"
         --ieum $<TARGET_FILE:ieum>)

@@ -2,25 +2,92 @@
 #define IEUM_VALUE_H
 
 #include <cstdint>
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <variant>
+#include <memory>
+#include <vector>
+#include <utility>
 
-enum class ValueType { Unit, Int, Bool, String };
-using Value = std::variant<std::monostate, std::int64_t, bool, std::string>;
-
-inline ValueType valueType(const Value& value) {
-    return static_cast<ValueType>(value.index());
+struct ValueType {
+    enum Kind { Unit, Int, Bool, String, List, Record, Unknown };
+    Kind kind;
+    std::shared_ptr<const ValueType> element;
+    std::string name;
+    ValueType(Kind k = Unit) : kind(k) {}
+    static ValueType list(ValueType item) {
+        ValueType t(List); t.element = std::make_shared<const ValueType>(std::move(item)); return t;
+    }
+    static ValueType record(std::string name) {
+        ValueType t(Record); t.name = std::move(name); return t;
+    }
+    bool operator==(const ValueType& other) const {
+        if (kind != other.kind) return false;
+        if (kind == Record) return name == other.name;
+        if (kind == List) return element && other.element && *element == *other.element;
+        return true;
+    }
+    bool operator!=(const ValueType& other) const { return !(*this == other); }
+};
+struct ListValue;
+struct RecordValue;
+// Aggregates are immutable. Updating a path builds new aggregate nodes, preserving value semantics.
+using Value = std::variant<std::monostate, std::int64_t, bool, std::string,
+    std::shared_ptr<const ListValue>, std::shared_ptr<const RecordValue>>;
+struct ListValue { ValueType elementType; std::vector<Value> items; std::size_t depth = 1; };
+struct RecordValue { std::string name; std::vector<std::pair<std::string, Value>> fields; std::size_t depth = 1; };
+inline std::size_t valueDepth(const Value& value) {
+    if (auto list = std::get_if<std::shared_ptr<const ListValue>>(&value)) return (*list)->depth;
+    if (auto record = std::get_if<std::shared_ptr<const RecordValue>>(&value)) return (*record)->depth;
+    return 0;
 }
-
-inline std::string typeName(ValueType type) {
-    switch (type) {
+inline Value makeList(ValueType element, std::vector<Value> items) {
+    std::size_t depth = 1;
+    for (const auto& item : items) depth = std::max(depth, 1 + valueDepth(item));
+    if (depth > 128) throw std::runtime_error("value_depth_limit: 자료구조 최대 중첩 깊이를 초과했습니다");
+    return std::make_shared<const ListValue>(ListValue{std::move(element), std::move(items), depth});
+}
+inline Value makeRecord(std::string name, std::vector<std::pair<std::string, Value>> fields) {
+    std::size_t depth = 1;
+    for (const auto& field : fields) depth = std::max(depth, 1 + valueDepth(field.second));
+    if (depth > 128) throw std::runtime_error("value_depth_limit: 자료구조 최대 중첩 깊이를 초과했습니다");
+    return std::make_shared<const RecordValue>(RecordValue{std::move(name), std::move(fields), depth});
+}
+inline ValueType valueType(const Value& value) {
+    if (auto list = std::get_if<std::shared_ptr<const ListValue>>(&value)) return ValueType::list((*list)->elementType);
+    if (auto record = std::get_if<std::shared_ptr<const RecordValue>>(&value)) return ValueType::record((*record)->name);
+    return ValueType(static_cast<ValueType::Kind>(value.index()));
+}
+inline std::string typeName(const ValueType& type) {
+    switch (type.kind) {
         case ValueType::Int: return "int";
         case ValueType::Bool: return "bool";
         case ValueType::String: return "string";
+        case ValueType::List: return "list<" + typeName(*type.element) + ">";
+        case ValueType::Record: return type.name;
+        case ValueType::Unknown: return "?";
         default: return "unit";
     }
+}
+inline bool valuesEqual(const Value& left, const Value& right) {
+    if (valueType(left) != valueType(right)) return false;
+    if (auto list = std::get_if<std::shared_ptr<const ListValue>>(&left)) {
+        const auto& a = (*list)->items;
+        const auto& b = std::get<std::shared_ptr<const ListValue>>(right)->items;
+        if (a.size() != b.size()) return false;
+        for (std::size_t i = 0; i < a.size(); ++i) if (!valuesEqual(a[i], b[i])) return false;
+        return true;
+    }
+    if (auto record = std::get_if<std::shared_ptr<const RecordValue>>(&left)) {
+        const auto& a = (*record)->fields;
+        const auto& b = std::get<std::shared_ptr<const RecordValue>>(right)->fields;
+        if (a.size() != b.size()) return false;
+        for (std::size_t i = 0; i < a.size(); ++i) if (a[i].first != b[i].first || !valuesEqual(a[i].second, b[i].second)) return false;
+        return true;
+    }
+    return left == right;
 }
 
 inline std::string valueText(const Value& value) {
@@ -39,6 +106,20 @@ inline std::string valueText(const Value& value) {
             }
         }
         return text + "\"";
+    }
+    if (auto list = std::get_if<std::shared_ptr<const ListValue>>(&value)) {
+        std::string text = "[";
+        for (const auto& item : (*list)->items) { if (text.size() > 1) text += ", "; text += valueText(item); }
+        return text + "]";
+    }
+    if (auto record = std::get_if<std::shared_ptr<const RecordValue>>(&value)) {
+        std::string text = (*record)->name + "{";
+        bool first = true;
+        for (const auto& field : (*record)->fields) {
+            if (!first) text += ", ";
+            first = false; text += field.first + ": " + valueText(field.second);
+        }
+        return text + "}";
     }
     return "()";
 }

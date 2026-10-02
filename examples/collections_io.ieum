@@ -1,0 +1,30 @@
+# 입력 경로와 출력 경로를 표준 입력의 두 줄로 받습니다.
+module app depends std_io, std_text, std_list {
+  record Summary {
+    total: int
+    count: int
+  }
+
+  fn summarize(text: string) -> Summary {
+    let lines = split(text, "\n")
+    let sum = 0
+    let count = 0
+    for (let i = 0; i < length(lines); i = i + 1) {
+      if lines[i] == "" {
+        continue
+      }
+      sum = sum + parse_int(lines[i])
+      count = count + 1
+    }
+    return Summary(sum, count)
+  }
+
+  fn main() -> int {
+    let input = read_line()
+    let output = read_line()
+    let summary = summarize(read_text(input))
+    call write_text(output, to_string(summary.total))
+    call print(to_string(summary.total))
+    return summary.total
+  }
+}

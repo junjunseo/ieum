@@ -22,7 +22,9 @@ try {
         -Isrc `
         $versionDefinition `
         src/main.cpp `
-        -o build/ieum.exe
+        src/cli_args.cpp `
+        -o build/ieum.exe `
+        -lshell32
 
     if ($LASTEXITCODE -ne 0) {
         throw "Compilation failed: src/main.cpp"
