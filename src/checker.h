@@ -32,6 +32,7 @@ struct Violation {
     int line;
     // 위반을 만드는 의존 경로. 그래프 출력과 진단이 같은 근거를 공유한다.
     std::vector<std::string> path;
+    SourceSpan span = {};
 };
 
 class Checker {
@@ -55,17 +56,21 @@ private:
     std::unordered_map<std::string, std::vector<std::string>> graph_; // 모듈 → 의존 대상
     std::unordered_map<std::string, int> moduleLine_;                 // 모듈 → 선언 행
 
+    std::unordered_map<std::string, SourceSpan> moduleSpan_;
+
     // ── 인덱스 구축 ────────────────────────────────────
     void buildIndex() {
         declared_.clear();
         graph_.clear();
         moduleLine_.clear();
+        moduleSpan_.clear();
 
         for (const auto& m : prog_.modules) {
             // 중복 선언이 있어도 최초 선언을 기준으로 후속 검사를 계속한다.
             if (declared_.insert(m.name).second) {
                 graph_[m.name] = m.deps;
                 moduleLine_[m.name] = m.line;
+                moduleSpan_[m.name] = m.span;
             }
         }
     }
@@ -79,16 +84,19 @@ private:
 
     void checkDuplicateModules(std::vector<Violation>& out) {
         std::unordered_map<std::string, int> firstLine;
+        std::unordered_map<std::string, SourceSpan> firstSpan;
 
         for (const auto& m : prog_.modules) {
             auto [it, inserted] = firstLine.emplace(m.name, m.line);
+            if (inserted) firstSpan.emplace(m.name, m.span);
             if (!inserted) {
                 out.push_back({
                     Violation::Kind::DuplicateModule,
                     "모듈 '" + m.name + "'가 중복 선언되었습니다"
-                        " (최초 선언: " + std::to_string(it->second) + "행)",
+                        " (최초 선언: " + std::to_string(it->second) + "행)" +
+                        (firstSpan[m.name].file != m.span.file ? " / " + sourceLocation(firstSpan[m.name]) : ""),
                     m.line,
-                    {}
+                    {}, m.span
                 });
             }
         }
@@ -102,7 +110,7 @@ private:
                     "계층 선언이 존재하지 않는 모듈 '" + layer.upper +
                         "'을 참조합니다",
                     layer.line,
-                    {}
+                    {}, layer.span
                 });
             }
             if (declared_.find(layer.lower) == declared_.end()) {
@@ -111,7 +119,7 @@ private:
                     "계층 선언이 존재하지 않는 모듈 '" + layer.lower +
                         "'을 참조합니다",
                     layer.line,
-                    {}
+                    {}, layer.span
                 });
             }
         }
@@ -125,7 +133,7 @@ private:
                     "계층 선언의 상위와 하위에 동일한 모듈 '" +
                         layer.upper + "'가 지정되었습니다",
                     layer.line,
-                    {}
+                    {}, layer.span
                 });
             }
         }
@@ -141,7 +149,7 @@ private:
                         "모듈 '" + m.name + "'가 선언되지 않은 모듈 '" + dep +
                             "'에 의존합니다",
                         m.line,
-                        {m.name, dep}
+                        {m.name, dep}, m.span
                     });
                 }
             }
@@ -153,6 +161,7 @@ private:
         std::unordered_set<std::string> visited;   // 방문 완료
         std::unordered_set<std::string> inStack;   // 현재 DFS 경로상
         std::vector<std::string> path;
+    SourceSpan span = {};
 
         for (const auto& m : prog_.modules) {
             if (visited.find(m.name) == visited.end()) {
@@ -192,7 +201,7 @@ private:
                         Violation::Kind::CyclicDependency,
                         "순환 의존 발견: " + cycle,
                         moduleLine_.count(node) ? moduleLine_[node] : 0,
-                        cyclePath
+                        cyclePath, moduleSpan_[node]
                     });
                 } else if (visited.find(dep) == visited.end()) {
                     dfs(dep, visited, inStack, path, out);
@@ -218,7 +227,7 @@ private:
                         "계층 위반: 하위 계층 '" + module +
                             "'가 상위 계층 '" + dep + "'에 의존합니다",
                         moduleLine_.count(module) ? moduleLine_[module] : 0,
-                        {module, dep}
+                        {module, dep}, moduleSpan_[module]
                     });
                 }
             }
@@ -235,7 +244,7 @@ private:
                         "'가 의존 경로를 통해 상위 계층 '" + candidateUpper +
                         "'에 의존합니다 (경로: " + joinPath(dependencyPath) + ")",
                     moduleLine_.count(module) ? moduleLine_[module] : 0,
-                    dependencyPath
+                    dependencyPath, moduleSpan_[module]
                 });
             }
         }
@@ -297,6 +306,7 @@ private:
         const std::string& target) const {
         std::unordered_set<std::string> visited;
         std::vector<std::string> path;
+    SourceSpan span = {};
         if (buildDependencyPath(from, target, visited, path)) return path;
         return {};
     }

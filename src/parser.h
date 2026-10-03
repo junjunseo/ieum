@@ -17,10 +17,11 @@
 // 전체 문법은 docs/GRAMMAR.md에서 관리한다.
 class Parser {
 public:
-    explicit Parser(std::vector<Token> tokens)
-        : tokens_(std::move(tokens)) {}
+    explicit Parser(std::vector<Token> tokens, NodeId firstId = 1)
+        : tokens_(std::move(tokens)), nextId_(firstId) {}
+    NodeId nextNodeId() const { return nextId_; }
 
-    Program parse() {
+    Program parse(bool withStandardLibrary = true) {
         Program prog;
         while (!isAtEnd()) {
             // 빈 줄은 건너뛴다
@@ -35,7 +36,7 @@ public:
             }
             consumeLineEnd();
         }
-        installStandardLibrary(prog);
+        if (withStandardLibrary) installStandardLibrary(prog);
         return prog;
     }
 
@@ -92,13 +93,19 @@ private:
                 throw error("모듈 본문을 닫는 '}'가 필요합니다");
             }
 
+            const bool isPrivate = check(TokenType::PRIVATE);
+            if (isPrivate) advance();
             if (check(TokenType::LET)) {
                 module.variables.push_back(parseVariable());
+                module.variables.back().isPrivate = isPrivate;
             } else if (check(TokenType::FN)) {
                 module.functions.push_back(parseFunction());
+                module.functions.back().isPrivate = isPrivate;
             } else if (check(TokenType::RECORD)) {
                 auto record = parseRecord();
+                record.isPrivate = isPrivate;
                 FunctionDecl constructor;
+                constructor.isPrivate = isPrivate;
                 constructor.name = record.name; constructor.line = record.span.line; constructor.span = record.span;
                 constructor.native = "record"; constructor.returnType = ValueType::record(record.name);
                 for (const auto& field : record.fields) {
@@ -217,7 +224,7 @@ private:
         switch (token.type) {
             case TokenType::CALL: {
                 statement.kind = Statement::Kind::FunctionCall;
-                statement.name = expect(TokenType::IDENTIFIER, "call 다음에는 함수 이름이 필요합니다").value;
+                statement.name = parseQualifiedName("call 다음에는 함수 이름이 필요합니다");
                 expect(TokenType::LEFT_PAREN, "호출 이름 뒤에는 '('가 필요합니다");
                 statement.callArguments = parseArguments();
                 for (const auto& argument : statement.callArguments) {
@@ -228,7 +235,7 @@ private:
             case TokenType::IDENTIFIER:
                 statement.kind = Statement::Kind::Assignment;
                 statement.name = token.value;
-                statement.target = parsePostfix(node(Expression::Kind::Name, token));
+                statement.target = parsePostfix(node(Expression::Kind::Name, token), false);
                 expect(TokenType::ASSIGN, "변수 이름 뒤에는 '='가 필요합니다");
                 statement.expression = parseExpression();
                 break;
@@ -329,7 +336,15 @@ private:
             expect(TokenType::GREATER, "list 타입을 닫는 '>'가 필요합니다");
             return ValueType::list(std::move(element));
         }
-        return ValueType::record(token.value);
+        auto name = token.value;
+        if (check(TokenType::DOT)) { advance(); name += "." + expect(TokenType::IDENTIFIER, "한정 타입 이름이 필요합니다").value; }
+        return ValueType::record(name);
+    }
+
+    std::string parseQualifiedName(const std::string& message) {
+        auto name = expect(TokenType::IDENTIFIER, message).value;
+        if (check(TokenType::DOT)) { advance(); name += "." + expect(TokenType::IDENTIFIER, message).value; }
+        return name;
     }
 
     static int precedence(TokenType type) {
@@ -383,7 +398,7 @@ private:
         const auto parsed = std::from_chars(token.value.data(), token.value.data() + token.value.size(), magnitude);
         const auto maximum = static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
         if (parsed.ec != std::errc{} || parsed.ptr != token.value.data() + token.value.size() || magnitude > maximum + (negative ? 1U : 0U)) {
-            throw std::runtime_error(sourceLocation(token.span) + " integer_overflow: 정수 리터럴이 int64 범위를 초과했습니다");
+            throw SourceError(token.span, "integer_overflow: 정수 리터럴이 int64 범위를 초과했습니다");
         }
         auto expr = node(Expression::Kind::Literal, token);
         expr->literal = negative && magnitude == maximum + 1
@@ -447,22 +462,33 @@ private:
             expr->span = token.span;
             expr->span.endLine = close.span.endLine;
             expr->span.endColumn = close.span.endColumn;
-        } else throw std::runtime_error(sourceLocation(token.span) + " 표현식이 필요합니다");
+        } else throw SourceError(token.span, "표현식이 필요합니다");
         if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
         return parsePostfix(expr);
     }
 
-    Expr parsePostfix(Expr base) {
+    Expr parsePostfix(Expr base, bool allowCalls = true) {
         while (check(TokenType::LEFT_BRACKET) || check(TokenType::DOT)) {
             const auto token = advance();
             auto expr = node(token.type == TokenType::DOT ? Expression::Kind::Field : Expression::Kind::Index, token);
             expr->left = base;
-            if (token.type == TokenType::DOT) expr->text = expect(TokenType::IDENTIFIER, "필드 이름이 필요합니다").value;
+            if (token.type == TokenType::DOT) {
+                expr->text = expect(TokenType::IDENTIFIER, "멤버 이름이 필요합니다").value;
+                if (check(TokenType::LEFT_PAREN)) {
+                    if (!allowCalls) throw error("호출 결과에는 대입할 수 없습니다");
+                    if (base->kind != Expression::Kind::Name) throw error("호출 이름은 module.function 형식이어야 합니다");
+                    advance(); expr->kind = Expression::Kind::Call;
+                    expr->text = base->text + "." + expr->text;
+                    expr->arguments = parseArguments();
+                    expr->left.reset();
+                }
+            }
             else {
                 expr->right = parseExpression();
                 expect(TokenType::RIGHT_BRACKET, "인덱스를 닫는 ']'가 필요합니다");
             }
             expr->treeDepth = 1 + std::max(base->treeDepth, expr->right ? expr->right->treeDepth : 0);
+            for (const auto& argument : expr->arguments) expr->treeDepth = std::max(expr->treeDepth, 1 + argument->treeDepth);
             if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
             expr->span = base->span;
             expr->span.endLine = tokens_[pos_ - 1].span.endLine;
@@ -512,9 +538,9 @@ private:
         throw error(message);
     }
 
-    std::runtime_error error(const std::string& msg) const {
-        return std::runtime_error(
-            sourceLocation(peek().span) + " [" + std::to_string(peek().line) + "행] 파싱 오류: " + msg +
+    SourceError error(const std::string& msg) const {
+        return SourceError(peek().span,
+            "[" + std::to_string(peek().line) + "행] 파싱 오류: " + msg +
             " (현재 토큰: " + tokenTypeName(peek().type) +
             (peek().value.empty() ? "" : " '" + peek().value + "'") + ")");
     }
