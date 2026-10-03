@@ -1,5 +1,6 @@
 """Multi-file resolution, access control and diagnostics through the real CLI."""
 import argparse
+from contextlib import contextmanager
 import os
 from pathlib import Path
 import subprocess
@@ -8,6 +9,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 IEUM = ROOT / "build/ieum"
+
+@contextmanager
+def fixture_directory():
+    with tempfile.TemporaryDirectory() as directory:
+        # Windows CI may expose the temp directory through an 8.3 alias.
+        yield Path(directory).resolve()
 
 class ModulesCliTests(unittest.TestCase):
     def invoke(self, source, *options):
@@ -42,7 +49,7 @@ class ModulesCliTests(unittest.TestCase):
         self.assertNotIn("return app.main", result.stdout)
 
     def test_required_files_only_and_unicode_paths(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             roots = Path(directory) / "모듈 😀"
             entry = self.app(directory)
             self.write(roots, "data.ieum", "module data {\nfn get() -> int {\nreturn 42\n}\n}\n")
@@ -52,7 +59,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn("return app.main: int = 42", result.stdout)
 
     def test_multiple_search_paths(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             a, b = Path(directory) / "a", Path(directory) / "b"
             entry = self.app(directory, "return service.get()", "service")
             self.write(a, "service.ieum", "module service depends data {\nfn get() -> int {\nreturn data.value\n}\n}\n")
@@ -62,7 +69,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn("return app.main: int = 17", result.stdout)
 
     def test_collision_is_deterministic(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             a, b = Path(directory) / "a", Path(directory) / "b"
             entry = self.app(directory)
             for root in (a, b):
@@ -75,14 +82,14 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn(str(b / "data.ieum"), one.stderr)
 
     def test_normalized_duplicate_search_path(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory)
             (Path(directory) / "sub").mkdir()
             result = self.invoke(entry, "--module-path", directory, "--module-path", Path(directory) / "sub/..")
             self.assertError(result, "duplicate_path")
 
     def test_same_file_via_hardlink_rejected(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory)
             a, b = Path(directory) / "a", Path(directory) / "b"
             original = self.write(a, "data.ieum", "module data {}\n")
@@ -95,7 +102,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertError(result, "duplicate_path")
 
     def test_missing_and_invalid_search_roots(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory)
             for root in (Path(directory) / "missing", entry):
                 with self.subTest(root=str(root)):
@@ -104,13 +111,13 @@ class ModulesCliTests(unittest.TestCase):
             self.assertEqual(self.invoke(entry, "--module-path").returncode, 2)
 
     def test_module_file_mismatch(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory)
             self.write(directory, "data.ieum", "module wrong {}\n")
             self.assertError(self.invoke(entry, "--module-path", directory), "module_file_mismatch")
 
     def test_duplicate_module_declaration(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory, "return 0", "data, other")
             self.write(directory, "data.ieum", "module data {}\n")
             self.write(directory, "other.ieum", "module other {}\nmodule data {}\n")
@@ -119,7 +126,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn("module data {}", result.stdout)
 
     def test_private_reference_source_context(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory, "return data.secret")
             self.write(directory, "data.ieum", "module data {\nprivate let secret = 8\n}\n")
             result = self.invoke(entry, "--module-path", directory, "--run", "app.main")
@@ -129,7 +136,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn("^", result.stdout)
 
     def test_module_cycle_and_reverse_layer(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory, "return 0")
             data = self.write(directory, "data.ieum", "module data depends app\n")
             result = self.invoke(entry, "--module-path", directory)
@@ -139,7 +146,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertError(self.invoke(entry, "--module-path", directory), "계층 위반")
 
     def test_imported_parse_error_context(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory)
             data = self.write(directory, "data.ieum", "module data {\nfn get() {\nlet n = ]\n}\n}\n")
             result = self.invoke(entry, "--module-path", directory)
@@ -148,7 +155,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn("^", result.stderr)
 
     def test_multifile_runtime_call_stack(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory, "return service.get()", "service")
             service = self.write(directory, "service.ieum", "module service depends data {\nfn get() -> int {\nreturn data.fail()\n}\n}\n")
             data = self.write(directory, "data.ieum", "module data {\nfn fail() -> int {\nreturn 1 / 0\n}\n}\n")
@@ -161,7 +168,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertLess(stack.index("service.get"), stack.index("app.main"))
 
     def test_multifile_limit_stack(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             entry = self.app(directory)
             self.write(directory, "data.ieum", "module data {\nfn get() -> int {\nreturn get()\n}\n}\n")
             result = self.invoke(entry, "--module-path", directory, "--run", "app.main", "--max-call-depth", "4")
@@ -169,7 +176,7 @@ class ModulesCliTests(unittest.TestCase):
             self.assertIn("call_stack:", result.stdout)
 
     def test_deterministic_graph_across_search_order(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with fixture_directory() as directory:
             a, b = Path(directory) / "a", Path(directory) / "b"
             entry = self.app(directory, "return data.a + other.b", "data, other")
             self.write(a, "data.ieum", "module data {\nlet a = 1\n}\n")
