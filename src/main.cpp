@@ -9,6 +9,7 @@
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
+#include "loader.h"
 #include "checker.h"
 #include "graph.h"
 #include "semantic.h"
@@ -44,6 +45,7 @@ static std::string semanticKindLabel(SemanticViolationKind kind) {
         case SemanticViolationKind::InvalidControlFlow:       return "잘못된 제어 흐름";
         case SemanticViolationKind::InvalidType:             return "자료구조 타입 오류";
         case SemanticViolationKind::InvalidField:            return "필드 오류";
+        case SemanticViolationKind::InvalidAccess:           return "접근 오류";
         case SemanticViolationKind::IncompleteSignature:     return "불완전한 함수 타입";
     }
     return "알 수 없음";
@@ -101,6 +103,7 @@ struct CliOptions {
     bool shouldEmitDot = false;
     std::string dotPath;
     ExecutionLimits limits;
+    std::vector<std::string> modulePaths;
 };
 
 static void printUsage() {
@@ -109,6 +112,7 @@ static void printUsage() {
               << "       ieum <소스파일.ieum> --emit-dot <출력파일.dot>\n"
               << "       ieum <소스파일.ieum> --run <모듈>.<함수> --emit-dot <출력파일.dot>\n"
               << "       실행 한도: --max-steps <양의 정수> --max-call-depth <양의 정수>\n"
+              << "       모듈 검색: --module-path <디렉터리> (반복 지정 가능)\n"
               << "       ieum --version\n";
 }
 
@@ -125,6 +129,10 @@ static bool parseCliOptions(int argc, char** argv, CliOptions& options) {
 
     for (int i = 2; i < argc;) {
         const std::string option = argv[i];
+        if (option == "--module-path") {
+            if (i + 1 >= argc || std::string(argv[i + 1]).empty()) return false;
+            options.modulePaths.push_back(argv[i + 1]); i += 2; continue;
+        }
         if (option == "--run") {
             if (options.shouldRun || i + 1 >= argc) return false;
             options.shouldRun = true;
@@ -228,15 +236,18 @@ int main(int argc, char** argv) {
         std::cerr << "오류: 파일을 열 수 없습니다 — " << options.sourcePath << "\n";
         return 2;
     }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string source = buffer.str();
+    std::string source;
+    char buffer[8192];
+    while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0) source.append(buffer, static_cast<std::size_t>(file.gcount()));
+    if (file.bad()) {
+        std::cerr << "source_read_error: 소스 읽기에 실패했습니다: " << options.sourcePath << "\n";
+        return 2;
+    }
+    SourceLoader loader;
 
     try {
         // 2) 렉싱 → 파싱
-        Lexer lexer(source, options.sourcePath);
-        Parser parser(lexer.tokenize());
-        Program prog = parser.parse();
+        Program prog = loader.load(options.sourcePath, source, options.modulePaths);
 
         // 3) 구조 요약 출력
         std::cout << "── 파싱 결과 ──\n";
@@ -261,6 +272,9 @@ int main(int argc, char** argv) {
         // 4) 의존 검사 (끌 수 없음 — 항상 전부 적용)
         Checker checker(prog);
         auto violations = checker.check();
+        std::sort(violations.begin(), violations.end(), [](const auto& a, const auto& b) {
+            return std::tie(a.span.file, a.line, a.span.column, a.message) < std::tie(b.span.file, b.line, b.span.column, b.message);
+        });
 
         if (options.shouldEmitDot) {
             if (writeDotFile(options.dotPath, prog, violations)) {
@@ -281,7 +295,9 @@ int main(int argc, char** argv) {
                 if (violation.line > 0) {
                     std::cout << " (" << violation.line << "행)";
                 }
+                if (!violation.span.file.empty()) std::cout << " (" << sourceLocation(violation.span) << ")";
                 std::cout << "\n";
+                std::cout << sourceContext(prog.sources, violation.span);
             }
             return 1;
         }
@@ -303,6 +319,7 @@ int main(int argc, char** argv) {
                     std::cout << " (" << violation.line << "행)";
                 }
                 std::cout << "\n";
+                std::cout << sourceContext(prog.sources, violation.span);
             }
             return 1;
         }
@@ -316,6 +333,9 @@ int main(int argc, char** argv) {
             interpreter.run(options.entryModule, options.entryFunction);
         if (!execution.success) {
             std::cout << "\n✗ 실행 실패: " << execution.error << "\n";
+            std::cout << sourceContext(prog.sources, execution.failureSpan);
+            if (!execution.callStack.empty()) std::cout << "call_stack:\n";
+            for (const auto& frame : execution.callStack) std::cout << "  " << frame.first << " (" << sourceLocation(frame.second) << ")\n";
             return 1;
         }
 
@@ -341,6 +361,9 @@ int main(int argc, char** argv) {
         }
         return 0;
 
+    } catch (const SourceError& e) {
+        std::cerr << e.what() << "\n" << sourceContext(loader.sources, e.span);
+        return 1;
     } catch (const std::exception& e) {
         std::cerr << e.what() << "\n";
         return 1;

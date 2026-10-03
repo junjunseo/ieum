@@ -46,6 +46,7 @@ public:
                 else if (word == "else") type = TokenType::ELSE;
                 else if (word == "while") type = TokenType::WHILE;
                 else if (word == "record") type = TokenType::RECORD;
+                else if (word == "private") type = TokenType::PRIVATE;
                 else if (word == "for") type = TokenType::FOR;
                 else if (word == "break") type = TokenType::BREAK;
                 else if (word == "continue") type = TokenType::CONTINUE;
@@ -112,7 +113,7 @@ private:
         return Token(type, std::move(value), start.line, start);
     }
     [[noreturn]] void fail(const SourceSpan& span, const std::string& message) const {
-        throw std::runtime_error(sourceLocation(span) + " 렉싱 오류: " + message);
+        throw SourceError(span, "렉싱 오류: " + message);
     }
     Token readString(const SourceSpan& start) {
         advance();

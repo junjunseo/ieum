@@ -1,0 +1,8 @@
+module data {
+  let values = [10, 20, 30]
+  private let secret = 99
+  record Summary {
+    total: int
+    count: int
+  }
+}

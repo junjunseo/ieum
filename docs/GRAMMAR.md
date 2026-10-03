@@ -12,13 +12,13 @@ program        := { NEWLINE | moduleDecl lineEnd | layerDecl lineEnd }
 moduleDecl     := MODULE IDENTIFIER [ DEPENDS identifierList ] [ moduleBody ]
 moduleBody     := LEFT_BRACE RIGHT_BRACE
                 | LEFT_BRACE NEWLINE { NEWLINE | moduleMember NEWLINE } RIGHT_BRACE
-moduleMember   := variableDecl | functionDecl | recordDecl
+moduleMember   := [ "private" ] (variableDecl | functionDecl | recordDecl)
 recordDecl     := "record" IDENTIFIER LEFT_BRACE RIGHT_BRACE
                 | "record" IDENTIFIER LEFT_BRACE NEWLINE { NEWLINE | fieldDecl NEWLINE } RIGHT_BRACE
 fieldDecl      := IDENTIFIER COLON type
 
 variableDecl   := LET IDENTIFIER [ COLON type ] [ ASSIGN expression ]
-type           := "int" | "bool" | "string" | "unit" | "list" "<" type ">" | IDENTIFIER
+type           := "int" | "bool" | "string" | "unit" | "list" "<" type ">" | qualifiedName
 functionDecl   := FN IDENTIFIER LEFT_PAREN [ parameterList ] RIGHT_PAREN [ "->" type ] block
 parameterList  := parameter { COMMA parameter }
 parameter      := IDENTIFIER [ COLON type ]
@@ -28,7 +28,8 @@ statement      := variableDecl | assignment | callStatement | returnStatement
                 | block | ifStatement | whileStatement | forStatement | "break" | "continue"
 assignment     := IDENTIFIER { LEFT_BRACKET expression RIGHT_BRACKET | DOT IDENTIFIER } ASSIGN expression
 callStatement  := CALL callExpression
-callExpression := IDENTIFIER LEFT_PAREN [ argumentList ] RIGHT_PAREN
+callExpression := qualifiedName LEFT_PAREN [ argumentList ] RIGHT_PAREN
+qualifiedName  := IDENTIFIER [ DOT IDENTIFIER ]
 argumentList   := expression { COMMA expression }
 returnStatement := "return" [ expression ]
 ifStatement    := "if" expression block [ { NEWLINE } "else" (block | ifStatement) ]
@@ -88,7 +89,7 @@ layer service above data
 ## 식별자와 예약어
 
 - 식별자 형식은 `[A-Za-z_][A-Za-z0-9_]*`입니다.
-- `module`, `depends`, `layer`, `above`, `fn`, `let`, `call`, `true`, `false`, `return`, `if`, `else`, `while`, `for`, `break`, `continue`, `record`는 예약어입니다. 이 확장으로 예약어가 된 이름을 이전 코드에서 사용했다면 다른 이름으로 변경해야 합니다.
+- `module`, `depends`, `layer`, `above`, `fn`, `let`, `call`, `true`, `false`, `return`, `if`, `else`, `while`, `for`, `break`, `continue`, `record`, `private`는 예약어입니다. 이 확장으로 예약어가 된 이름을 이전 코드에서 사용했다면 다른 이름으로 변경해야 합니다.
 - 타입 이름은 `:` 또는 `->` 뒤에서 해석하므로 기존 변수 이름 `unit`, `int` 등은 계속 사용할 수 있습니다. unit 리터럴은 `()`입니다.
 - 함수 반환 타입은 `fn f(n: int) -> int { ... }`처럼 명시합니다. 생략 시 unit입니다. non-unit 함수는 모든 매개변수 타입도 명시해야 합니다. 호출 인자는 리터럴과 중첩 호출을 포함한 표현식입니다.
 
@@ -98,9 +99,9 @@ layer service above data
 - 매개변수와 함수 최상위 지역 변수는 같은 Scope를 공유합니다. 각 중첩 블록·조건 분기·반복 본문은 새 Scope를 만들며 같은 Scope 안에서는 이름을 중복 선언할 수 없습니다. 반복 본문의 Scope는 매 반복마다 새로 만듭니다.
 - 지역 변수는 선언 다음 문장부터 사용할 수 있습니다.
 - 초기화 식은 새 이름이 추가되기 전에 검사·평가합니다. 같은 이름의 바깥 지역·매개변수·모듈 변수가 있으면 `let x = x + 1`의 우변은 가장 가까운 바깥 변수를 가리킵니다.
-- 모듈 초기화 식에서는 같은 모듈의 앞서 선언한 변수만 참조할 수 있습니다. 함수에서는 해당 모듈의 모든 변수를 참조할 수 있습니다.
+- 모듈 초기화 식에서는 같은 모듈의 앞서 선언한 변수와 직접 의존 모듈의 공개 값을 참조할 수 있습니다. 함수에서는 해당 모듈의 모든 변수를 참조할 수 있습니다.
 - 안쪽 지역 변수는 바깥 지역·매개변수·모듈 변수를 가릴 수 있습니다. 블록을 벗어난 지역 변수는 접근할 수 없습니다. 호출된 함수는 호출자의 지역 변수에 접근하지 않습니다.
-- 함수 호출은 현재 모듈 함수를 먼저 찾고, 없으면 직접 `depends`로 선언한 모듈에서 찾습니다.
+- 한정되지 않은 함수 호출은 현재 모듈 함수를 먼저 찾고, 없으면 직접 `depends`로 선언한 모듈의 공개 함수에서 찾습니다.
 - 호출 대상이 다른 모듈에만 있으면 `depends` 누락이며, 여러 직접 의존 모듈에 있으면 모호한 호출입니다.
 - 호출 인자 수는 대상 함수의 매개변수 수와 같아야 합니다.
 - 초기화 식의 타입으로 변수를 추론하며 명시한 타입과 식의 타입이 다르면 오류입니다. 재대입·호출 인자도 같은 타입이어야 합니다. 숫자·문자열 사이의 암묵적 변환은 없습니다.
@@ -121,7 +122,7 @@ layer service above data
 ## 실행 의미
 
 - 구조 검사와 의미 검사를 모두 통과해야 실행합니다. `--run`이 없는 검사 명령은 값을 평가하지 않습니다.
-- 실행할 때 모듈의 소스 순서, 각 모듈 변수의 선언 순서대로 한 번 초기화합니다. 초기화 식에서도 함수를 호출할 수 있지만, 함수가 아직 초기화되지 않은 모듈 변수를 읽거나 재대입하면 `uninitialized_variable` 오류입니다. 초기화에서 실행 오류가 발생하면 진입 함수도 실행하지 않습니다. 실행기를 다시 호출하면 모듈 상태를 새로 초기화합니다.
+- 실행할 때 의존 모듈부터 초기화하고, 각 모듈 안에서는 변수 선언 순서대로 한 번 초기화합니다. 서로 독립인 모듈은 소스 순서를 유지합니다. 초기화 식에서도 함수를 호출할 수 있지만, 함수가 아직 초기화되지 않은 모듈 변수를 읽거나 재대입하면 `uninitialized_variable` 오류입니다. 초기화에서 실행 오류가 발생하면 진입 함수도 실행하지 않습니다. 실행기를 다시 호출하면 모듈 상태를 새로 초기화합니다.
 - `let`은 초기화 식을 평가한 값(생략 시 unit)을 저장합니다. 대입은 가장 안쪽 지역 Scope부터 바깥 지역·매개변수에서 이름을 찾고, 없으면 현재 모듈의 변수 값을 변경합니다.
 - 호출식과 `call`은 의미 분석에서 결정한 함수를 동기적으로 실행하며 호출마다 독립적인 지역·매개변수 저장 공간을 만듭니다. 인자는 값으로 복사하므로 매개변수를 재대입해도 호출자의 변수는 바뀌지 않습니다. 모듈 변수 변경은 같은 실행 내에서 유지됩니다.
 - 호출 인자와 이항 연산의 피연산자는 왼쪽부터 평가합니다. `&&`/`||`에서 생략한 우변의 함수 호출은 실행하지 않습니다. 호출식은 반환값을 만들고 `call` 문장은 반환값을 버립니다.
@@ -195,6 +196,24 @@ record는 모듈에 선언하며 모든 필드의 타입을 명시합니다. 생
 
 [파일 합산 예제](../examples/collections_io.ieum)는 입력 경로와 출력 경로를 두 줄로 받아 파일 읽기 → 줄 분리 → 정수 변환 → 합산 → 결과 쓰기를 수행합니다. [숫자 fixture](../test/fixtures/numbers.txt)의 합계는 60, 개수는 3입니다. 오류 경로 검증은 임시 디렉터리에서 수행합니다.
 
+## 여러 파일 모듈과 공개 범위
+
+```powershell
+.\build\ieum.exe .\examples\multifile\app.ieum --module-path .\examples\multifile --run app.main
+```
+
+`--module-path`는 모듈 검색 디렉터리이며 여러 번 지정할 수 있습니다. 상대 검색 경로는 현재 작업 디렉터리 기준입니다. 로더는 진입 파일의 `depends data`에 대응하는 `data.ieum`을 지정한 디렉터리에서 찾고, 그 파일의 의존 모듈도 같은 방식으로 읽습니다. 파일 안에 요청한 이름의 모듈 선언이 있어야 합니다. 한 파일에 여러 모듈을 둘 수 있으며 이미 로딩된 모듈은 다시 찾지 않습니다. layer 선언만으로 파일을 로딩하지는 않습니다.
+
+검색 경로를 지정하지 않으면 기존 단일 파일 동작을 유지하며 주변 파일을 읽지 않습니다. 지정한 디렉터리에서도 필요하지 않은 파일은 읽지 않고 하위 디렉터리를 자동 탐색하지 않습니다. 모듈 검색 경로는 정규화한 UTF-8 경로 순으로 처리하며 같은 모듈 파일이 여러 검색 경로에 있으면 첫 파일을 고르지 않고 충돌로 거부합니다. `.`/`..`·심볼릭 링크 등으로 같은 디렉터리를 중복 지정하거나 같은 파일을 여러 경로로 가리켜도 중복 경로 오류입니다. 파일 내 모듈 이름 중복은 기존 구조 오류이며 서로 다른 파일의 충돌이면 양쪽 위치를 표시합니다. 여러 파일을 합친 AST의 노드 ID는 프로그램 전체에서 고유합니다.
+
+함수/생성자 호출, 타입, 모듈 변수에 `data.get()`, `data.Point(1)`, `list<data.Point>`, `data.values[0]` 같은 한정 이름을 사용할 수 있습니다. 공개 모듈 변수는 같은 타입으로 갱신할 수 있으며 목록/레코드를 읽어 지역 변수에 대입하면 값 복사 의미를 유지합니다. 한정 이름도 직접 `depends`가 필요하고 해당 의존 관계에 모든 layer/순환 검사를 적용합니다. 호출의 매개변수·반환 타입이나 읽은 모듈 값의 레코드 타입에도 그 타입 소유 모듈의 직접 의존이 필요합니다. 내장 함수도 `std_io.print(...)`처럼 부를 수 있으며 동일한 검사를 받습니다.
+
+선언은 기본 공개입니다. 모듈 바로 아래의 `private fn`, `private let`, `private record`는 해당 모듈에서만 참조할 수 있습니다. private record의 생성자와 타입도 private이며 private 함수는 CLI 진입점이 될 수 없습니다. 공개 함수가 반환한 private 타입을 통해 접근하는 것도 거부합니다. record 필드별 공개 범위는 제공하지 않습니다. private는 언어의 이름 접근 규칙이며 실행 Trace/진단을 숨기는 기능은 아닙니다.
+
+기존 한정되지 않은 함수/타입 참조는 현재 모듈을 먼저 찾고 직접 의존 모듈의 공개 선언에서 찾습니다. 여러 공개 선언이 일치하면 모호한 이름 오류이며 한정 이름으로 구분합니다. 값의 필드 접근에서는 지역/현재 모듈 변수가 모듈 접두어보다 우선합니다. 함수 호출과 타입 이름은 각각 함수·타입 이름 공간에서 해석합니다.
+
+모듈 값은 의존 모듈부터 초기화하고, 서로 독립인 모듈은 소스 순서를 유지합니다. 각 모듈 안에서는 변수 선언 순서대로 초기화합니다. 모듈 초기화 중 호출한 함수가 아직 초기화되지 않은 값을 읽으면 실행 오류입니다. [세 파일 예제](../examples/multifile/app.ieum)는 data의 목록을 service에서 합산하고 app에서 `60`을 출력·반환합니다.
+
 ## 실행 한도
 
 기본 한도는 실행기 내부 단계 100,000회, 호출 깊이 1,024입니다. 모듈 초기화·식 평가·조건 검사·블록 진입/종료 등도 단계를 소비하므로 소스 문장 수와 같지 않습니다. 호출 깊이는 진입 함수도 1로 세며 재귀 여부와 무관하게 적용합니다. 값 평가와 함수 호출은 C++ 재귀 대신 명시적인 작업·값·호출 프레임 스택으로 처리합니다.
@@ -209,9 +228,9 @@ record는 모듈에 선언하며 모든 필드의 타입을 명시합니다. 생
 
 ## 소스 위치
 
-토큰·선언·표현식·문장은 파일·행·열 위치를 보관합니다. 표현식과 문장 ID는 한 번 파싱한 프로그램 안에서 고유하며 호출 해석에 사용됩니다. 새 렉싱·파싱·타입·값 실행 오류는 `파일:행:열`을 제공합니다. 열은 1부터 시작하는 UTF-8 바이트 위치이며 탭은 1바이트로 셉니다. BOM은 열에 포함하지 않고, CRLF도 한 줄바꿈으로 취급합니다. 기존 구조 오류의 행 진단은 유지됩니다.
+토큰·선언·표현식·문장은 파일·행·열 위치를 보관합니다. 표현식과 문장 ID는 여러 파일을 합친 프로그램 안에서도 고유하며 호출 해석에 사용됩니다. 새 렉싱·파싱·타입·값 실행 오류는 `파일:행:열`을 제공합니다. 열은 1부터 시작하는 UTF-8 바이트 위치이며 탭은 1바이트로 셉니다. BOM은 열에 포함하지 않고, CRLF도 한 줄바꿈으로 취급합니다. 구조·의미·렉싱·파싱·실행 오류는 가능한 선언/표현식 위치와 해당 소스 줄·캐럿을 함께 표시합니다. 실행 오류에는 안쪽 함수부터 바깥쪽 진입 함수까지 함수 이름과 호출 위치를 표시하는 `call_stack`이 붙습니다. CLI 사용 오류처럼 소스 노드가 없는 오류에는 소스 줄이 없습니다. 기존 구조 오류의 행 진단은 유지됩니다.
 
 ## 현재 지원하지 않는 항목
 
 - 함수 값·클로저, 일반 제네릭, 공유 참조·순환 객체
-- 여러 파일 로딩, 한정 이름·private 접근 제어, 부동소수점
+- 부동소수점, 네이티브 코드 생성, 패키지 레지스트리

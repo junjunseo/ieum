@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <map>
 #include "source.h"
 #include "value.h"
 
@@ -31,6 +32,7 @@ struct VariableDecl {
     NodeId id = 0;
     std::optional<ValueType> annotation;
     Expr initializer;
+    bool isPrivate = false;
 };
 
 struct Statement {
@@ -67,12 +69,14 @@ struct FunctionDecl {
     std::vector<bool> explicitParameterTypes;
     ValueType returnType = ValueType::Unit;
     std::string native; // builtin function or record constructor
+    bool isPrivate = false;
 };
 
 struct RecordDecl {
     std::string name;
     std::vector<std::pair<std::string, ValueType>> fields;
     SourceSpan span;
+    bool isPrivate = false;
 };
 
 // module <name> [depends <dep1>, <dep2>, ...] [moduleBody]
@@ -99,6 +103,7 @@ struct LayerDecl {
 struct Program {
     std::vector<ModuleDecl> modules;
     std::vector<LayerDecl> layers;
+    std::map<std::string, std::string> sources = {};
 };
 
 #endif // IEUM_AST_H

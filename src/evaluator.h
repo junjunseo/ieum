@@ -6,10 +6,10 @@
 
 using ValueScope = std::unordered_map<std::string, Value>;
 
-class EvaluationError : public std::runtime_error {
+class EvaluationError : public SourceError {
 public:
     EvaluationError(const SourceSpan& span, const std::string& message)
-        : std::runtime_error(sourceLocation(span) + " " + message) {}
+        : SourceError(span, message) {}
 };
 
 inline Value unaryValue(const std::string& op, const Value& right) {

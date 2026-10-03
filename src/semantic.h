@@ -14,6 +14,7 @@
 
 #include "ast.h"
 #include "standard_library.h"
+#include "module_order.h"
 
 enum class SemanticViolationKind {
     DuplicateModuleVariable,
@@ -26,7 +27,7 @@ enum class SemanticViolationKind {
     MissingCallDependency,
     ArityMismatch,
     TypeMismatch,
-    MissingReturn, InvalidControlFlow, IncompleteSignature, InvalidType, InvalidField
+    MissingReturn, InvalidControlFlow, IncompleteSignature, InvalidType, InvalidField, InvalidAccess
 };
 
 struct SemanticViolation {
@@ -54,7 +55,8 @@ struct ResolvedCall {
 };
 
 struct FunctionSignature { std::vector<ValueType> parameters; ValueType result; };
-struct RecordShape { std::vector<std::pair<std::string, ValueType>> fields; SourceSpan span; };
+struct RecordShape { std::vector<std::pair<std::string, ValueType>> fields; SourceSpan span; std::size_t module = 0; bool isPrivate = false; };
+struct ModuleValueRef { std::size_t module; std::string name; };
 
 struct SemanticResult {
     std::vector<SemanticViolation> violations;
@@ -62,6 +64,8 @@ struct SemanticResult {
     std::vector<std::vector<FunctionSignature>> signatures;
     std::map<std::string, RecordShape> records;
     std::unordered_map<NodeId, ValueType> expressionTypes;
+    std::unordered_map<NodeId, ModuleValueRef> resolvedValues;
+    std::vector<std::unordered_map<std::string, ValueType>> moduleTypes;
 
     bool ok() const { return violations.empty(); }
 
@@ -135,14 +139,53 @@ private:
     static void typeError(SemanticResult& result, const SourceSpan& span, const std::string& message) {
         result.violations.push_back({SemanticViolationKind::InvalidType, message, span.line, span});
     }
+    bool moduleAccess(std::size_t caller, std::size_t target, const SourceSpan& span, SemanticResult& result) const {
+        if (caller == target) return true;
+        const auto& name = program_.modules[target].name;
+        const auto& deps = program_.modules[caller].deps;
+        if (std::find(deps.begin(), deps.end(), name) != deps.end()) return true;
+        result.violations.push_back({SemanticViolationKind::InvalidAccess, "missing_dependency: depends " + name + " 선언이 필요합니다", span.line, span});
+        return false;
+    }
+    bool privateAccess(bool isPrivate, std::size_t caller, std::size_t target, const SourceSpan& span, SemanticResult& result) const {
+        if (!isPrivate || caller == target) return true;
+        result.violations.push_back({SemanticViolationKind::InvalidAccess, "private_access: 다른 모듈의 private 선언에 접근할 수 없습니다", span.line, span});
+        return false;
+    }
+    void typeAccess(const ValueType& type, std::size_t caller, const SourceSpan& span, SemanticResult& result) const {
+        if (type.kind == ValueType::List) { typeAccess(*type.element, caller, span, result); return; }
+        if (type.kind != ValueType::Record) return;
+        const auto found = result.records.find(type.name);
+        if (found == result.records.end()) return;
+        moduleAccess(caller, found->second.module, span, result);
+        privateAccess(found->second.isPrivate, caller, found->second.module, span, result);
+    }
     ValueType canonicalType(const ValueType& type, std::size_t module, const SourceSpan& span, SemanticResult& result) const {
         if (type.kind == ValueType::List) return ValueType::list(canonicalType(*type.element, module, span, result));
         if (type.kind != ValueType::Record) return type;
+        if (type.name.find('.') != std::string::npos) {
+            const auto record = result.records.find(type.name);
+            if (record == result.records.end()) { typeError(result, span, "unknown_type: 타입을 찾을 수 없습니다: " + type.name); return ValueType::Unit; }
+            typeAccess(type, module, span, result);
+            return type;
+        }
         const auto local = program_.modules[module].name + "." + type.name;
         if (result.records.count(local)) return ValueType::record(local);
         std::set<std::string> candidates;
-        for (const auto& dep : program_.modules[module].deps) if (result.records.count(dep + "." + type.name)) candidates.insert(dep + "." + type.name);
-        if (candidates.size() == 1) return ValueType::record(*candidates.begin());
+        bool hidden = false;
+        for (const auto& dep : program_.modules[module].deps) {
+            const auto found = result.records.find(dep + "." + type.name);
+            if (found == result.records.end()) continue;
+            if (found->second.isPrivate) hidden = true;
+            else candidates.insert(found->first);
+        }
+        if (candidates.size() == 1) {
+            const auto resolved = ValueType::record(*candidates.begin()); typeAccess(resolved, module, span, result); return resolved;
+        }
+        if (candidates.empty() && hidden) {
+            result.violations.push_back({SemanticViolationKind::InvalidAccess, "private_access: 의존 모듈의 private 타입에 접근할 수 없습니다: " + type.name, span.line, span});
+            return ValueType::Unit;
+        }
         typeError(result, span, candidates.empty() ? "unknown_type_or_dependency: 타입 또는 depends 선언을 찾을 수 없습니다: " + type.name
                                                   : "ambiguous_type: 여러 의존 모듈에 같은 타입이 있습니다: " + type.name);
         return ValueType::Unit;
@@ -153,11 +196,12 @@ private:
         return canonicalType(*type, module, span, result);
     }
     void prepareTypes(SemanticResult& result) const {
-        for (const auto& module : program_.modules) for (const auto& record : module.records) {
+        for (std::size_t m = 0; m < program_.modules.size(); ++m) for (const auto& record : program_.modules[m].records) {
+            const auto& module = program_.modules[m];
             if (record.name == "int" || record.name == "bool" || record.name == "string" || record.name == "unit" || record.name == "list") {
                 typeError(result, record.span, "reserved_type: 기본 타입 이름을 record로 선언할 수 없습니다");
             }
-            if (!result.records.emplace(module.name + "." + record.name, RecordShape{{}, record.span}).second) {
+            if (!result.records.emplace(module.name + "." + record.name, RecordShape{{}, record.span, m, record.isPrivate}).second) {
                 typeError(result, record.span, "duplicate_record: 레코드가 중복 선언되었습니다");
             }
         }
@@ -215,7 +259,7 @@ private:
                         "모듈 '" + module.name + "'의 변수 '" + variable.name +
                             "'가 중복 선언되었습니다 (최초 선언: " +
                             std::to_string(it->second) + "행)",
-                        variable.line
+                        variable.line, variable.span
                     });
                 }
             }
@@ -230,7 +274,7 @@ private:
                         "모듈 '" + module.name + "'의 함수 '" + function.name +
                             "'가 중복 선언되었습니다 (최초 선언: " +
                             std::to_string(functionIt->second) + "행)",
-                        function.line
+                        function.line, function.span
                     });
                 }
 
@@ -244,7 +288,7 @@ private:
                             "함수 '" + module.name + "." + function.name +
                                 "'의 매개변수 '" + parameter +
                                 "'가 중복 선언되었습니다",
-                            function.line
+                            function.line, function.span
                         });
                     }
                 }
@@ -264,8 +308,9 @@ private:
     }
 
     void resolveCalls(SemanticResult& result) const {
-        std::vector<TypeScope> moduleTypes(program_.modules.size());
-        for (std::size_t m = 0; m < program_.modules.size(); ++m) {
+        result.moduleTypes.resize(program_.modules.size());
+        auto& moduleTypes = result.moduleTypes;
+        for (const auto m : moduleInitializationOrder(program_)) {
             for (const auto& variable : program_.modules[m].variables) {
                 const auto annotation = annotationType(variable.annotation, m, variable.span, result);
                 const auto type = expressionType(variable.initializer, {}, moduleTypes[m], result, {m, noStatement}, annotation);
@@ -389,6 +434,7 @@ private:
         }
         const auto& function = program_.modules[target->module].functions[target->function];
         const auto& signature = result.signatures[target->module][target->function];
+        typeAccess(signature.result, caller.module, span, result);
         if (arguments.size() != function.parameters.size()) {
             result.violations.push_back({SemanticViolationKind::ArityMismatch,
                 "함수 '" + qualifiedName(*target) + "'의 인자 개수가 일치하지 않습니다", span.line, span});
@@ -397,6 +443,7 @@ private:
             const bool anyList = function.native == "std_list.length" && p == 0;
             const std::optional<ValueType> expected = p < signature.parameters.size() && !anyList
                 ? std::optional<ValueType>(signature.parameters[p]) : std::nullopt;
+            if (expected) typeAccess(*expected, caller.module, arguments[p]->span, result);
             const auto actual = expressionType(arguments[p], locals, module, result, caller, expected);
             if (anyList && actual && actual->kind != ValueType::List) typeError(result, arguments[p]->span, "list_required: length에는 목록이 필요합니다");
             else checkType(expected, actual, arguments[p]->span, result);
@@ -462,11 +509,35 @@ private:
             return *base->element;
         }
         if (expr->kind == Expression::Kind::Field) {
+            if (expr->left->kind == Expression::Kind::Name) {
+                const auto& name = expr->left->text;
+                bool variable = module.count(name) != 0;
+                for (const auto& scope : locals) variable = variable || scope.count(name) != 0;
+                if (!variable) {
+                    const auto found = moduleByName_.find(name);
+                    if (found == moduleByName_.end()) {
+                        result.violations.push_back({SemanticViolationKind::InvalidAccess, "unknown_module: 모듈을 찾을 수 없습니다: " + name, expr->span.line, expr->span});
+                        return std::nullopt;
+                    }
+                    const auto target = found->second;
+                    if (!moduleAccess(caller.module, target, expr->span, result)) return std::nullopt;
+                    for (const auto& declaration : program_.modules[target].variables) if (declaration.name == expr->text) {
+                        if (!privateAccess(declaration.isPrivate, caller.module, target, expr->span, result)) return std::nullopt;
+                        const auto type = result.moduleTypes[target].find(expr->text);
+                        if (type == result.moduleTypes[target].end()) break;
+                        typeAccess(type->second, caller.module, expr->span, result);
+                        result.resolvedValues[expr->id] = {target, expr->text};
+                        return type->second;
+                    }
+                    result.violations.push_back({SemanticViolationKind::UndefinedVariable, "undefined_module_value: 모듈 값이 없거나 아직 선언되지 않았습니다: " + name + "." + expr->text, expr->span.line, expr->span});
+                    return std::nullopt;
+                }
+            }
             const auto base = expressionType(expr->left, locals, module, result, caller);
             if (!base) return std::nullopt;
             if (base->kind != ValueType::Record) { typeError(result, expr->span, "record_required: 필드 접근에는 레코드가 필요합니다"); return std::nullopt; }
             const auto record = result.records.find(base->name);
-            if (record != result.records.end()) for (const auto& field : record->second.fields) if (field.first == expr->text) return field.second;
+            if (record != result.records.end()) for (const auto& field : record->second.fields) if (field.first == expr->text) { typeAccess(field.second, caller.module, expr->span, result); return field.second; }
             result.violations.push_back({SemanticViolationKind::InvalidField, "unknown_field: 필드를 찾을 수 없습니다: " + expr->text, expr->span.line, expr->span});
             return std::nullopt;
         }
@@ -501,17 +572,39 @@ private:
         const std::string& name,
         int line,
         SemanticResult& result) const {
+        const auto dot = name.find('.');
+        if (dot != std::string::npos) {
+            const SourceSpan span{"", line};
+            const auto found = moduleByName_.find(name.substr(0, dot));
+            if (found == moduleByName_.end()) {
+                const auto prefix = name.substr(0, dot);
+                result.violations.push_back({SemanticViolationKind::InvalidAccess,
+                    isStandardModule(prefix) ? "missing_dependency: depends " + prefix + " 선언이 필요합니다" : "unknown_module: 모듈을 찾을 수 없습니다: " + prefix, line});
+                return std::nullopt;
+            }
+            if (!moduleAccess(callerModule, found->second, span, result)) return std::nullopt;
+            const auto candidates = candidatesInModule(found->second, name.substr(dot + 1));
+            if (candidates.size() == 1) {
+                const auto ref = candidates.front();
+                if (!privateAccess(program_.modules[ref.module].functions[ref.function].isPrivate, callerModule, ref.module, span, result)) return std::nullopt;
+                return ref;
+            }
+            if (candidates.empty()) result.violations.push_back({SemanticViolationKind::UndefinedFunction, "undefined_function: 함수를 찾을 수 없습니다: " + name, line});
+            return std::nullopt;
+        }
         const auto local = candidatesInModule(callerModule, name);
         if (local.size() == 1) return local.front();
         if (local.size() > 1) return std::nullopt; // DuplicateFunction already reports it.
 
         std::vector<FunctionRef> dependencies;
+        std::vector<FunctionRef> privateDependencies;
         std::unordered_set<std::size_t> seenNodes;
         for (const auto& dependencyName : program_.modules[callerModule].deps) {
             const auto moduleIt = moduleByName_.find(dependencyName);
             if (moduleIt == moduleByName_.end()) continue;
 
             for (const auto& candidate : candidatesInModule(moduleIt->second, name)) {
+                if (program_.modules[candidate.module].functions[candidate.function].isPrivate) { privateDependencies.push_back(candidate); continue; }
                 const std::size_t node = functionNode(candidate);
                 if (seenNodes.insert(node).second) dependencies.push_back(candidate);
             }
@@ -525,6 +618,10 @@ private:
                     joinNames(dependencies),
                 line
             });
+            return std::nullopt;
+        }
+        if (!privateDependencies.empty()) {
+            result.violations.push_back({SemanticViolationKind::InvalidAccess, "private_access: 의존 모듈의 private 함수에 접근할 수 없습니다: " + name, line});
             return std::nullopt;
         }
 

@@ -1,0 +1,10 @@
+module service depends data, std_list {
+  fn summarize() -> data.Summary {
+    let total = 0
+    for (let i = 0; i < std_list.length(data.values); i = i + 1) {
+      total = total + data.values[i]
+    }
+    return data.Summary(total, std_list.length(data.values))
+  }
+}
+layer service above data

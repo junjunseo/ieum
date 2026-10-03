@@ -35,6 +35,8 @@ struct ExecutionResult {
     std::map<std::string, Value> entryLocals;
     Value returnValue;
     std::size_t stepsExecuted = 0;
+    SourceSpan failureSpan = {};
+    std::vector<std::pair<std::string, SourceSpan>> callStack;
 };
 
 struct ExecutionLimits {
@@ -124,6 +126,11 @@ private:
                 "'을 찾을 수 없습니다";
             return std::nullopt;
         }
+        if (module.functions[*functionIndex].isPrivate) {
+            result.failureSpan = module.functions[*functionIndex].span;
+            result.error = sourceLocation(result.failureSpan) + " private_access: private 함수는 외부 진입점으로 실행할 수 없습니다";
+            return std::nullopt;
+        }
         return FunctionRef{*moduleIndex, *functionIndex};
     }
 
@@ -150,6 +157,7 @@ private:
             std::vector<ValueScope> scopes;
             std::size_t valueBase;
             bool entry;
+            SourceSpan callSite;
         };
         const Program& program;
         const SemanticResult& semantics;
@@ -180,6 +188,11 @@ private:
             if (it != globals[module].end()) return it->second;
             throw EvaluationError(span, "uninitialized_variable: 초기화된 변수를 찾을 수 없습니다: " + key);
         }
+        Value& moduleValue(const ModuleValueRef& ref, const SourceSpan& span) {
+            const auto found = globals[ref.module].find(ref.name);
+            if (found != globals[ref.module].end()) return found->second;
+            throw EvaluationError(span, "uninitialized_variable: 초기화된 모듈 값이 없습니다: " + program.modules[ref.module].name + "." + ref.name);
+        }
         void expression(const Expression* expr, std::size_t module, const SourceSpan& fallback = {}) {
             Task task(Kind::Expression, module, expr ? expr->span : fallback);
             task.expression = expr; work.push_back(std::move(task));
@@ -207,7 +220,7 @@ private:
                 result.events.push_back({ExecutionEventKind::CallFunction, caller, name(ref), depth == 0 ? 0 : depth - 1, source.span.line});
                 ++result.callsExecuted;
             }
-            Frame frame{ref, std::vector<ValueScope>(1), values.size(), isEntry};
+            Frame frame{ref, std::vector<ValueScope>(1), values.size(), isEntry, source.span};
             if (function.native.empty()) for (std::size_t p = 0; p < args.size(); ++p) frame.scopes.back().emplace(function.parameters[p], std::move(args[p]));
             frames.push_back(std::move(frame));
             result.events.push_back({ExecutionEventKind::EnterFunction, name(ref), "", depth, function.line});
@@ -252,6 +265,8 @@ private:
         void evaluate(const Task& task) {
             const auto* expr = task.expression;
             if (!expr) { values.emplace_back(std::monostate{}); return; }
+            const auto reference = semantics.resolvedValues.find(expr->id);
+            if (reference != semantics.resolvedValues.end()) { values.push_back(moduleValue(reference->second, expr->span)); return; }
             if (expr->kind == Expression::Kind::Literal) { values.push_back(expr->literal); return; }
             if (expr->kind == Expression::Kind::Name) { values.push_back(variable(expr->text, task.module, expr->span)); return; }
             if (expr->kind == Expression::Kind::Call) { call(expr->id, expr->arguments, task); return; }
@@ -275,14 +290,24 @@ private:
             if (apply.kind == Kind::Binary) expression(expr->right.get(), task.module);
             expression(expr->left.get(), task.module);
         }
-        static std::vector<const Expression*> accessPath(const Expr& target) {
+        std::vector<const Expression*> accessPath(const Expr& target) const {
             std::vector<const Expression*> path;
             const auto* item = target.get();
             while (item && (item->kind == Expression::Kind::Index || item->kind == Expression::Kind::Field)) {
+                if (semantics.resolvedValues.count(item->id)) break;
                 path.push_back(item); item = item->left.get();
             }
             std::reverse(path.begin(), path.end());
             return path;
+        }
+        Value& assignmentRoot(const Statement& statement, std::size_t module) {
+            const auto* item = statement.target.get();
+            while (item) {
+                const auto reference = semantics.resolvedValues.find(item->id);
+                if (reference != semantics.resolvedValues.end()) return moduleValue(reference->second, statement.span);
+                item = item->left.get();
+            }
+            return variable(statement.name, module, statement.span);
         }
         static Value replacePath(const Value& base, const std::vector<const Expression*>& path,
                 const std::vector<std::int64_t>& indices, std::size_t step, std::size_t& index, Value replacement) {
@@ -376,7 +401,7 @@ private:
                     std::vector<std::int64_t> indices;
                     for (const auto* access : path) if (access->kind == Expression::Kind::Index) indices.push_back(0);
                     for (std::size_t i = indices.size(); i > 0; --i) indices[i - 1] = std::get<std::int64_t>(pop());
-                    auto& base = variable(task.statement->name, task.module, task.span);
+                    auto& base = assignmentRoot(*task.statement, task.module);
                     std::size_t index = 0;
                     base = replacePath(base, path, indices, 0, index, std::move(value));
                     break;
@@ -430,20 +455,28 @@ private:
         void run(FunctionRef target) {
             entry = target;
             work.emplace_back(Kind::Entry, target.module, program.modules[target.module].functions[target.function].span);
-            for (std::size_t m = program.modules.size(); m > 0; --m) {
-                const auto& module = program.modules[m-1];
+            const auto order = moduleInitializationOrder(program);
+            for (auto next = order.rbegin(); next != order.rend(); ++next) {
+                const auto m = *next;
+                const auto& module = program.modules[m];
                 for (auto it = module.variables.rbegin(); it != module.variables.rend(); ++it) {
-                    Task store(Kind::StoreGlobal, m-1, it->span); store.variable = &*it; work.push_back(store);
-                    expression(it->initializer.get(), m-1, it->span);
+                    Task store(Kind::StoreGlobal, m, it->span); store.variable = &*it; work.push_back(store);
+                    expression(it->initializer.get(), m, it->span);
                 }
             }
             while (!work.empty()) {
                 Task task = std::move(work.back()); work.pop_back();
-                if (result.stepsExecuted >= limits.maxSteps) throw EvaluationError(task.span, "step_limit: 최대 실행 스텝을 초과했습니다");
-                ++result.stepsExecuted;
-                try { execute(task); }
-                catch (const EvaluationError&) { throw; }
-                catch (const std::exception& error) { throw EvaluationError(task.span, error.what()); }
+                try {
+                    if (result.stepsExecuted >= limits.maxSteps) throw EvaluationError(task.span, "step_limit: 최대 실행 스텝을 초과했습니다");
+                    ++result.stepsExecuted;
+                    execute(task);
+                } catch (const std::exception& error) {
+                    const auto* located = dynamic_cast<const SourceError*>(&error);
+                    result.failureSpan = located ? located->span : task.span;
+                    for (auto frame = frames.rbegin(); frame != frames.rend(); ++frame) result.callStack.emplace_back(name(frame->ref), frame->callSite);
+                    if (located) throw;
+                    throw EvaluationError(task.span, error.what());
+                }
             }
             for (std::size_t m = 0; m < globals.size(); ++m) {
                 for (const auto& [key, value] : globals[m]) result.moduleValues.emplace(program.modules[m].name + "." + key, value);

@@ -1,0 +1,8 @@
+module app depends service, data, std_io, std_text {
+  fn main() -> int {
+    let summary: data.Summary = service.summarize()
+    call std_io.print(std_text.to_string(summary.total))
+    return summary.total
+  }
+}
+layer app above service
