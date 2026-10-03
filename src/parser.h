@@ -10,6 +10,7 @@
 #include <vector>
 #include "token.h"
 #include "ast.h"
+#include "standard_library.h"
 
 // ── 파서 ───────────────────────────────────────────────
 // 토큰 스트림(렉서 출력)을 받아 Program AST를 만든다.
@@ -34,6 +35,7 @@ public:
             }
             consumeLineEnd();
         }
+        installStandardLibrary(prog);
         return prog;
     }
 
@@ -50,6 +52,7 @@ private:
         Token name = expect(TokenType::IDENTIFIER,
                             "module 다음에는 모듈 이름이 와야 합니다");
         ModuleDecl decl;
+        if (isStandardModule(name.value)) throw error("내장 모듈 이름을 선언할 수 없습니다");
         decl.name = name.value;
         decl.line = kw.line;
         decl.span = kw.span;
@@ -93,8 +96,19 @@ private:
                 module.variables.push_back(parseVariable());
             } else if (check(TokenType::FN)) {
                 module.functions.push_back(parseFunction());
+            } else if (check(TokenType::RECORD)) {
+                auto record = parseRecord();
+                FunctionDecl constructor;
+                constructor.name = record.name; constructor.line = record.span.line; constructor.span = record.span;
+                constructor.native = "record"; constructor.returnType = ValueType::record(record.name);
+                for (const auto& field : record.fields) {
+                    constructor.parameters.push_back(field.first); constructor.parameterTypes.push_back(field.second);
+                    constructor.explicitParameterTypes.push_back(true);
+                }
+                module.functions.push_back(std::move(constructor));
+                module.records.push_back(std::move(record));
             } else {
-                throw error("모듈 본문에는 'let' 또는 'fn' 선언만 올 수 있습니다");
+                throw error("모듈 본문에는 'let', 'fn' 또는 'record' 선언만 올 수 있습니다");
             }
 
             consumeBlockMemberEnd("모듈 본문의 선언 뒤에는 줄바꿈이 필요합니다");
@@ -102,6 +116,25 @@ private:
         }
 
         advance(); // RIGHT_BRACE
+    }
+
+    RecordDecl parseRecord() {
+        const auto token = advance();
+        RecordDecl record;
+        record.span = token.span;
+        record.name = expect(TokenType::IDENTIFIER, "record 이름이 필요합니다").value;
+        expect(TokenType::LEFT_BRACE, "record 본문에 '{'가 필요합니다");
+        if (!check(TokenType::RIGHT_BRACE)) {
+            consumeBlockStart("record 필드는 다음 줄에 작성합니다"); skipNewlines();
+            while (!check(TokenType::RIGHT_BRACE)) {
+                const auto name = expect(TokenType::IDENTIFIER, "필드 이름이 필요합니다");
+                expect(TokenType::COLON, "필드 타입 앞에 ':'가 필요합니다");
+                record.fields.emplace_back(name.value, parseType());
+                consumeBlockMemberEnd("필드 뒤에는 줄바꿈이 필요합니다"); skipNewlines();
+            }
+        }
+        const auto end = advance(); record.span.endLine = end.span.endLine; record.span.endColumn = end.span.endColumn;
+        return record;
     }
 
     VariableDecl parseVariable() {
@@ -195,6 +228,7 @@ private:
             case TokenType::IDENTIFIER:
                 statement.kind = Statement::Kind::Assignment;
                 statement.name = token.value;
+                statement.target = parsePostfix(node(Expression::Kind::Name, token));
                 expect(TokenType::ASSIGN, "변수 이름 뒤에는 '='가 필요합니다");
                 statement.expression = parseExpression();
                 break;
@@ -282,13 +316,20 @@ private:
         return decl;
     }
 
-    ValueType parseType() {
+    ValueType parseType(std::size_t depth = 0) {
+        if (depth > 128) throw error("타입 최대 중첩 깊이를 초과했습니다");
         const auto token = expect(TokenType::IDENTIFIER, "타입 이름이 필요합니다");
         if (token.value == "int") return ValueType::Int;
         if (token.value == "bool") return ValueType::Bool;
         if (token.value == "string") return ValueType::String;
         if (token.value == "unit") return ValueType::Unit;
-        throw std::runtime_error(sourceLocation(token.span) + " 알 수 없는 타입: " + token.value);
+        if (token.value == "list") {
+            expect(TokenType::LESS, "list 타입에 '<원소 타입>'이 필요합니다");
+            auto element = parseType(depth + 1);
+            expect(TokenType::GREATER, "list 타입을 닫는 '>'가 필요합니다");
+            return ValueType::list(std::move(element));
+        }
+        return ValueType::record(token.value);
     }
 
     static int precedence(TokenType type) {
@@ -370,7 +411,7 @@ private:
             return expr;
         }
         const auto token = advance();
-        if (token.type == TokenType::INTEGER) return integerLiteral(token);
+        if (token.type == TokenType::INTEGER) return parsePostfix(integerLiteral(token));
         auto expr = node(Expression::Kind::Literal, token);
         if (token.type == TokenType::STRING) expr->literal = token.value;
         else if (token.type == TokenType::TRUE_VALUE || token.type == TokenType::FALSE_VALUE) expr->literal = token.type == TokenType::TRUE_VALUE;
@@ -386,6 +427,20 @@ private:
                 expr->span.endColumn = tokens_[pos_ - 1].span.endColumn;
             }
         }
+        else if (token.type == TokenType::LEFT_BRACKET) {
+            expr->kind = Expression::Kind::List;
+            if (!check(TokenType::RIGHT_BRACKET)) {
+                do {
+                    expr->arguments.push_back(parseExpression());
+                    if (!check(TokenType::COMMA)) break;
+                    advance();
+                } while (true);
+            }
+            expect(TokenType::RIGHT_BRACKET, "목록을 닫는 ']'가 필요합니다");
+            for (const auto& item : expr->arguments) expr->treeDepth = std::max(expr->treeDepth, 1 + item->treeDepth);
+            expr->span.endLine = tokens_[pos_ - 1].span.endLine;
+            expr->span.endColumn = tokens_[pos_ - 1].span.endColumn;
+        }
         else if (token.type == TokenType::LEFT_PAREN) {
             if (!check(TokenType::RIGHT_PAREN)) expr = parseExpression();
             const auto close = expect(TokenType::RIGHT_PAREN, "표현식을 닫는 ')'가 필요합니다");
@@ -393,7 +448,28 @@ private:
             expr->span.endLine = close.span.endLine;
             expr->span.endColumn = close.span.endColumn;
         } else throw std::runtime_error(sourceLocation(token.span) + " 표현식이 필요합니다");
-        return expr;
+        if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+        return parsePostfix(expr);
+    }
+
+    Expr parsePostfix(Expr base) {
+        while (check(TokenType::LEFT_BRACKET) || check(TokenType::DOT)) {
+            const auto token = advance();
+            auto expr = node(token.type == TokenType::DOT ? Expression::Kind::Field : Expression::Kind::Index, token);
+            expr->left = base;
+            if (token.type == TokenType::DOT) expr->text = expect(TokenType::IDENTIFIER, "필드 이름이 필요합니다").value;
+            else {
+                expr->right = parseExpression();
+                expect(TokenType::RIGHT_BRACKET, "인덱스를 닫는 ']'가 필요합니다");
+            }
+            expr->treeDepth = 1 + std::max(base->treeDepth, expr->right ? expr->right->treeDepth : 0);
+            if (expr->treeDepth > 128) throw error("표현식 최대 중첩 깊이를 초과했습니다");
+            expr->span = base->span;
+            expr->span.endLine = tokens_[pos_ - 1].span.endLine;
+            expr->span.endColumn = tokens_[pos_ - 1].span.endColumn;
+            base = std::move(expr);
+        }
+        return base;
     }
 
     // ── 토큰 유틸 ──────────────────────────────────────

@@ -65,7 +65,7 @@ module app {
 .\build\ieum.exe .\examples\control_flow.ieum --run app.main --max-steps 10000 --max-call-depth 20
 ```
 
-기본 실행 한도는 내부 단계 100,000회와 호출 깊이 1,024이며 무한 실행은 한도 오류로 종료합니다. 함수 재귀는 허용하지만 모듈 의존 순환은 계속 금지합니다. 리스트·레코드·표준 입출력·여러 파일 로딩은 아직 지원하지 않습니다.
+기본 실행 한도는 내부 단계 100,000회와 호출 깊이 1,024이며 무한 실행은 한도 오류로 종료합니다. 함수 재귀는 허용하지만 모듈 의존 순환은 계속 금지합니다. 리스트·레코드와 기본 입출력을 지원하며, 여러 파일 로딩은 아직 지원하지 않습니다.
 
 `for`는 초기화·조건·증감을 괄호 안에 작성합니다. `continue`는 증감 후 조건 검사로 돌아가며, 초기화에서 선언한 변수는 반복문 밖에 남지 않습니다.
 
@@ -77,6 +77,18 @@ for (let i = 1; i <= 10; i = i + 1) {
 ```
 
 [for 실행 예제](examples/for_loop.ieum)는 `--run app.main`으로 실행하면 55를 반환합니다. 세 부분을 각각 생략할 수 있고 `for (;;) { ... }`도 실행 한도의 적용을 받습니다.
+
+`list<int>`와 명명 `record`는 값 복사 의미로 동작합니다. [자료구조 예제](examples/collections.ieum)는 `[10,20,30]`의 합계 60·개수 3을 계산합니다. [파일 합산 예제](examples/collections_io.ieum)는 `std_io`·`std_text`·`std_list`를 depends로 선언하고 읽기→분리→정수 변환→합산→파일 쓰기를 수행합니다.
+
+```powershell
+.\build\ieum.exe .\examples\collections.ieum --run app.main
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$inputPath = (Resolve-Path .\test\fixtures\numbers.txt).Path
+$outputPath = Join-Path $env:TEMP "ieum-sum.txt"
+@($inputPath, $outputPath) | .\build\ieum.exe .\examples\collections_io.ieum --run app.main
+```
+
+파일 예제는 지정한 출력 파일을 생성하거나 덮어쓰며 결과는 `60`입니다. 한글 경로를 표준 입력으로 전달할 때는 PowerShell의 파이프 인코딩을 UTF-8로 설정해야 합니다. 함수·타입 표와 복사/인덱스 규칙은 [문법 가이드](docs/GRAMMAR.md)를 참고합니다.
 
 정상적인 구조의 예:
 

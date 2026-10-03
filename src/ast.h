@@ -9,7 +9,7 @@
 #include "value.h"
 
 struct Expression {
-    enum class Kind { Literal, Name, Unary, Binary, Call };
+    enum class Kind { Literal, Name, Unary, Binary, Call, List, Index, Field };
     Kind kind = Kind::Literal;
     NodeId id = 0;
     std::size_t treeDepth = 1;
@@ -49,6 +49,7 @@ struct Statement {
     NodeId id = 0;
     std::optional<ValueType> annotation;
     Expr expression;
+    Expr target; // assignment path rooted in a variable
     std::vector<Expr> callArguments;
     std::vector<Statement> body;
     std::vector<Statement> alternative;
@@ -65,6 +66,13 @@ struct FunctionDecl {
     std::vector<ValueType> parameterTypes; // omitted types remain unit
     std::vector<bool> explicitParameterTypes;
     ValueType returnType = ValueType::Unit;
+    std::string native; // builtin function or record constructor
+};
+
+struct RecordDecl {
+    std::string name;
+    std::vector<std::pair<std::string, ValueType>> fields;
+    SourceSpan span;
 };
 
 // module <name> [depends <dep1>, <dep2>, ...] [moduleBody]
@@ -76,6 +84,7 @@ struct ModuleDecl {
     std::vector<FunctionDecl> functions;
     int line;
     SourceSpan span = {};
+    std::vector<RecordDecl> records = {};
 };
 
 // layer <upper> above <lower>

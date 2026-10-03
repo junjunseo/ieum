@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <map>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -12,6 +13,7 @@
 #include <vector>
 
 #include "ast.h"
+#include "standard_library.h"
 
 enum class SemanticViolationKind {
     DuplicateModuleVariable,
@@ -24,7 +26,7 @@ enum class SemanticViolationKind {
     MissingCallDependency,
     ArityMismatch,
     TypeMismatch,
-    MissingReturn, InvalidControlFlow, IncompleteSignature
+    MissingReturn, InvalidControlFlow, IncompleteSignature, InvalidType, InvalidField
 };
 
 struct SemanticViolation {
@@ -51,9 +53,15 @@ struct ResolvedCall {
     NodeId node = 0;
 };
 
+struct FunctionSignature { std::vector<ValueType> parameters; ValueType result; };
+struct RecordShape { std::vector<std::pair<std::string, ValueType>> fields; SourceSpan span; };
+
 struct SemanticResult {
     std::vector<SemanticViolation> violations;
     std::vector<ResolvedCall> resolvedCalls;
+    std::vector<std::vector<FunctionSignature>> signatures;
+    std::map<std::string, RecordShape> records;
+    std::unordered_map<NodeId, ValueType> expressionTypes;
 
     bool ok() const { return violations.empty(); }
 
@@ -85,6 +93,7 @@ public:
         buildIndexes();
 
         SemanticResult result;
+        prepareTypes(result);
         checkDeclarations(result);
         resolveCalls(result);
         return result;
@@ -121,6 +130,77 @@ private:
                 node++;
             }
         }
+    }
+
+    static void typeError(SemanticResult& result, const SourceSpan& span, const std::string& message) {
+        result.violations.push_back({SemanticViolationKind::InvalidType, message, span.line, span});
+    }
+    ValueType canonicalType(const ValueType& type, std::size_t module, const SourceSpan& span, SemanticResult& result) const {
+        if (type.kind == ValueType::List) return ValueType::list(canonicalType(*type.element, module, span, result));
+        if (type.kind != ValueType::Record) return type;
+        const auto local = program_.modules[module].name + "." + type.name;
+        if (result.records.count(local)) return ValueType::record(local);
+        std::set<std::string> candidates;
+        for (const auto& dep : program_.modules[module].deps) if (result.records.count(dep + "." + type.name)) candidates.insert(dep + "." + type.name);
+        if (candidates.size() == 1) return ValueType::record(*candidates.begin());
+        typeError(result, span, candidates.empty() ? "unknown_type_or_dependency: 타입 또는 depends 선언을 찾을 수 없습니다: " + type.name
+                                                  : "ambiguous_type: 여러 의존 모듈에 같은 타입이 있습니다: " + type.name);
+        return ValueType::Unit;
+    }
+    std::optional<ValueType> annotationType(const std::optional<ValueType>& type, std::size_t module,
+            const SourceSpan& span, SemanticResult& result) const {
+        if (!type) return std::nullopt;
+        return canonicalType(*type, module, span, result);
+    }
+    void prepareTypes(SemanticResult& result) const {
+        for (const auto& module : program_.modules) for (const auto& record : module.records) {
+            if (record.name == "int" || record.name == "bool" || record.name == "string" || record.name == "unit" || record.name == "list") {
+                typeError(result, record.span, "reserved_type: 기본 타입 이름을 record로 선언할 수 없습니다");
+            }
+            if (!result.records.emplace(module.name + "." + record.name, RecordShape{{}, record.span}).second) {
+                typeError(result, record.span, "duplicate_record: 레코드가 중복 선언되었습니다");
+            }
+        }
+        for (std::size_t m = 0; m < program_.modules.size(); ++m) {
+            const auto& module = program_.modules[m];
+            for (const auto& record : module.records) {
+                auto& shape = result.records.at(module.name + "." + record.name);
+                std::set<std::string> names;
+                for (const auto& field : record.fields) {
+                    if (!names.insert(field.first).second) typeError(result, record.span, "duplicate_field: 필드가 중복 선언되었습니다: " + field.first);
+                    shape.fields.emplace_back(field.first, canonicalType(field.second, m, record.span, result));
+                }
+            }
+            std::vector<FunctionSignature> signatures;
+            for (const auto& fn : module.functions) {
+                FunctionSignature signature;
+                signature.result = canonicalType(fn.returnType, m, fn.span, result);
+                for (std::size_t p = 0; p < fn.parameters.size(); ++p) signature.parameters.push_back(canonicalType(parameterType(fn, p), m, fn.span, result));
+                signatures.push_back(std::move(signature));
+            }
+            result.signatures.push_back(std::move(signatures));
+        }
+        std::map<std::string, unsigned> visited, heights;
+        std::function<unsigned(const std::string&, unsigned)> visit = [&](const std::string& name, unsigned depth) -> unsigned {
+            auto& state = visited[name];
+            if (state == 2) return heights[name];
+            const auto& record = result.records.at(name);
+            if (state == 1 || depth > 128) {
+                typeError(result, record.span, "recursive_record: 순환 또는 과도하게 깊은 레코드 타입은 지원하지 않습니다");
+                return 129;
+            }
+            state = 1;
+            unsigned height = 1;
+            for (const auto& field : record.fields) {
+                auto type = field.second;
+                while (type.kind == ValueType::List) { const auto element = *type.element; type = element; }
+                if (type.kind == ValueType::Record) height = std::max(height, 1 + visit(type.name, depth + 1));
+            }
+            if (height > 128) typeError(result, record.span, "recursive_record: 레코드 타입 최대 중첩 깊이를 초과했습니다");
+            state = 2;
+            return heights[name] = std::min(height, 129u);
+        };
+        for (const auto& record : result.records) visit(record.first, 1);
     }
 
     void checkDeclarations(SemanticResult& result) const {
@@ -187,16 +267,19 @@ private:
         std::vector<TypeScope> moduleTypes(program_.modules.size());
         for (std::size_t m = 0; m < program_.modules.size(); ++m) {
             for (const auto& variable : program_.modules[m].variables) {
-                const auto type = expressionType(variable.initializer, {}, moduleTypes[m], result, {m, noStatement});
-                checkType(variable.annotation, type, variable.span, result);
-                moduleTypes[m].emplace(variable.name, variable.annotation.value_or(type.value_or(ValueType::Unit)));
+                const auto annotation = annotationType(variable.annotation, m, variable.span, result);
+                const auto type = expressionType(variable.initializer, {}, moduleTypes[m], result, {m, noStatement}, annotation);
+                checkType(annotation, type, variable.span, result);
+                moduleTypes[m].emplace(variable.name, annotation.value_or(type.value_or(ValueType::Unit)));
             }
         }
         for (std::size_t m = 0; m < program_.modules.size(); ++m) {
             for (std::size_t f = 0; f < program_.modules[m].functions.size(); ++f) {
                 const auto& function = program_.modules[m].functions[f];
+                if (!function.native.empty()) continue;
+                const auto& signature = result.signatures[m][f];
                 TypeScopes locals(1);
-                for (std::size_t p = 0; p < function.parameters.size(); ++p) locals.back().emplace(function.parameters[p], parameterType(function, p));
+                for (std::size_t p = 0; p < function.parameters.size(); ++p) locals.back().emplace(function.parameters[p], signature.parameters[p]);
                 const auto flow = checkStatements(function.body, locals, moduleTypes[m], {m,f}, 0, result);
                 if (function.returnType != ValueType::Unit && (flow & Fallthrough)) {
                     result.violations.push_back({SemanticViolationKind::MissingReturn,
@@ -220,17 +303,19 @@ private:
             unsigned next = Fallthrough;
             switch (statement.kind) {
                 case Statement::Kind::VariableDeclaration: {
-                    const auto type = expressionType(statement.expression, locals, module, result, caller);
-                    checkType(statement.annotation, type, statement.span, result);
-                    if (!locals.back().emplace(statement.name, statement.annotation.value_or(type.value_or(ValueType::Unit))).second) {
+                    const auto annotation = annotationType(statement.annotation, caller.module, statement.span, result);
+                    const auto type = expressionType(statement.expression, locals, module, result, caller, annotation);
+                    checkType(annotation, type, statement.span, result);
+                    if (!locals.back().emplace(statement.name, annotation.value_or(type.value_or(ValueType::Unit))).second) {
                         result.violations.push_back({SemanticViolationKind::DuplicateLocalVariable,
                             "같은 블록의 지역 이름 '" + statement.name + "'가 중복 선언되었습니다", statement.line, statement.span});
                     }
                     break;
                 }
                 case Statement::Kind::Assignment: {
-                    const auto expected = lookupType(statement.name, locals, module, statement.span, result);
-                    const auto actual = expressionType(statement.expression, locals, module, result, caller);
+                    const auto expected = statement.target ? expressionType(statement.target, locals, module, result, caller)
+                        : lookupType(statement.name, locals, module, statement.span, result);
+                    const auto actual = expressionType(statement.expression, locals, module, result, caller, expected);
                     checkType(expected, actual, statement.span, result);
                     break;
                 }
@@ -238,11 +323,12 @@ private:
                     resolveTypedCall(caller, statement.name, statement.callArguments, statement.id, statement.span,
                                      locals, module, result, i);
                     break;
-                case Statement::Kind::Return:
-                    checkType(program_.modules[caller.module].functions[caller.function].returnType,
-                        expressionType(statement.expression, locals, module, result, caller), statement.span, result);
+                case Statement::Kind::Return: {
+                    const auto expected = result.signatures[caller.module][caller.function].result;
+                    checkType(expected, expressionType(statement.expression, locals, module, result, caller, expected), statement.span, result);
                     next = Returns;
                     break;
+                }
                 case Statement::Kind::Break:
                 case Statement::Kind::Continue:
                     if (loops == 0) result.violations.push_back({SemanticViolationKind::InvalidControlFlow,
@@ -294,20 +380,29 @@ private:
             const std::vector<Expr>& arguments, NodeId node, const SourceSpan& span,
             const TypeScopes& locals, const TypeScope& module, SemanticResult& result,
             std::size_t statement = noStatement) const {
-        std::vector<std::optional<ValueType>> types;
-        for (const auto& argument : arguments) types.push_back(expressionType(argument, locals, module, result, caller));
         const auto before = result.violations.size();
         const auto target = resolveFunction(caller.module, name, span.line, result);
         for (std::size_t i = before; i < result.violations.size(); ++i) result.violations[i].span = span;
-        if (!target) return std::nullopt;
+        if (!target) {
+            for (const auto& argument : arguments) expressionType(argument, locals, module, result, caller);
+            return std::nullopt;
+        }
         const auto& function = program_.modules[target->module].functions[target->function];
+        const auto& signature = result.signatures[target->module][target->function];
         if (arguments.size() != function.parameters.size()) {
             result.violations.push_back({SemanticViolationKind::ArityMismatch,
                 "함수 '" + qualifiedName(*target) + "'의 인자 개수가 일치하지 않습니다", span.line, span});
         }
-        for (std::size_t p = 0; p < std::min(types.size(), function.parameters.size()); ++p) checkType(parameterType(function,p), types[p], span, result);
+        for (std::size_t p = 0; p < arguments.size(); ++p) {
+            const bool anyList = function.native == "std_list.length" && p == 0;
+            const std::optional<ValueType> expected = p < signature.parameters.size() && !anyList
+                ? std::optional<ValueType>(signature.parameters[p]) : std::nullopt;
+            const auto actual = expressionType(arguments[p], locals, module, result, caller, expected);
+            if (anyList && actual && actual->kind != ValueType::List) typeError(result, arguments[p]->span, "list_required: length에는 목록이 필요합니다");
+            else checkType(expected, actual, arguments[p]->span, result);
+        }
         result.resolvedCalls.push_back({caller, statement, *target, span.line, node});
-        return function.returnType;
+        return signature.result;
     }
 
     static ValueType parameterType(const FunctionDecl& function, std::size_t p) {
@@ -338,11 +433,43 @@ private:
     }
 
     std::optional<ValueType> expressionType(const Expr& expr, const TypeScopes& locals,
-                                          const TypeScope& module, SemanticResult& result, FunctionRef caller) const {
+                                          const TypeScope& module, SemanticResult& result, FunctionRef caller, std::optional<ValueType> expected = std::nullopt) const {
         if (!expr) return ValueType::Unit;
         if (expr->kind == Expression::Kind::Literal) return valueType(expr->literal);
         if (expr->kind == Expression::Kind::Name) return lookupType(expr->text, locals, module, expr->span, result);
         if (expr->kind == Expression::Kind::Call) return resolveTypedCall(caller, expr->text, expr->arguments, expr->id, expr->span, locals, module, result);
+        if (expr->kind == Expression::Kind::List) {
+            std::optional<ValueType> element;
+            if (expected && expected->kind == ValueType::List) element = *expected->element;
+            for (const auto& item : expr->arguments) {
+                const auto actual = expressionType(item, locals, module, result, caller, element);
+                if (!element) element = actual;
+                else checkType(element, actual, item->span, result);
+            }
+            if (!element) { typeError(result, expr->span, "empty_list_type: 빈 목록에는 원소 타입이 필요합니다"); return std::nullopt; }
+            auto type = ValueType::list(*element);
+            auto inner = type; unsigned depth = 0;
+            while (inner.kind == ValueType::List) { const auto next = *inner.element; inner = next; ++depth; }
+            if (depth > 128) { typeError(result, expr->span, "type_depth_limit: 목록 타입 최대 중첩 깊이를 초과했습니다"); return std::nullopt; }
+            result.expressionTypes[expr->id] = type;
+            return type;
+        }
+        if (expr->kind == Expression::Kind::Index) {
+            const auto base = expressionType(expr->left, locals, module, result, caller);
+            checkType(ValueType::Int, expressionType(expr->right, locals, module, result, caller), expr->right->span, result);
+            if (!base) return std::nullopt;
+            if (base->kind != ValueType::List) { typeError(result, expr->span, "list_required: 인덱스 접근에는 목록이 필요합니다"); return std::nullopt; }
+            return *base->element;
+        }
+        if (expr->kind == Expression::Kind::Field) {
+            const auto base = expressionType(expr->left, locals, module, result, caller);
+            if (!base) return std::nullopt;
+            if (base->kind != ValueType::Record) { typeError(result, expr->span, "record_required: 필드 접근에는 레코드가 필요합니다"); return std::nullopt; }
+            const auto record = result.records.find(base->name);
+            if (record != result.records.end()) for (const auto& field : record->second.fields) if (field.first == expr->text) return field.second;
+            result.violations.push_back({SemanticViolationKind::InvalidField, "unknown_field: 필드를 찾을 수 없습니다: " + expr->text, expr->span.line, expr->span});
+            return std::nullopt;
+        }
         if (expr->kind == Expression::Kind::Unary) {
             const auto type = expressionType(expr->right, locals, module, result, caller);
             const auto expected = expr->text == "!" ? ValueType::Bool : ValueType::Int;
@@ -351,7 +478,7 @@ private:
         }
         // Type-check both sides even when evaluation can short-circuit.
         const auto left = expressionType(expr->left, locals, module, result, caller);
-        const auto right = expressionType(expr->right, locals, module, result, caller);
+        const auto right = expressionType(expr->right, locals, module, result, caller, left);
         if (!left || !right) return std::nullopt;
         const auto& op = expr->text;
         if (*left == *right) {
@@ -436,6 +563,12 @@ private:
             return std::nullopt;
         }
 
+        const auto standardModule = standardFunctionModule(name);
+        if (!standardModule.empty()) {
+            result.violations.push_back({SemanticViolationKind::MissingCallDependency,
+                "내장 함수 '" + name + "'에는 depends " + standardModule + " 선언이 필요합니다", line});
+            return std::nullopt;
+        }
         result.violations.push_back({
             SemanticViolationKind::UndefinedFunction,
             "함수 '" + name + "'을 현재 모듈이나 의존 모듈에서 찾을 수 없습니다",
