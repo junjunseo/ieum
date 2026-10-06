@@ -8,11 +8,16 @@ if ($version -notmatch '^\d+\.\d+\.\d+$') {
     throw "VERSION must contain a semantic version such as 0.1.0"
 }
 
-$versionDefinition = '-DIEUM_VERSION=\"' + $version + '\"'
+$versionDefinition = '@build/version.rsp'
 
 Push-Location $root
 try {
     New-Item -ItemType Directory -Force -Path "build" | Out-Null
+    # A GCC response file preserves quotes under both Windows PowerShell 5.1 and PowerShell 7.
+    [System.IO.File]::WriteAllText(
+        (Join-Path $root "build/version.rsp"),
+        ('-DIEUM_VERSION=\"' + $version + '\"'),
+        [System.Text.UTF8Encoding]::new($false))
 
     & $compiler `
         -std=c++17 `

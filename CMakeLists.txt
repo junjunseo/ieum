@@ -67,14 +67,20 @@ add_ieum_executable(testControlFlow test/testControlFlow.cpp)
 add_ieum_executable(testCollections test/testCollections.cpp)
 add_ieum_executable(testModules test/testModules.cpp)
 add_ieum_executable(benchmarkChecker benchmark/benchmarkChecker.cpp)
+add_ieum_executable(benchmarkRuntime benchmark/benchmarkRuntime.cpp)
 
 if(MSVC)
     target_compile_options(benchmarkChecker PRIVATE /O2)
+    target_compile_options(benchmarkRuntime PRIVATE /O2)
 else()
     target_compile_options(benchmarkChecker PRIVATE -O2)
+    target_compile_options(benchmarkRuntime PRIVATE -O2)
 endif()
 
 enable_testing()
+foreach(scenario loop recursion collections)
+    add_test(NAME runtime_benchmark_${scenario} COMMAND benchmarkRuntime ${scenario} 7 1)
+endforeach()
 
 add_test(NAME parser COMMAND testParser)
 add_test(NAME pipeline COMMAND testPipeline)
@@ -177,8 +183,16 @@ add_ieum_graph_failure_test(valid valid 0)
 add_ieum_graph_failure_test(invalid cyclic_dependency 1)
 
 # Python is optional for the core. CI also exercises the demo/evaluation tools.
-find_package(Python3 3.9 COMPONENTS Interpreter QUIET)
+option(IEUM_REQUIRE_PYTHON_TESTS "Require Python integration tests (release/CI verification)" OFF)
+if(IEUM_REQUIRE_PYTHON_TESTS)
+    find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
+else()
+    find_package(Python3 3.9 COMPONENTS Interpreter QUIET)
+endif()
 if(Python3_Interpreter_FOUND)
+    add_test(NAME language_qa COMMAND ${Python3_EXECUTABLE} -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/test_language_qa.py"
+        --ieum $<TARGET_FILE:ieum> --runtime-benchmark $<TARGET_FILE:benchmarkRuntime>)
     add_test(NAME modules_cli COMMAND ${Python3_EXECUTABLE} -B
         "${CMAKE_CURRENT_SOURCE_DIR}/test/test_modules_cli.py"
         --ieum $<TARGET_FILE:ieum>)

@@ -8,11 +8,16 @@ if ($version -notmatch '^\d+\.\d+\.\d+$') {
     throw "VERSION must contain a semantic version such as 0.1.0"
 }
 
-$versionDefinition = '-DIEUM_VERSION=\"' + $version + '\"'
+$versionDefinition = '@build/version.rsp'
 
 Push-Location $root
 try {
     New-Item -ItemType Directory -Force -Path "build" | Out-Null
+    # A GCC response file preserves quotes under both Windows PowerShell 5.1 and PowerShell 7.
+    [System.IO.File]::WriteAllText(
+        (Join-Path $root "build/version.rsp"),
+        ('-DIEUM_VERSION=\"' + $version + '\"'),
+        [System.Text.UTF8Encoding]::new($false))
 
     $commonArgs = @(
         "-std=c++17",
@@ -73,6 +78,14 @@ try {
         throw "Benchmark smoke test did not report the expected scenario"
     }
     Write-Host ""
+
+    Write-Host "Build: benchmark/benchmarkRuntime.cpp"
+    & $compiler @commonArgs "-O2" "-DNDEBUG" "benchmark/benchmarkRuntime.cpp" -o "build/benchmarkRuntime.exe"
+    if ($LASTEXITCODE -ne 0) { throw "Runtime benchmark compilation failed" }
+    foreach ($scenario in @("loop", "recursion", "collections")) {
+        & ".\build\benchmarkRuntime.exe" $scenario 7 1
+        if ($LASTEXITCODE -ne 0) { throw "Runtime benchmark failed: $scenario" }
+    }
 
     Write-Host "Build: src/main.cpp"
     & $compiler @commonArgs "src/main.cpp" "src/cli_args.cpp" -o "build/ieum.exe" -lshell32
@@ -241,6 +254,8 @@ try {
                 throw "Workflow validation failed: $script"
             }
         }
+        & $pythonCommand.Source -B test/test_language_qa.py --ieum "build/ieum.exe" --runtime-benchmark "build/benchmarkRuntime.exe"
+        if ($LASTEXITCODE -ne 0) { throw "Language QA failed" }
         & $pythonCommand.Source -B test/test_real_corpus.py --ieum "build/ieum.exe" --benchmark "build/benchmarkChecker.exe"
         if ($LASTEXITCODE -ne 0) {
             throw "Real corpus validation failed"

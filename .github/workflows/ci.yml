@@ -31,7 +31,7 @@ jobs:
         run: cmake --version
 
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DIEUM_REQUIRE_PYTHON_TESTS=ON
 
       - name: Build
         run: cmake --build build --config Release
