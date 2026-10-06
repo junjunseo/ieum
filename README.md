@@ -254,22 +254,16 @@ ctest --test-dir build -C Release --output-on-failure
 
 테스트 범위:
 
-- 파서 단위 테스트 46개
-- Lexer → Parser → Checker 통합 테스트 35개
-- 구조 검사기 시나리오 테스트 35개
-- 의존 그래프 생성기 테스트 14개
-- 의미 분석기 테스트 26개
-- 최소 인터프리터 테스트 15개
-- 총 171개 assert 기반 자동 테스트
-- CLI 버전이 `VERSION`과 일치하는지 확인하는 테스트
-- 정상 예제 3개의 종료 코드 `0`과 위반 예제 9개의 종료 코드 `1`을 확인하는 smoke 테스트
-- 잘못된 실행 진입점 형식, 미정의 진입 함수와 매개변수가 있는 진입 함수의 CLI 종료 코드 검증
-- 예제별 대표 성공·위반 진단이 출력되는지 확인하는 테스트
-- 2개 모듈 합성 corpus로 성능 측정 경로를 확인하는 benchmark smoke 테스트
-- 대표 예제 6종의 결정적 DOT 스냅샷과 그래프 저장 실패 격리 테스트
-- Python이 있으면 평가 집계·실패 처리·저장된 그래프 일치 검증 8개, 초기 평가 입력 15개와 데모 재생도 확인
-- PowerShell·CTest의 Python 경로는 실제 corpus 추출·독립 참조 계산·파일 벤치마크·SVG 일치 검증 14개를 추가 실행합니다(총 Python 테스트 22개).
-- 정상 구조, 선언 오류, 주석·공백·BOM 입력, 미선언 의존, 직접·다단계·자기·복수 순환, 계층 위반, Scope, 함수 해석, 인자 개수, 재귀와 실행 Trace 검증
+- C++ 검증 568개: 기존 구조·파서·그래프·의미·실행 171개, 값 113개, 제어 흐름/for 149개, 자료구조 83개, 여러 파일 52개
+- Python 검증 64개: 기존 workflow 8개, 제어 흐름 CLI 11개, 자료구조 CLI 11개, 여러 파일 CLI 16개, 실제 corpus 14개, 통합 QA 4개
+- 값·제어 흐름·자료구조·파일 입출력·여러 파일의 기대값과 실행 전 거부를 확인하는 언어 데모 8단계
+- 초기 평가 입력 15개, 실제/변형·합성 구조 입력 14개, 정상→위반→복구 데모
+- 대표 예제 6종의 결정적 DOT 스냅샷과 그래프 저장 실패 격리
+- 구조 검사와 실행 성능 측정 경로의 정답·인자·표본 검증
+
+전체 검증에는 Python 3.9 이상이 필요합니다. CI는 -DIEUM_REQUIRE_PYTHON_TESTS=ON으로
+구성하여 Python 검사가 조용히 빠지는 것을 방지합니다. 기본 CMake 구성에서 Python은
+선택 사항이므로 Python 없이 core만 통과한 결과를 전체 QA로 해석하지 않습니다.
 
 ## 성능 기준선
 
@@ -291,7 +285,9 @@ make benchmark BENCHMARK_MODULES=200 BENCHMARK_ITERATIONS=11
 
 ## CI
 
-GitHub Actions는 `ubuntu-latest`와 `windows-latest`에서 CMake configure, build, CTest를 실행합니다. CTest는 위의 171개 assert 기반 자동 테스트, CLI 버전 테스트, 12개 예제 smoke 테스트, 실행 진입점 경계 조건, 6개 DOT 스냅샷과 benchmark smoke 테스트를 함께 검증합니다.
+GitHub Actions는 `ubuntu-latest`와 `windows-latest`에서 CMake configure, build, CTest를 실행합니다. Python을 포함한 CTest 50개 suite에서 위의 C++·Python 검증, CLI·예제·DOT·데모·구조/실행 벤치마크를 함께 검사합니다.
+[언어 확장판 사용 가이드](docs/LANGUAGE_GUIDE.md)에 새 checkout 재현과 기능별 실행 결과를 설명합니다.
+공식 태그 v0.1.0과 현재 미출시 소스의 지원 기능은 구분해야 합니다.
 
 새 환경에서 재현할 때는 다음 순서를 기준으로 확인합니다.
 
@@ -320,7 +316,7 @@ src/
   checker.h     의존성과 계층 규칙 검사
   graph.h       결정적 DOT 그래프와 위반 경로 강조
   semantic.h    이름·Scope·함수 호출 분석
-  interpreter.h 검증된 unit 함수 호출 실행과 Trace
+  interpreter.h 값·제어 흐름·호출 프레임 실행과 Trace
   version.h     빌드 시스템이 전달한 버전 노출
   main.cpp      명령행 프로그램
 test/           자동 테스트
