@@ -1,0 +1,7 @@
+── 파싱 결과 ──
+모듈 5개, 계층 선언 5개 (modules=5, layers=5)
+
+✓ 의존 그래프 저장: five_valid.dot (graph_format=dot)
+
+✓ 구조 검사 통과: 위반 없음
+✓ 의미 검사 통과: 위반 없음

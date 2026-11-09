@@ -1,0 +1,22 @@
+digraph ieum {
+  graph [rankdir=LR, bgcolor="white"];
+  node [shape=box, style="rounded,filled", fillcolor="#f8fafc", color="#334155", fontname="sans-serif"];
+  edge [fontname="sans-serif", fontsize=10];
+
+  "auth";
+  "config";
+  "data";
+  "orders";
+  "ui";
+
+  "auth" -> "config" [label="depends", color="#2563eb"];
+  "orders" -> "data" [label="depends", color="#2563eb"];
+  "ui" -> "auth" [label="depends", color="#2563eb"];
+  "ui" -> "orders" [label="depends", color="#2563eb"];
+
+  "auth" -> "config" [label="above", style="dashed", color="#64748b", arrowhead="empty"];
+  "auth" -> "data" [label="above", style="dashed", color="#64748b", arrowhead="empty"];
+  "orders" -> "data" [label="above", style="dashed", color="#64748b", arrowhead="empty"];
+  "ui" -> "auth" [label="above", style="dashed", color="#64748b", arrowhead="empty"];
+  "ui" -> "orders" [label="above", style="dashed", color="#64748b", arrowhead="empty"];
+}

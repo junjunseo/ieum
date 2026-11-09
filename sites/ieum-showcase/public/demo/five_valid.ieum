@@ -1,0 +1,11 @@
+module ui depends orders, auth
+module orders depends data
+module auth depends config
+module data
+module config
+
+layer ui above orders
+layer ui above auth
+layer orders above data
+layer auth above data
+layer auth above config
