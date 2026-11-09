@@ -1,0 +1,29 @@
+{
+  "generator": "IEUM --emit-dot + Graphviz",
+  "ieum_sha256": "039facb3cece7e5c441d1521bb20e9c4f0ca612e75d7bec4d956de9e54904e57",
+  "graphviz": "dot - graphviz version 16.1.0 (20260904.0139)",
+  "examples": [
+    {
+      "example": "five_valid",
+      "exit_code": 0,
+      "nodes": 5,
+      "sha256": {
+        "ieum": "e8c2981232122baa7f79d5284e455edb0ae7e489835ea9828fe919352ce368b5",
+        "dot": "73bfe1ac9d1a6dc5f9e54341697824a77ace3f479df956e42b1ffc5784879964",
+        "svg": "aa72ed16442dbeb4d0ffb4f8ce69e6933d007ddfc48bd8ebeba525950e8e8cbb",
+        "log": "8f4b07580cb2a1ae00e41e8374843e24753f6fe7ea027c12e4d34f7297021e9f"
+      }
+    },
+    {
+      "example": "five_violation",
+      "exit_code": 1,
+      "nodes": 5,
+      "sha256": {
+        "ieum": "6082c7fdba57f5e9809b3d62641734b1b0b2cadf43f83dc07e82f2bd58c4d66f",
+        "dot": "57b8c0afa8ea9f269949a2836e9ac308ea044212245ec429707d63445b72d0bf",
+        "svg": "9c9078bff1e29cb46a272fdbbc03699fca8bfc11dea8fe7be1fa29f6d443c324",
+        "log": "e100ae68f89ddc2c323d393fbc397c92e42927b6ab4821c3e77a321564a8adc2"
+      }
+    }
+  ]
+}

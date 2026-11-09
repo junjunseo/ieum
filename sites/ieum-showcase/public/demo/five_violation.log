@@ -1,0 +1,10 @@
+── 파싱 결과 ──
+모듈 5개, 계층 선언 5개 (modules=5, layers=5)
+
+✓ 의존 그래프 저장: five_violation.dot (graph_format=dot)
+
+✗ 구조 검사 실패: 위반 1건
+
+  [계층 위반] 계층 위반: 하위 계층 'data'가 상위 계층 'auth'에 의존합니다 (4행) (five_violation.ieum:4:1)
+    module data depends auth
+    ^
