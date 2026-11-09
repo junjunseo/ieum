@@ -18,7 +18,7 @@ npx tsc --noEmit
 npm run build
 ```
 
-Vinext / React 기반이며 Sites의 Worker 배포 형식을 사용합니다. `.openai/hosting.json`은 아직 Site ID가 없는 배포 전 상태입니다. 저장소의 승인 절차에 따라 커밋·푸시 승인 후 호스팅을 연결합니다. 새 Site 등록 시 반환된 ID를 그대로 저장해야 합니다.
+Vinext / React 기반이며 Sites의 Worker 배포 형식을 사용합니다. `.openai/hosting.json`에 등록된 Site ID가 저장되어 있습니다. 현재 호스팅 등록과 빌드 검증을 마친 배포 전 상태입니다. 후속 작업은 기존 Site ID를 재사용하며, 저장소의 승인 절차에 따라 배포 설정을 커밋한 뒤 게시합니다.
 
 ## 수정 위치
 
