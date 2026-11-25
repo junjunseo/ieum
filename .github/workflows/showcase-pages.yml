@@ -1,0 +1,52 @@
+name: Showcase Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sites/ieum-showcase/**'
+      - '.github/workflows/showcase-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: showcase-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: sites/ieum-showcase/package-lock.json
+      - name: Export the showcase
+        working-directory: sites/ieum-showcase
+        env:
+          NEXT_PUBLIC_IEUM_BASE_PATH: /ieum
+        run: |
+          npm ci
+          npm exec -- next build
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: sites/ieum-showcase/out
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - name: Publish the showcase
+        id: publish
+        uses: actions/deploy-pages@v4
