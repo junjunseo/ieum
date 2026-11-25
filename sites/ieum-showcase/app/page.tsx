@@ -60,8 +60,15 @@ export default function Home() {
 
       <section className="film-section" id="film" aria-labelledby="film-title"><div className="wrap">
         <SectionLabel number="04">THE PROJECT FILM</SectionLabel>
-        <div className="film-layout"><div><h2 id="film-title">이음이 만들어진 이유,<br />그리고 작동하는 모습.</h2><p>프로젝트의 배경부터 코드 작성,<br />검사 결과까지 하나의 영상으로.</p></div>
-          {videoId ? <div className="video-frame"><iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title="이음 프로젝트 소개 및 시연 영상" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div> : <div className="film-placeholder"><div className="film-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div><span className="film-symbol" aria-hidden="true">↗</span><p>설명 영상 준비 중</p><span>곧 이곳에서 만나보세요.</span><a href="#demo">먼저 인터랙티브 데모 보기 <span aria-hidden="true">↑</span></a></div>}
+        <div className="film-layout">
+          <div>
+            <h2 id="film-title">이음이 만들어진 이유,<br />그리고 작동하는 모습.</h2>
+            <p>모듈의 연결이 계층 규칙을 어기는 사례와<br />이음의 검사 과정을 영상으로 소개합니다.</p>
+            <p><a className="text-link" href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noreferrer">YouTube에서 보기</a></p>
+          </div>
+          <div className="video-frame">
+            <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title="이음 프로젝트 소개 및 시연 영상" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+          </div>
         </div>
       </div></section>
 

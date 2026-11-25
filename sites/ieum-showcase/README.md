@@ -18,7 +18,7 @@ npx tsc --noEmit
 npm run build
 ```
 
-Vinext / React 기반이며 Sites의 Worker 배포 형식을 사용합니다. `.openai/hosting.json`에 등록된 Site ID가 저장되어 있습니다. 현재 호스팅 등록과 빌드 검증을 마친 배포 전 상태입니다. 후속 작업은 기존 Site ID를 재사용하며, 저장소의 승인 절차에 따라 배포 설정을 커밋한 뒤 게시합니다.
+기존 Sites 배포는 `.openai/hosting.json`에 등록된 Site ID와 Vinext Worker 빌드를 사용합니다. GitHub Pages 배포는 `.github/workflows/showcase-pages.yml`에서 Next.js 정적 내보내기를 실행하고 `/ieum/` 아래에 게시합니다. 저장소의 Settings → Pages에서 배포 소스로 GitHub Actions를 선택해야 합니다.
 
 ## 수정 위치
 
@@ -27,7 +27,7 @@ Vinext / React 기반이며 Sites의 Worker 배포 형식을 사용합니다. `.
 - `app/demonstration.tsx`: 정상 → 연결 추가 → 연결 수정 데모
 - `app/site-config.ts`: GitHub 주소 및 YouTube 영상 ID
 
-`youtubeId`는 현재 빈 문자열입니다. YouTube 주소의 영상 ID를 입력하면 준비 중 안내가 개인정보 보호 모드 YouTube 임베드로 바뀝니다. 영상 ID는 `https://www.youtube.com/watch?v=VIDEO_ID`의 `VIDEO_ID` 부분입니다.
+소개 영상은 `youtubeId`에 설정합니다. 영상 섹션에는 YouTube 개인정보 보호 모드 플레이어와 YouTube에서 바로 열 수 있는 링크가 있습니다.
 
 ## 실제 결과 기반 데모
 
