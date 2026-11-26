@@ -1,4 +1,4 @@
-import Demonstration from "./demonstration";
+import ShowcaseDemo from "./showcase-demo";
 import { site } from "./site-config";
 
 function Score() {
@@ -49,8 +49,8 @@ export default function Home() {
 
       <section className="demo-section" id="demo" aria-labelledby="demo-title"><div className="wrap">
         <SectionLabel number="02">SEE THE CONNECTIONS</SectionLabel>
-        <div className="demo-intro"><div><h2 id="demo-title">하나의 연결이 바뀌면.</h2><p>다섯 개 모듈로 이음의 구조 검사를 살펴보세요.</p></div><span className="small-mono">5 MODULES / 1 CHANGED DEPENDENCY</span></div>
-        <Demonstration />
+        <div className="demo-intro"><div><h2 id="demo-title">하나의 연결이 바뀌면.</h2><p>다섯 개 모듈을 연결하거나, 이미 이어진 관계를 따라가 보세요.</p></div></div>
+        <ShowcaseDemo />
       </div></section>
 
       <section className="section wrap language" id="language" aria-labelledby="language-title">
